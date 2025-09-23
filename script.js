@@ -90,7 +90,6 @@ const tarotData = [
     { name: "펜타클 킹", img: "images/펜타클/펜타클 킹.jpg" }
 ];
 
-/* === 여기까지 복사 === */
 // --- 1. 변수 및 요소 설정 ---
 const screens = document.querySelectorAll('.screen');
 const mainShuffleArea = document.getElementById('main-shuffle-area');
@@ -180,7 +179,7 @@ async function getInterpretation(cardNames, question) {
     interpretationText.innerText = "AI가 카드를 해석하고 있습니다...";
     
     // 이 URL은 당신의 Serverless Function 주소로 바꿔야 합니다.
-    const SERVERLESS_FUNCTION_URL = 'https://my-tarot-app-three.vercel.app/api/interpret'; 
+    const SERVERLESS_FUNCTION_URL = 'https://my-tarot-reading.vercel.app/api/interpret'; 
 
     try {
         const response = await fetch(SERVERLESS_FUNCTION_URL, {
