@@ -1,4 +1,96 @@
+/* === script.js 파일의 가장 맨 위에 이 코드를 붙여넣으세요! === */
 
+const tarotData = [
+    // --- 메이저 아르카나 (22장) ---
+    { name: "바보", img: "images/메이저_아르카나/0. 바보 카드.jpg" },
+    { name: "마법사", img: "images/메이저_아르카나/1. 마법사 카드.jpg" },
+    { name: "여사제", img: "images/메이저_아르카나/2. 여사제 카드.jpg" },
+    { name: "여황제", img: "images/메이저_아르카나/3. 여황제 카드.jpg" },
+    { name: "황제", img: "images/메이저_아르카나/4. 황제 카드.jpg" },
+    { name: "교황", img: "images/메이저_아르카나/5. 교황 카드.jpg" },
+    { name: "연인", img: "images/메이저_아르카나/6. 연인 카드.jpg" },
+    { name: "전차", img: "images/메이저_아르카나/7. 전차 카드.jpg" },
+    { name: "힘", img: "images/메이저_아르카나/8. 힘 카드.jpg" },
+    { name: "은둔자", img: "images/메이저_아르카나/9. 은둔자 카드.jpg" },
+    { name: "운명의 수레바퀴", img: "images/메이저_아르카나/10. 운명의 수레바퀴.jpg" },
+    { name: "정의", img: "images/메이저_아르카나/11. 정의 카드.jpg" },
+    { name: "매달린 남자", img: "images/메이저_아르카나/12. 행맨 카드.jpg" },
+    { name: "죽음", img: "images/메이저_아르카나/13. 죽음 카드.jpg" },
+    { name: "절제", img: "images/메이저_아르카나/14. 절제 카드.jpg" },
+    { name: "악마", img: "images/메이저_아르카나/15. 악마 카드.jpg" },
+    { name: "탑", img: "images/메이저_아르카나/16. 탑 카드.jpg" },
+    { name: "별", img: "images/메이저_아르카나/17. 별 카드.jpg" },
+    { name: "달", img: "images/메이저_아르카나/18. 달 카드.jpg" },
+    { name: "태양", img: "images/메이저_아르카나/19. 태양 카드.jpg" },
+    { name: "심판", img: "images/메이저_아르카나/20. 심판 카드.jpg" },
+    { name: "세계", img: "images/메이저_아르카나/21. 세계 카드.jpg" },
+
+    // --- 완드 (14장) ---
+    { name: "완드 에이스", img: "images/완드/완드 에이스.jpg" },
+    { name: "완드 2", img: "images/완드/완드2.jpg" },
+    { name: "완드 3", img: "images/완드/완드3.jpg" },
+    { name: "완드 4", img: "images/완드/완드4.jpg" },
+    { name: "완드 5", img: "images/완드/완드5.jpg" },
+    { name: "완드 6", img: "images/완드/완드6.jpg" },
+    { name: "완드 7", img: "images/완드/완드7.jpg" },
+    { name: "완드 8", img: "images/완드/완드8.jpg" },
+    { name: "완드 9", img: "images/완드/완드9.jpg" },
+    { name: "완드 10", img: "images/완드/완드10.jpg" },
+    { name: "완드 페이지", img: "images/완드/완드 페이지.jpg" },
+    { name: "완드 나이트", img: "images/완드/완드 나이트.jpg" },
+    { name: "완드 퀸", img: "images/완드/완드 퀸.jpg" },
+    { name: "완드 킹", img: "images/완드/완드 킹.jpg" },
+
+    // --- 컵 (14장) ---
+    { name: "컵 에이스", img: "images/컵/컵 에이스.jpg" },
+    { name: "컵 2", img: "images/컵/컵2.jpg" },
+    { name: "컵 3", img: "images/컵/컵3.jpg" },
+    { name: "컵 4", img: "images/컵/컵4.jpg" },
+    { name: "컵 5", img: "images/컵/컵5.jpg" },
+    { name: "컵 6", img: "images/컵/컵6.jpg" },
+    { name: "컵 7", img: "images/컵/컵7.jpg" },
+    { name: "컵 8", img: "images/컵/컵8.jpg" },
+    { name: "컵 9", img: "images/컵/컵9.jpg" },
+    { name: "컵 10", img: "images/컵/컵10.jpg" },
+    { name: "컵 페이지", img: "images/컵/컵 페이지.jpg" },
+    { name: "컵 나이트", img: "images/컵/컵 나이트.jpg" },
+    { name: "컵 퀸", img: "images/컵/컵 퀸.jpg" },
+    { name: "컵 킹", img: "images/컵/컵 킹.jpg" },
+    
+    // --- 소드 (14장) ---
+    { name: "소드 에이스", img: "images/소드/소드 에이스.jpg" },
+    { name: "소드 2", img: "images/소드/소드2.jpg" },
+    { name: "소드 3", img: "images/소드/소드3.jpg" },
+    { name: "소드 4", img: "images/소드/소드4.jpg" },
+    { name: "소드 5", img: "images/소드/소드5.jpg" },
+    { name: "소드 6", img: "images/소드/소드6.jpg" },
+    { name: "소드 7", img: "images/소드/소드7.jpg" },
+    { name: "소드 8", img: "images/소드/소드8.jpg" },
+    { name: "소드 9", img: "images/소드/소드9.jpg" },
+    { name: "소드 10", img: "images/소드/소드10.jpg" },
+    { name: "소드 페이지", img: "images/소드/소드 페이지.jpg" },
+    { name: "소드 나이트", img: "images/소드/소드 나이트.jpg" },
+    { name: "소드 퀸", img: "images/소드/소드 퀸.jpg" },
+    { name: "소드 킹", img: "images/소드/소드 킹.jpg" },
+
+    // --- 펜타클 (14장) ---
+    { name: "펜타클 에이스", img: "images/펜타클/펜타클 에이스.jpg" },
+    { name: "펜타클 2", img: "images/펜타클/펜타클2.jpg" },
+    { name: "펜타클 3", img: "images/펜타클/펜타클3.jpg" },
+    { name: "펜타클 4", img: "images/펜타클/펜타클4.jpg" },
+    { name: "펜타클 5", img: "images/펜타클/펜타클5.jpg" },
+    { name: "펜타클 6", img: "images/펜타클/펜타클6.jpg" },
+    { name: "펜타클 7", img: "images/펜타클/펜타클7.jpg" },
+    { name: "펜타클 8", img: "images/펜타클/펜타클8.jpg" },
+    { name: "펜타클 9", img: "images/펜타클/펜타클9.jpg" },
+    { name: "펜타클 10", img: "images/펜타클/펜타클10.jpg" },
+    { name: "펜타클 페이지", img: "images/펜타클/펜타클 페이지.jpg" },
+    { name: "펜타클 나이트", img: "images/펜타클/펜타클 나이트.jpg" },
+    { name: "펜타클 퀸", img: "images/펜타클/펜타클 퀸.jpg" },
+    { name: "펜타클 킹", img: "images/펜타클/펜타클 킹.jpg" }
+];
+
+/* === 여기까지 복사 === */
 // --- 1. 변수 및 요소 설정 ---
 const screens = document.querySelectorAll('.screen');
 const mainShuffleArea = document.getElementById('main-shuffle-area');
