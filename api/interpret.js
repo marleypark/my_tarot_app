@@ -1,19 +1,17 @@
 // 이 파일은 Vercel 서버에서 실행되는 백엔드 코드입니다. (api/interpret.js)
+// Google API 주소 오타를 완벽하게 수정한 최종 버전입니다.
 
 export default async function handler(request, response) {
   // 1. 보안 체크: 이 서버리스 함수는 POST 요청만 받도록 설정합니다.
   if (request.method !== 'POST') {
-    // 405는 'Method Not Allowed' (허용되지 않은 메소드) 에러 코드입니다.
     return response.status(405).json({ message: 'POST 요청만 허용됩니다.' });
   }
 
   try {
     // 2. Vercel 환경 변수에서 안전하게 API 키를 가져옵니다.
-    // 이 키는 Vercel 설정에서만 보이고 코드에는 노출되지 않습니다.
     const API_KEY = process.env.GEMINI_API_KEY;
 
     if (!API_KEY) {
-      // API 키가 설정되지 않은 경우, 서버 내부 오류로 처리하고 로그를 남깁니다.
       console.error('GEMINI_API_KEY가 설정되지 않았습니다.');
       throw new Error('API 키가 설정되지 않았습니다.');
     }
@@ -34,8 +32,8 @@ export default async function handler(request, response) {
     }
     prompt += ` 긍정적이고 희망을 주는 따뜻한 어조로 이야기해주세요.`;
 
-    // 5. Google Gemini API 서버에 요청을 보냅니다.
-    const apiResponse = await fetch(`https://generativelace.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`, {
+    // 5. Google Gemini API 서버에 요청을 보냅니다. (오타 수정 완료!)
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +43,6 @@ export default async function handler(request, response) {
       }),
     });
     
-    // Gemini API로부터 받은 응답이 정상이 아닐 경우 에러를 발생시킵니다.
     if (!apiResponse.ok) {
         const errorData = await apiResponse.json();
         console.error('Gemini API Error:', errorData);
@@ -58,13 +55,10 @@ export default async function handler(request, response) {
     const interpretation = data.candidates[0].content.parts[0].text;
 
     // 6. 성공적인 결과를 프론트엔드로 다시 보내줍니다.
-    // 200은 'OK' (성공) 상태 코드입니다.
     return response.status(200).json({ interpretation });
 
   } catch (error) {
-    // try 블록 안에서 어떤 종류의 에러든 발생하면 이 코드가 실행됩니다.
     console.error('서버 함수 내부 오류:', error);
-    // 500은 'Internal Server Error' (서버 내부 오류) 상태 코드입니다.
     return response.status(500).json({ message: '서버에서 해석을 생성하는 중 오류가 발생했습니다.' });
   }
 }
