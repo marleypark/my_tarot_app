@@ -179,7 +179,7 @@ async function getInterpretation(cardNames, question) {
     interpretationText.innerText = "AI가 카드를 해석하고 있습니다...";
     
     // 이 URL은 당신의 Serverless Function 주소로 바꿔야 합니다.
-    const SERVERLESS_FUNCTION_URL = 'https://my-tarot-reading.vercel.app/api/interpret'; 
+  const SERVERLESS_FUNCTION_URL = '/api/interpret'; // 상대 경로로 변경
 
     try {
         const response = await fetch(SERVERLESS_FUNCTION_URL, {
