@@ -17,7 +17,7 @@ export default async function handler(request, response) {
     
     // 3. Google AI 클라이언트를 초기화합니다.
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest"});
 
     // 4. 프론트엔드에서 보낸 데이터를 받습니다.
     const { cardNames, question } = request.body;
