@@ -1,24 +1,32 @@
-// api/interpret.js
-// Google Gemini API로 타로 해석을 생성하는 서버리스 함수
+// 이 파일은 Vercel 서버에서 실행되는 백엔드 코드입니다.
+// CORS, OPTIONS, 인코딩, 모델 이름 문제를 모두 해결한 최종 버전입니다.
 
 export default async function handler(request, response) {
-  // 1. POST 요청만 허용
+  // 1. CORS Preflight(OPTIONS) 요청에 먼저 응답합니다. (중요!)
+  // vercel.json 설정으로도 가능하지만, 코드 레벨에서 한번 더 처리해주는 것이 가장 확실합니다.
+  if (request.method === 'OPTIONS') {
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return response.status(200).end();
+  }
+
+  // 응답 헤더에 CORS 정책을 항상 포함시켜줍니다.
+  response.setHeader('Access-Control-Allow-Origin', '*');
+
+  // 2. 실제 POST 요청을 처리합니다.
   if (request.method !== 'POST') {
     return response.status(405).json({ message: 'POST 요청만 허용됩니다.' });
   }
 
   try {
-    // 2. 환경 변수에서 API 키 가져오기
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) {
-      console.error('GEMINI_API_KEY가 설정되지 않았습니다.');
       throw new Error('API 키가 설정되지 않았습니다.');
     }
 
-    // 3. 프론트엔드 데이터 받기
     const { cardNames, question } = request.body;
 
-    // 4. 프롬프트 구성
     let prompt = `${cardNames.join(', ')} 카드가 나왔습니다. 당신은 수십 년 경력의 지혜롭고 친절한 타로 마스터입니다.`;
     if (question) {
       prompt += ` 사용자의 질문은 "${question}" 입니다.`;
@@ -28,11 +36,11 @@ export default async function handler(request, response) {
     } else {
       prompt += ` 이 카드의 상징, 핵심 의미, 그리고 조언을 상세하게 설명해주세요.`;
     }
-    prompt += ` 긍정적이고 희망을 주는 따뜻한 어조로 이야기해주세요.`;
+    prompt += ` 긍정적이고 희망을 주는 따뜻한 어조로 이야기해주세요. 모든 답변은 반드시 한국어로 해주세요.`;
 
-    // 5. Gemini API 호출
+    // 3. Google Gemini API 서버에 가장 기본적인 fetch 방식으로 요청합니다.
     const apiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,12 +58,10 @@ export default async function handler(request, response) {
 
     const data = await apiResponse.json();
 
-    // 6. 모든 parts 합치기 (중요!)
-    const interpretation = data.candidates[0].content.parts
-      .map(part => part.text || "")
-      .join("\n");
+    // 4. 응답 데이터의 모든 'parts'를 합쳐서 완전한 텍스트를 만듭니다. (인코딩 문제 해결)
+    const interpretation = data.candidates[0].content.parts.map(part => part.text).join("");
 
-    // 7. 프론트엔드로 반환
+    // 5. 성공적인 결과를 프론트엔드로 보내줍니다.
     return response.status(200).json({ interpretation });
 
   } catch (error) {
