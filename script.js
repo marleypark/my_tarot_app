@@ -153,21 +153,31 @@ function updateCardsLeftText() {
     cardsLeftText.innerText = `남은 카드: ${cardsLeft}장`;
 }
 
-// 타이핑 효과 함수
+// 개선된 타이핑 효과 함수 (HTML 안전)
 function typeWriter(element, text, onComplete) {
+    // 기존 타이핑 애니메이션이 진행 중이면 중단
+    if (element.typeWriterTimeout) {
+        clearTimeout(element.typeWriterTimeout);
+    }
+    
     let i = 0;
     element.innerHTML = ""; // 기존 텍스트 삭제
     const cursor = element.nextElementSibling;
     if (cursor) cursor.style.display = 'inline-block';
 
+    // HTML 태그를 제거하고 순수 텍스트만 사용
+    const plainText = text.replace(/<[^>]*>/g, '');
+
     function typing() {
-        if (i < text.length) {
-            element.innerHTML += text.charAt(i);
+        if (i < plainText.length) {
+            // textContent를 사용하여 HTML 파싱 방지
+            element.textContent = plainText.substring(0, i + 1);
             i++;
-            setTimeout(typing, 30); // 타이핑 속도
+            element.typeWriterTimeout = setTimeout(typing, 20); // 타이핑 속도 조정
         } else {
             if (cursor) cursor.style.display = 'none'; // 타이핑 완료 후 커서 숨김
             if (onComplete) onComplete(); // 완료 콜백 함수 실행
+            element.typeWriterTimeout = null;
         }
     }
     typing();
@@ -176,10 +186,10 @@ function typeWriter(element, text, onComplete) {
 // Gemini API 호출 함수 (!!! 중요 !!!)
 async function getInterpretation(cardNames, question) {
     // 로딩 중임을 표시
-    interpretationText.innerText = "AI가 카드를 해석하고 있습니다...";
+    interpretationText.textContent = "AI가 카드를 해석하고 있습니다...";
     
-    // 이 URL은 당신의 Serverless Function 주소로 바꿔야 합니다.
-  const SERVERLESS_FUNCTION_URL = '/api/interpret'; // 상대 경로로 변경
+    // 실제 배포된 URL 사용
+    const SERVERLESS_FUNCTION_URL = '/api/interpret';
 
     try {
         const response = await fetch(SERVERLESS_FUNCTION_URL, {
@@ -202,7 +212,6 @@ async function getInterpretation(cardNames, question) {
         return "해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.";
     }
 }
-
 
 // --- 3. 이벤트 리스너 설정 ---
 
@@ -260,7 +269,7 @@ shuffleAnimationArea.addEventListener('click', () => {
 async function showResultScreen() {
     showScreen('result-screen');
     // 로딩 표시
-    interpretationText.innerText = "선택된 모든 카드의 해석을 준비 중입니다...";
+    interpretationText.textContent = "선택된 모든 카드의 해석을 준비 중입니다...";
     
     // 4장 카드에 대한 해석을 미리 모두 받아오기 (효율적)
     for(let i = 0; i < selectedCards.length; i++) {
@@ -280,8 +289,11 @@ function displayCardResult(index) {
     currentResultIndex = index;
     const cardIndex = selectedCards[index];
     
-    resultCardTitle.innerText = `${index + 1}번째 카드: ${tarotData[cardIndex].name}`;
+    resultCardTitle.textContent = `${index + 1}번째 카드: ${tarotData[cardIndex].name}`;
     resultCardImage.src = tarotData[cardIndex].img;
+    resultCardImage.style.display = 'block'; // 카드 이미지 표시
+    
+    // 타이핑 효과로 해석 텍스트 표시
     typeWriter(interpretationText, cardInterpretations[index]);
 
     // 버튼 상태 업데이트
@@ -304,7 +316,7 @@ nextBtn.addEventListener('click', () => {
 });
 
 summaryBtn.addEventListener('click', async () => {
-    resultCardTitle.innerText = "총정리";
+    resultCardTitle.textContent = "총정리";
     resultCardImage.style.display = 'none'; // 총정리에선 큰 카드 이미지 숨김
 
     const cardNames = selectedCards.map(index => tarotData[index].name);
