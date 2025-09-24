@@ -129,8 +129,10 @@ button:hover {
     align-items: center;
     margin: 20px 0;
     cursor: pointer;
-    background-image: url('images/shuffling.gif'); /* 셔플 gif 이미지 경로 */
-    background-size: cover;
+    background-image: url('images/card_back.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 #selected-cards-preview {
     display: flex;

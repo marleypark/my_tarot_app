@@ -223,7 +223,7 @@ function getLocalizedCardNameByIndex(index, lang) {
 const UI_TEXTS = {
     kor: {
         appTitle: 'ASK ANYTHING',
-        subtitle: '당신의 질문에 귀를 기울여 드립니다.',
+        subtitle: '(created by Parkmarley)',
         clickToStart: '카드를 클릭하여 시작하세요',
         questionDialogTitle: '질문을 어떻게 하시겠어요?',
         writeQuestionBtn: '질문을 글로 적기 (포커스 타로)',
@@ -244,7 +244,7 @@ const UI_TEXTS = {
     },
     eng: {
         appTitle: 'ASK ANYTHING',
-        subtitle: 'We listen to your questions.',
+        subtitle: '(created by Parkmarley)',
         clickToStart: 'Click the card to begin',
         questionDialogTitle: 'How would you like to ask?',
         writeQuestionBtn: 'Type your question (Focus Tarot)',
@@ -265,7 +265,7 @@ const UI_TEXTS = {
     },
     can: {
         appTitle: 'ASK ANYTHING',
-        subtitle: '我哋會聽你嘅問題。',
+        subtitle: '(created by Parkmarley)',
         clickToStart: '撳卡開始',
         questionDialogTitle: '你想點樣發問？',
         writeQuestionBtn: '打字發問（專注塔羅）',
@@ -286,7 +286,7 @@ const UI_TEXTS = {
     },
     vi: {
         appTitle: 'ASK ANYTHING',
-        subtitle: 'Chúng tôi lắng nghe câu hỏi của bạn.',
+        subtitle: '(created by Parkmarley)',
         clickToStart: 'Nhấp vào lá bài để bắt đầu',
         questionDialogTitle: 'Bạn muốn hỏi theo cách nào?',
         writeQuestionBtn: 'Gõ câu hỏi (Tarot Tập trung)',
@@ -307,7 +307,7 @@ const UI_TEXTS = {
     },
     id: {
         appTitle: 'ASK ANYTHING',
-        subtitle: 'Kami mendengarkan pertanyaan Anda.',
+        subtitle: '(created by Parkmarley)',
         clickToStart: 'Klik kartu untuk mulai',
         questionDialogTitle: 'Ingin bertanya dengan cara apa?',
         writeQuestionBtn: 'Ketik pertanyaan (Tarot Fokus)',
@@ -328,7 +328,7 @@ const UI_TEXTS = {
     },
     chn: {
         appTitle: 'ASK ANYTHING',
-        subtitle: '我们倾听你的问题。',
+        subtitle: '(created by Parkmarley)',
         clickToStart: '点击卡片开始',
         questionDialogTitle: '你想怎样提问？',
         writeQuestionBtn: '输入问题（专注塔罗）',
@@ -349,7 +349,7 @@ const UI_TEXTS = {
     },
     fr: {
         appTitle: 'ASK ANYTHING',
-        subtitle: 'Nous écoutons vos questions.',
+        subtitle: '(created by Parkmarley)',
         clickToStart: 'Cliquez sur la carte pour commencer',
         questionDialogTitle: 'Comment souhaitez-vous demander ?',
         writeQuestionBtn: 'Écrire votre question (Tarot Focalisé)',
@@ -370,7 +370,7 @@ const UI_TEXTS = {
     },
     es: {
         appTitle: 'ASK ANYTHING',
-        subtitle: 'Escuchamos tus preguntas.',
+        subtitle: '(created by Parkmarley)',
         clickToStart: 'Haz clic en la carta para comenzar',
         questionDialogTitle: '¿Cómo quieres preguntar?',
         writeQuestionBtn: 'Escribe tu pregunta (Tarot Enfoque)',
@@ -409,9 +409,17 @@ const nextBtn = document.getElementById('next-btn');
 const summaryBtn = document.getElementById('summary-btn');
 const restartBtn = document.getElementById('restart-btn');
 const selectSound = document.getElementById('select-sound');
+const buttonSound = document.getElementById('button-sound');
 // 언어 스위처 요소
 const langButton = document.getElementById('lang-button');
 const langMenu = document.getElementById('lang-menu');
+
+function playButtonSound() {
+    if (buttonSound) {
+        buttonSound.currentTime = 0;
+        buttonSound.play().catch(() => {});
+    }
+}
 
 let userQuestion = "";
 let selectedCards = []; // 선택된 카드의 인덱스를 저장할 배열
@@ -563,6 +571,7 @@ window.onload = () => {
             const expanded = langButton.getAttribute('aria-expanded') === 'true';
             langButton.setAttribute('aria-expanded', String(!expanded));
             langMenu.classList.toggle('show');
+            playButtonSound();
         });
         langMenu.querySelectorAll('li[data-lang]').forEach((item) => {
             item.addEventListener('click', (e) => {
@@ -572,6 +581,7 @@ window.onload = () => {
                     langMenu.classList.remove('show');
                     langButton.setAttribute('aria-expanded', 'false');
                     applyTranslations();
+                    playButtonSound();
                 }
             });
         });
@@ -596,11 +606,12 @@ mainShuffleArea.addEventListener('click', () => {
 });
 
 // 질문 선택 -> 질문 입력 또는 카드 선택
-writeQuestionBtn.addEventListener('click', () => showScreen('focus-tarot-screen'));
+writeQuestionBtn.addEventListener('click', () => { playButtonSound(); showScreen('focus-tarot-screen'); });
 mindQuestionBtn.addEventListener('click', () => {
     userQuestion = ""; // 질문 없음
     shuffleDeck();
     showScreen('card-select-screen');
+    playButtonSound();
 });
 
 // 질문 입력 -> 카드 선택
@@ -612,6 +623,7 @@ startFocusReadingBtn.addEventListener('click', () => {
     }
     shuffleDeck();
     showScreen('card-select-screen');
+    playButtonSound();
 });
 
 // 카드 선택 로직
@@ -682,12 +694,14 @@ function displayCardResult(index) {
 prevBtn.addEventListener('click', () => {
     if (currentResultIndex > 0) {
         displayCardResult(currentResultIndex - 1);
+        playButtonSound();
     }
 });
 
 nextBtn.addEventListener('click', () => {
     if (currentResultIndex < CARDS_TO_PICK - 1) {
         displayCardResult(currentResultIndex + 1);
+        playButtonSound();
     }
 });
 
@@ -710,6 +724,7 @@ summaryBtn.addEventListener('click', async () => {
     prevBtn.style.visibility = 'hidden';
     nextBtn.style.visibility = 'hidden';
     summaryBtn.style.display = 'none';
+    playButtonSound();
 });
 
-restartBtn.addEventListener('click', resetApp);
+restartBtn.addEventListener('click', () => { playButtonSound(); resetApp(); });
