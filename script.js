@@ -225,7 +225,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: '카드를 클릭하여 시작하세요',
-        questionDialogTitle: '질문을 어떻게 하시겠어요?',
+        questionDialogTitle: '1일 1질문만 가능. 신중히 선택.',
         writeQuestionBtn: '질문을 글로 적기 (포커스 타로)',
         mindQuestionBtn: '마음속으로 생각하기 (오픈 타로)',
         focusPrompt: '당신의 질문을 입력해주세요.',
@@ -246,7 +246,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: 'Click the card to begin',
-        questionDialogTitle: 'How would you like to ask?',
+        questionDialogTitle: 'Only 1 question per day. Choose carefully.',
         writeQuestionBtn: 'Type your question (Focus Tarot)',
         mindQuestionBtn: 'Think in your mind (Open Tarot)',
         focusPrompt: 'Please enter your question.',
@@ -267,7 +267,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: '撳卡開始',
-        questionDialogTitle: '你想點樣發問？',
+        questionDialogTitle: '每日只可問1條。請謹慎選擇。',
         writeQuestionBtn: '打字發問（專注塔羅）',
         mindQuestionBtn: '心入面諗（開放塔羅）',
         focusPrompt: '請輸入你嘅問題。',
@@ -288,7 +288,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: 'Nhấp vào lá bài để bắt đầu',
-        questionDialogTitle: 'Bạn muốn hỏi theo cách nào?',
+        questionDialogTitle: 'Chỉ 1 câu hỏi mỗi ngày. Hãy chọn cẩn thận.',
         writeQuestionBtn: 'Gõ câu hỏi (Tarot Tập trung)',
         mindQuestionBtn: 'Nghĩ trong đầu (Tarot Mở)',
         focusPrompt: 'Vui lòng nhập câu hỏi của bạn.',
@@ -309,7 +309,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: 'Klik kartu untuk mulai',
-        questionDialogTitle: 'Ingin bertanya dengan cara apa?',
+        questionDialogTitle: 'Hanya 1 pertanyaan per hari. Pilih dengan saksama.',
         writeQuestionBtn: 'Ketik pertanyaan (Tarot Fokus)',
         mindQuestionBtn: 'Pikirkan dalam hati (Tarot Terbuka)',
         focusPrompt: 'Silakan masukkan pertanyaan Anda.',
@@ -330,7 +330,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: '点击卡片开始',
-        questionDialogTitle: '你想怎样提问？',
+        questionDialogTitle: '每天仅限1个问题。请慎重选择。',
         writeQuestionBtn: '输入问题（专注塔罗）',
         mindQuestionBtn: '在心里思考（开放塔罗）',
         focusPrompt: '请输入你的问题。',
@@ -351,7 +351,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: 'Cliquez sur la carte pour commencer',
-        questionDialogTitle: 'Comment souhaitez-vous demander ?',
+        questionDialogTitle: '1 question par jour. Choisissez avec soin.',
         writeQuestionBtn: 'Écrire votre question (Tarot Focalisé)',
         mindQuestionBtn: 'Penser intérieurement (Tarot Ouvert)',
         focusPrompt: 'Veuillez saisir votre question.',
@@ -372,7 +372,7 @@ const UI_TEXTS = {
         appTitle: 'ASK ANYTHING',
         subtitle: '(created by Parkmarley)',
         clickToStart: 'Haz clic en la carta para comenzar',
-        questionDialogTitle: '¿Cómo quieres preguntar?',
+        questionDialogTitle: 'Solo 1 pregunta por día. Elige con cuidado.',
         writeQuestionBtn: 'Escribe tu pregunta (Tarot Enfoque)',
         mindQuestionBtn: 'Piensa en tu mente (Tarot Abierto)',
         focusPrompt: 'Por favor, ingresa tu pregunta.',
@@ -413,6 +413,7 @@ const buttonSound = document.getElementById('button-sound');
 // 언어 스위처 요소
 const langButton = document.getElementById('lang-button');
 const langMenu = document.getElementById('lang-menu');
+const langSwitcher = document.getElementById('lang-switcher');
 
 function playButtonSound() {
     if (buttonSound) {
@@ -427,6 +428,46 @@ let cardInterpretations = []; // 각 카드의 해석 결과를 저장할 배열
 let currentResultIndex = 0;
 const CARDS_TO_PICK = 4;
 let deck = [];
+
+const REUSE_LOCK_MS = 60 * 1000; // 1분 재사용 제한
+
+function cacheKey(cardIndexes, question, lang) {
+    // 카드 인덱스와 언어, 질문 기준 캐시 키
+    return `cache:v1:${lang}:${cardIndexes.join('-')}:${(question||'').trim()}`;
+}
+
+function getCache(cardIndexes, question, lang) {
+    try {
+        const key = cacheKey(cardIndexes, question, lang);
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        // 30분 캐시
+        if (Date.now() - parsed.ts > 30 * 60 * 1000) return null;
+        return parsed.data;
+    } catch (_) {
+        return null;
+    }
+}
+
+function setCache(cardIndexes, question, lang, data) {
+    try {
+        const key = cacheKey(cardIndexes, question, lang);
+        localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+    } catch (_) {}
+}
+
+function setReuseLock() {
+    try { localStorage.setItem('reuse_lock_ts', String(Date.now())); } catch (_) {}
+}
+function getReuseLockRemainingMs() {
+    try {
+        const ts = Number(localStorage.getItem('reuse_lock_ts')) || 0;
+        const elapsed = Date.now() - ts;
+        const remain = REUSE_LOCK_MS - elapsed;
+        return remain > 0 ? remain : 0;
+    } catch (_) { return 0; }
+}
 
 // --- i18n 적용 함수 ---
 function applyTranslations() {
@@ -469,6 +510,14 @@ function showScreen(screenId) {
         screen.classList.remove('active');
     });
     document.getElementById(screenId).classList.add('active');
+    // 언어 스위처는 메인 화면에서만 노출
+    if (langSwitcher) {
+        langSwitcher.style.display = screenId === 'main-screen' ? 'block' : 'none';
+        if (screenId !== 'main-screen' && langMenu) {
+            langMenu.classList.remove('show');
+            if (langButton) langButton.setAttribute('aria-expanded', 'false');
+        }
+    }
 }
 
 // 초기화 함수
@@ -597,6 +646,12 @@ window.onload = () => {
 
 // 메인 화면 -> 질문 선택 (사운드 추가)
 mainShuffleArea.addEventListener('click', () => {
+    const remain = getReuseLockRemainingMs();
+    if (remain > 0) {
+        const sec = Math.ceil(remain/1000);
+        alert(`1분 뒤에 재사용 가능 (${sec}초 남음)`);
+        return;
+    }
     // 카드 선택 사운드 재생
     if(selectSound) {
         selectSound.currentTime = 0; // 처음부터 재생
@@ -656,18 +711,49 @@ async function showResultScreen() {
     showScreen('result-screen');
     // 로딩 표시
     interpretationText.textContent = UI_TEXTS[selectedLanguage].preparingAll;
-    
-    // 4장 카드에 대한 해석을 미리 모두 받아오기 (효율적)
-    for(let i = 0; i < selectedCards.length; i++) {
-        const cardIndex = selectedCards[i];
-        const localizedName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
-        // 각 카드별 해석 요청
-        const interpretation = await getInterpretation([localizedName], userQuestion);
-        cardInterpretations.push(interpretation);
+
+    const cardIndexes = [...selectedCards];
+    const cached = getCache(cardIndexes, userQuestion, selectedLanguage);
+    if (cached && Array.isArray(cached.interpretations)) {
+        cardInterpretations = cached.interpretations;
+        displayCardResult(0);
+        return;
     }
-    
-    // 첫 번째 카드 결과부터 보여주기
-    displayCardResult(0);
+
+    const localizedNames = cardIndexes.map(idx => getLocalizedCardNameByIndex(idx, selectedLanguage));
+    try {
+        const SERVERLESS_FUNCTION_URL = '/api/interpret';
+        const res = await fetch(SERVERLESS_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cardNames: localizedNames, question: userQuestion, language: selectedLanguage })
+        });
+        if (!res.ok) {
+            // 429 등은 메시지 그대로 표시
+            const err = await res.json().catch(()=>({}));
+            const msg = err?.message || '해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.';
+            typeWriter(interpretationText, msg);
+            return;
+        }
+        const data = await res.json();
+        // interpretations 배열 기대
+        if (Array.isArray(data.interpretations) && data.interpretations.length >= CARDS_TO_PICK) {
+            cardInterpretations = data.interpretations.slice(0, CARDS_TO_PICK);
+        } else if (Array.isArray(data.interpretations)) {
+            // 부족하면 반복 채움
+            cardInterpretations = [...data.interpretations];
+            while (cardInterpretations.length < CARDS_TO_PICK) cardInterpretations.push(data.summary || data.interpretations[0] || '');
+        } else {
+            // 완전 실패 시 단일 텍스트로 채움
+            const fallback = data.summary || '해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.';
+            cardInterpretations = Array(CARDS_TO_PICK).fill(fallback);
+        }
+        setCache(cardIndexes, userQuestion, selectedLanguage, { interpretations: cardInterpretations, summary: data.summary || '' });
+        displayCardResult(0);
+    } catch (e) {
+        console.error('API 호출 오류(원콜):', e);
+        typeWriter(interpretationText, '해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
 }
 
 // 특정 인덱스의 카드 결과 표시
@@ -727,4 +813,4 @@ summaryBtn.addEventListener('click', async () => {
     playButtonSound();
 });
 
-restartBtn.addEventListener('click', () => { playButtonSound(); resetApp(); });
+restartBtn.addEventListener('click', () => { playButtonSound(); setReuseLock(); resetApp(); });
