@@ -18,6 +18,30 @@ body {
     text-align: center;
 }
 
+/* 메인 화면 카드 크기 조정 (50% 축소) */
+#main-shuffle-area {
+    padding: 20px 0;
+}
+
+#main-shuffle-area .card-back-static {
+    width: 50%;
+    height: auto;
+    max-width: 200px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+#main-shuffle-area .card-back-static:hover {
+    transform: scale(1.05);
+}
+
+#main-shuffle-area p {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
 /* 화면 전환 효과 */
 .screen {
     display: none; /* 평소엔 숨김 */

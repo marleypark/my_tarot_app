@@ -218,8 +218,15 @@ async function getInterpretation(cardNames, question) {
 // 앱 시작
 window.onload = resetApp;
 
-// 메인 화면 -> 질문 선택
-mainShuffleArea.addEventListener('click', () => showScreen('question-dialog'));
+// 메인 화면 -> 질문 선택 (사운드 추가)
+mainShuffleArea.addEventListener('click', () => {
+    // 카드 선택 사운드 재생
+    if(selectSound) {
+        selectSound.currentTime = 0; // 처음부터 재생
+        selectSound.play().catch(e => console.log('사운드 재생 실패:', e));
+    }
+    showScreen('question-dialog');
+});
 
 // 질문 선택 -> 질문 입력 또는 카드 선택
 writeQuestionBtn.addEventListener('click', () => showScreen('focus-tarot-screen'));
