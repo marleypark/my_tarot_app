@@ -113,6 +113,113 @@ const htmlLangByCode = {
 };
 let selectedLanguage = 'kor';
 
+// --- 카드 명칭 현지화 설정 ---
+const MAJOR_NAMES = {
+    kor: [
+        '바보','마법사','여사제','여황제','황제','교황','연인','전차','힘','은둔자','운명의 수레바퀴','정의','매달린 남자','죽음','절제','악마','탑','별','달','태양','심판','세계'
+    ],
+    eng: [
+        'The Fool','The Magician','The High Priestess','The Empress','The Emperor','The Hierophant','The Lovers','The Chariot','Strength','The Hermit','Wheel of Fortune','Justice','The Hanged Man','Death','Temperance','The Devil','The Tower','The Star','The Moon','The Sun','Judgment','The World'
+    ],
+    chn: [
+        '愚者','魔术师','女祭司','女皇','皇帝','教皇','恋人','战车','力量','隐者','命运之轮','正义','倒吊人','死神','节制','恶魔','高塔','星星','月亮','太阳','审判','世界'
+    ],
+    can: [
+        '愚者','魔術師','女祭司','女皇','皇帝','教皇','戀人','戰車','力量','隱者','命運之輪','正義','倒吊人','死神','節制','惡魔','高塔','星星','月亮','太陽','審判','世界'
+    ],
+    fr: [
+        'Le Mat','Le Magicien','La Papesse','L’Impératrice','L’Empereur','Le Pape','Les Amoureux','Le Chariot','La Force','L’Hermite','La Roue de Fortune','La Justice','Le Pendu','La Mort','Tempérance','Le Diable','La Tour','L’Étoile','La Lune','Le Soleil','Le Jugement','Le Monde'
+    ],
+    es: [
+        'El Loco','El Mago','La Sacerdotisa','La Emperatriz','El Emperador','El Hierofante','Los Enamorados','El Carro','La Fuerza','El Ermitaño','La Rueda de la Fortuna','La Justicia','El Colgado','La Muerte','La Templanza','El Diablo','La Torre','La Estrella','La Luna','El Sol','El Juicio','El Mundo'
+    ],
+    vi: [
+        'Kẻ Khờ','Pháp Sư','Nữ Tư Tế','Nữ Hoàng','Hoàng Đế','Giáo Hoàng','Những Người Yêu','Cỗ Xe','Sức Mạnh','Ẩn Sĩ','Bánh Xe Số Phận','Công Lý','Người Treo Ngược','Cái Chết','Tiết Độ','Ác Quỷ','Tòa Tháp','Ngôi Sao','Mặt Trăng','Mặt Trời','Phán Xét','Thế Giới'
+    ],
+    id: [
+        'Si Dungu','Sang Penyihir','Imam Besar','Permaisuri','Kaisar','Hierofan','Para Pecinta','Kereta Perang','Kekuatan','Pertapa','Roda Keberuntungan','Keadilan','Orang Tergantung','Kematian','Kesederhanaan','Iblis','Menara','Bintang','Bulan','Matahari','Pengadilan','Dunia'
+    ]
+};
+
+const SUITS = ['wands','cups','swords','pentacles'];
+const MINOR_RANKS = ['Ace','2','3','4','5','6','7','8','9','10','Page','Knight','Queen','King'];
+
+const MINOR_LOCALIZATION = {
+    eng: {
+        suit: { wands: 'Wands', cups: 'Cups', swords: 'Swords', pentacles: 'Pentacles' },
+        rank: { Ace: 'Ace', Page: 'Page', Knight: 'Knight', Queen: 'Queen', King: 'King' },
+        of: ' of '
+    },
+    fr: {
+        suit: { wands: 'Bâtons', cups: 'Coupes', swords: 'Épées', pentacles: 'Deniers' },
+        rank: { Ace: 'As', Page: 'Valet', Knight: 'Cavalier', Queen: 'Reine', King: 'Roi' },
+        numbers: ['As','Deux','Trois','Quatre','Cinq','Six','Sept','Huit','Neuf','Dix'],
+        of: ' de '
+    },
+    es: {
+        suit: { wands: 'Bastos', cups: 'Copas', swords: 'Espadas', pentacles: 'Oros' },
+        rank: { Ace: 'As', Page: 'Sota', Knight: 'Caballero', Queen: 'Reina', King: 'Rey' },
+        numbers: ['As','Dos','Tres','Cuatro','Cinco','Seis','Siete','Ocho','Nueve','Diez'],
+        of: ' de '
+    },
+    chn: {
+        suit: { wands: '权杖', cups: '圣杯', swords: '宝剑', pentacles: '钱币' },
+        rank: { Ace: '首牌', Page: '侍者', Knight: '骑士', Queen: '皇后', King: '国王' },
+        format: '{suit}{num}'
+    },
+    can: {
+        suit: { wands: '權杖', cups: '聖杯', swords: '寶劍', pentacles: '錢幣' },
+        rank: { Ace: '首牌', Page: '侍者', Knight: '騎士', Queen: '皇后', King: '國王' },
+        format: '{suit}{num}'
+    },
+    vi: {
+        suit: { wands: 'Gậy', cups: 'Cốc', swords: 'Kiếm', pentacles: 'Tiền' },
+        rank: { Ace: 'Át', Page: 'Tiểu Đồng', Knight: 'Kỵ Sĩ', Queen: 'Nữ Hoàng', King: 'Vua' },
+        numbers: ['Át','Hai','Ba','Bốn','Năm','Sáu','Bảy','Tám','Chín','Mười'],
+        of: ' '
+    },
+    id: {
+        suit: { wands: 'Tongkat', cups: 'Piala', swords: 'Pedang', pentacles: 'Koin' },
+        rank: { Ace: 'As', Page: 'Pajem', Knight: 'Ksatria', Queen: 'Ratu', King: 'Raja' },
+        numbers: ['As','Dua','Tiga','Empat','Lima','Enam','Tujuh','Delapan','Sembilan','Sepuluh'],
+        of: ' '
+    },
+    kor: {
+        suit: { wands: '완드', cups: '컵', swords: '소드', pentacles: '펜타클' },
+        rank: { Ace: '에이스', Page: '페이지', Knight: '나이트', Queen: '퀸', King: '킹' },
+        numbers: ['에이스','2','3','4','5','6','7','8','9','10'],
+        of: ' '
+    }
+};
+
+function getMinorName(lang, suitIndex, rankIndex) {
+    const cfg = MINOR_LOCALIZATION[lang] || MINOR_LOCALIZATION.eng;
+    const suitKey = SUITS[suitIndex];
+    const suitName = cfg.suit[suitKey];
+    if (rankIndex <= 9) {
+        const numText = cfg.numbers ? cfg.numbers[rankIndex] : MINOR_RANKS[rankIndex];
+        if (cfg.format) return cfg.format.replace('{suit}', suitName).replace('{num}', ['首牌','二','三','四','五','六','七','八','九','十'][rankIndex]);
+        return `${numText}${cfg.of}${suitName}`;
+    }
+    const rankMap = ['Ace',null,null,null,null,null,null,null,null,null,'Page','Knight','Queen','King'];
+    const rankKey = rankMap[rankIndex];
+    const rankName = cfg.rank[rankKey];
+    if (cfg.format) return `${suitName}${rankName}`;
+    return `${rankName}${cfg.of}${suitName}`;
+}
+
+function getLocalizedCardNameByIndex(index, lang) {
+    if (index < 22) {
+        const list = MAJOR_NAMES[lang] || MAJOR_NAMES.eng;
+        return list[index];
+    }
+    const minorIndex = index - 22;
+    const suitIndex = Math.floor(minorIndex / 14); // 0..3
+    const rankIndex = minorIndex % 14; // 0..13 (Ace..King)
+    return getMinorName(lang, suitIndex, rankIndex);
+}
+
+// === UI 텍스트 i18n ===
 const UI_TEXTS = {
     kor: {
         appTitle: 'ASK ANYTHING',
@@ -541,9 +648,9 @@ async function showResultScreen() {
     // 4장 카드에 대한 해석을 미리 모두 받아오기 (효율적)
     for(let i = 0; i < selectedCards.length; i++) {
         const cardIndex = selectedCards[i];
-        const cardName = tarotData[cardIndex].name;
+        const localizedName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
         // 각 카드별 해석 요청
-        const interpretation = await getInterpretation([cardName], userQuestion);
+        const interpretation = await getInterpretation([localizedName], userQuestion);
         cardInterpretations.push(interpretation);
     }
     
@@ -556,8 +663,9 @@ function displayCardResult(index) {
     currentResultIndex = index;
     const cardIndex = selectedCards[index];
     const t = UI_TEXTS[selectedLanguage];
+    const localizedName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
     
-    resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${tarotData[cardIndex].name}`;
+    resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${localizedName}`;
     resultCardImage.src = tarotData[cardIndex].img;
     resultCardImage.style.display = 'block'; // 카드 이미지 표시
     
@@ -587,14 +695,13 @@ summaryBtn.addEventListener('click', async () => {
     const t = UI_TEXTS[selectedLanguage];
     resultCardTitle.textContent = '총정리';
     if (selectedLanguage !== 'kor') {
-        // 간단한 다국어 제목 처리
         resultCardTitle.textContent = {
             eng: 'Summary', can: '總結', vi: 'Tổng kết', id: 'Ringkasan', chn: '总结', fr: 'Résumé', es: 'Resumen', kor: '총정리'
         }[selectedLanguage] || 'Summary';
     }
     resultCardImage.style.display = 'none'; // 총정리에선 큰 카드 이미지 숨김
 
-    const cardNames = selectedCards.map(index => tarotData[index].name);
+    const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
     // 총정리용 해석 요청
     const summaryText = await getInterpretation(cardNames, userQuestion);
     typeWriter(interpretationText, summaryText);
