@@ -47,16 +47,16 @@ export default async function handler(request, response) {
     const targetLanguage = languageMap[language]?.name || 'Korean';
 
     // 4. Gemini API에 보낼 프롬프트(요청서)를 정교하게 만듭니다.
-    // 한 번의 호출로 각 카드별 해석과 총정리를 JSON으로 반환하도록 지시합니다.
-    const listText = cardNames.join(', ');
-    let prompt = `You are a warm, wise tarot master. The following cards were drawn in order: ${listText}.`;
+    let prompt = `You are a warm, wise tarot master. The drawn card(s): ${cardNames.join(', ')}.`;
     if (question) {
       prompt += ` The user's question is: "${question}".`;
     }
-    prompt += ` For EACH card in order, provide a clear interpretation (meaning + advice). Then provide an overall summary that connects all cards.`;
-    prompt += ` Respond STRICTLY as pure JSON with this shape and in ${targetLanguage}:`;
-    prompt += ` { "interpretations": ["text for card1", "text for card2", ...], "summary": "overall text" }`;
-    prompt += ` No markdown, no code fences, no extra commentary.`;
+    if (cardNames.length > 1) {
+      prompt += ` Connect these cards together and provide deep, step-by-step advice.`;
+    } else {
+      prompt += ` Explain this card's symbols, core meaning, and practical advice.`;
+    }
+    prompt += ` Use a positive, hopeful tone. Answer strictly in ${targetLanguage}.`;
 
     // 5. Google Gemini API 서버에 요청을 보냅니다.
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
@@ -70,7 +70,7 @@ export default async function handler(request, response) {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1200,
+          maxOutputTokens: 1024,
         }
       }),
     });
@@ -78,40 +78,16 @@ export default async function handler(request, response) {
     if (!apiResponse.ok) {
         const errorData = await apiResponse.json();
         console.error('Gemini API Error:', errorData);
-        // 429 등은 그대로 전달하여 프론트에서 백오프 가능
         return response.status(apiResponse.status).json({ message: 'Gemini API에서 오류가 발생했습니다.', error: errorData });
     }
 
     const data = await apiResponse.json();
     
-    // Gemini가 보내준 텍스트를 추출 후 JSON 파싱을 시도합니다.
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    let parsed = null;
-    try {
-      // 일부 모델이 텍스트 앞뒤에 내용을 붙이는 경우를 대비하여 중괄호 블록만 추출
-      const start = rawText.indexOf('{');
-      const end = rawText.lastIndexOf('}');
-      const jsonSlice = start >= 0 && end >= 0 ? rawText.slice(start, end + 1) : rawText;
-      parsed = JSON.parse(jsonSlice);
-    } catch (e) {
-      console.error('JSON 파싱 실패. 원문:', rawText);
-    }
-
-    if (!parsed || !Array.isArray(parsed.interpretations)) {
-      // 파싱 실패 시 전체 텍스트를 단일 해석으로 반환하여 UI가 최소 동작하도록 함
-      const fallback = rawText || '해석을 생성하지 못했습니다.';
-      return response.status(200).json({
-        interpretations: [fallback],
-        summary: fallback,
-      });
-    }
+    // Gemini가 보내준 텍스트 해석을 추출합니다.
+    const interpretation = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // 6. 성공적인 결과를 프론트엔드로 다시 보내줍니다.
-    return response.status(200).json({
-      interpretations: parsed.interpretations,
-      summary: parsed.summary || '',
-    });
+    return response.status(200).json({ interpretation });
 
   } catch (error) {
     console.error('서버 함수 내부 오류:', error);

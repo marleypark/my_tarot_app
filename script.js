@@ -432,31 +432,10 @@ let deck = [];
 const REUSE_LOCK_MS = 60 * 1000; // 1분 재사용 제한
 
 function cacheKey(cardIndexes, question, lang) {
-    // 카드 인덱스와 언어, 질문 기준 캐시 키
     return `cache:v1:${lang}:${cardIndexes.join('-')}:${(question||'').trim()}`;
 }
-
-function getCache(cardIndexes, question, lang) {
-    try {
-        const key = cacheKey(cardIndexes, question, lang);
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        // 30분 캐시
-        if (Date.now() - parsed.ts > 30 * 60 * 1000) return null;
-        return parsed.data;
-    } catch (_) {
-        return null;
-    }
-}
-
-function setCache(cardIndexes, question, lang, data) {
-    try {
-        const key = cacheKey(cardIndexes, question, lang);
-        localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
-    } catch (_) {}
-}
-
+function getCache() { return null; }
+function setCache() { /* no-op after revert */ }
 function setReuseLock() {
     try { localStorage.setItem('reuse_lock_ts', String(Date.now())); } catch (_) {}
 }
@@ -711,49 +690,19 @@ async function showResultScreen() {
     showScreen('result-screen');
     // 로딩 표시
     interpretationText.textContent = UI_TEXTS[selectedLanguage].preparingAll;
-
-    const cardIndexes = [...selectedCards];
-    const cached = getCache(cardIndexes, userQuestion, selectedLanguage);
-    if (cached && Array.isArray(cached.interpretations)) {
-        cardInterpretations = cached.interpretations;
-        displayCardResult(0);
-        return;
+    
+    // 4장 카드에 대한 해석을 미리 모두 받아오기 (개별 호출)
+    cardInterpretations = [];
+    for(let i = 0; i < selectedCards.length; i++) {
+        const cardIndex = selectedCards[i];
+        const localizedName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
+        // 각 카드별 해석 요청
+        const interpretation = await getInterpretation([localizedName], userQuestion);
+        cardInterpretations.push(interpretation);
     }
-
-    const localizedNames = cardIndexes.map(idx => getLocalizedCardNameByIndex(idx, selectedLanguage));
-    try {
-        const SERVERLESS_FUNCTION_URL = '/api/interpret';
-        const res = await fetch(SERVERLESS_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cardNames: localizedNames, question: userQuestion, language: selectedLanguage })
-        });
-        if (!res.ok) {
-            // 429 등은 메시지 그대로 표시
-            const err = await res.json().catch(()=>({}));
-            const msg = err?.message || '해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.';
-            typeWriter(interpretationText, msg);
-            return;
-        }
-        const data = await res.json();
-        // interpretations 배열 기대
-        if (Array.isArray(data.interpretations) && data.interpretations.length >= CARDS_TO_PICK) {
-            cardInterpretations = data.interpretations.slice(0, CARDS_TO_PICK);
-        } else if (Array.isArray(data.interpretations)) {
-            // 부족하면 반복 채움
-            cardInterpretations = [...data.interpretations];
-            while (cardInterpretations.length < CARDS_TO_PICK) cardInterpretations.push(data.summary || data.interpretations[0] || '');
-        } else {
-            // 완전 실패 시 단일 텍스트로 채움
-            const fallback = data.summary || '해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.';
-            cardInterpretations = Array(CARDS_TO_PICK).fill(fallback);
-        }
-        setCache(cardIndexes, userQuestion, selectedLanguage, { interpretations: cardInterpretations, summary: data.summary || '' });
-        displayCardResult(0);
-    } catch (e) {
-        console.error('API 호출 오류(원콜):', e);
-        typeWriter(interpretationText, '해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
-    }
+    
+    // 첫 번째 카드 결과부터 보여주기
+    displayCardResult(0);
 }
 
 // 특정 인덱스의 카드 결과 표시
