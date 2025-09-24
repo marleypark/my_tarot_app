@@ -33,7 +33,7 @@ export default async function handler(request, response) {
     prompt += ` 긍정적이고 희망을 주는 따뜻한 어조로 이야기해주세요.`;
 
     // 5. Google Gemini API 서버에 요청을 보냅니다. (오타 수정 완료!)
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`, {
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
