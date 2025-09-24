@@ -26,21 +26,34 @@ export default async function handler(request, response) {
       throw new Error('API 키가 설정되지 않았습니다.');
     }
 
-    // 3. 프론트엔드(script.js)에서 보낸 데이터(카드 이름, 질문)를 받습니다.
-    const { cardNames, question } = request.body;
+    // 3. 프론트엔드(script.js)에서 보낸 데이터(카드 이름, 질문, 언어)를 받습니다.
+    const { cardNames, question, language } = request.body || {};
+
+    // 언어 코드 매핑
+    const languageMap = {
+      kor: { name: 'Korean' },
+      eng: { name: 'English' },
+      can: { name: 'Cantonese' },
+      vi: { name: 'Vietnamese' },
+      id: { name: 'Indonesian' },
+      chn: { name: 'Simplified Chinese' },
+      fr: { name: 'French' },
+      es: { name: 'Spanish' },
+    };
+    const targetLanguage = languageMap[language]?.name || 'Korean';
 
     // 4. Gemini API에 보낼 프롬프트(요청서)를 정교하게 만듭니다.
     let prompt = `${cardNames.join(', ')} 카드가 나왔습니다. 당신은 수십 년 경력의 지혜롭고 친절한 타로 마스터입니다.`;
     if (question) {
       prompt += ` 사용자의 질문은 "${question}" 입니다.`;
     }
-    
-    if (cardNames.length > 1) {
-        prompt += ` 이 카드들을 종합적으로 연결하여, 질문에 대한 깊이 있는 조언을 단계별로 설명해주세요.`;
+    if (cardNames && cardNames.length > 1) {
+      prompt += ` 이 카드들을 종합적으로 연결하여, 질문에 대한 깊이 있는 조언을 단계별로 설명해주세요.`;
     } else {
-        prompt += ` 이 카드의 상징, 핵심 의미, 그리고 조언을 상세하게 설명해주세요.`;
+      prompt += ` 이 카드의 상징, 핵심 의미, 그리고 조언을 상세하게 설명해주세요.`;
     }
-    prompt += ` 긍정적이고 희망을 주는 따뜻한 어조로 이야기해주세요. 모든 답변은 반드시 한국어로 해주세요.`;
+    // 출력 언어 지시
+    prompt += ` 긍정적이고 희망을 주는 따뜻한 어조로 이야기해주세요. 모든 답변은 반드시 ${targetLanguage}로 해주세요.`;
 
     // 5. Google Gemini API 서버에 요청을 보냅니다.
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
@@ -68,7 +81,7 @@ export default async function handler(request, response) {
     const data = await apiResponse.json();
     
     // Gemini가 보내준 텍스트 해석을 추출합니다.
-    const interpretation = data.candidates[0].content.parts[0].text;
+    const interpretation = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // 6. 성공적인 결과를 프론트엔드로 다시 보내줍니다.
     return response.status(200).json({ interpretation });

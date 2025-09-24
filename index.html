@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 타로 리딩</title>
+    <title>ASK ANYTHING</title>
     <link rel="stylesheet" href="style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
@@ -13,10 +13,24 @@
 
     <!-- 현재 화면을 감싸는 컨테이너 -->
     <div class="app-container">
+        <!-- 언어 스위처 -->
+        <div class="lang-switcher" id="lang-switcher">
+            <button class="lang-button" id="lang-button" aria-haspopup="listbox" aria-expanded="false">LANGUAGE</button>
+            <ul class="lang-menu" id="lang-menu" role="listbox" aria-label="Language">
+                <li role="option" data-lang="kor">KOR</li>
+                <li role="option" data-lang="eng">ENG</li>
+                <li role="option" data-lang="can">CAN</li>
+                <li role="option" data-lang="vi">VI</li>
+                <li role="option" data-lang="id">ID</li>
+                <li role="option" data-lang="chn">CHN</li>
+                <li role="option" data-lang="fr">FR</li>
+                <li role="option" data-lang="es">ES</li>
+            </ul>
+        </div>
 
         <!-- 1. 메인 시작 화면 -->
         <div id="main-screen" class="screen active">
-            <h1>AI 타로 리딩</h1>
+            <h1>ASK ANYTHING</h1>
             <p>당신의 질문에 귀를 기울여 드립니다.</p>
             <div id="main-shuffle-area">
                 <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">

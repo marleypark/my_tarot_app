@@ -90,6 +90,200 @@ const tarotData = [
     { name: "펜타클 킹", img: "images/펜타클/펜타클 킹.jpg" }
 ];
 
+// === i18n 설정 ===
+const languageNameByCode = {
+    kor: 'Korean',
+    eng: 'English',
+    can: 'Cantonese',
+    vi: 'Vietnamese',
+    id: 'Indonesian',
+    chn: 'Mandarin Chinese',
+    fr: 'French',
+    es: 'Spanish'
+};
+const htmlLangByCode = {
+    kor: 'ko',
+    eng: 'en',
+    can: 'yue',
+    vi: 'vi',
+    id: 'id',
+    chn: 'zh',
+    fr: 'fr',
+    es: 'es'
+};
+let selectedLanguage = 'kor';
+
+const UI_TEXTS = {
+    kor: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: '당신의 질문에 귀를 기울여 드립니다.',
+        clickToStart: '카드를 클릭하여 시작하세요',
+        questionDialogTitle: '질문을 어떻게 하시겠어요?',
+        writeQuestionBtn: '질문을 글로 적기 (포커스 타로)',
+        mindQuestionBtn: '마음속으로 생각하기 (오픈 타로)',
+        focusPrompt: '당신의 질문을 입력해주세요.',
+        questionPlaceholder: '예) 저의 연애운은 어떻게 될까요?',
+        startFocusButton: '질문 완료하고 카드 뽑기',
+        selectInstruction: (n) => `${n}장의 카드를 선택하세요.`,
+        cardsLeft: (left) => `남은 카드: ${left}장`,
+        preparingAll: '선택된 모든 카드의 해석을 준비 중입니다...',
+        aiLoading: 'AI가 카드를 해석하고 있습니다...',
+        nthCardTitle: (n) => `${n}번째 카드`,
+        prev: '이전',
+        next: '다음',
+        summary: '총정리 보기',
+        restart: '처음으로',
+        enterQuestionAlert: '질문을 입력해주세요.'
+    },
+    eng: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: 'We listen to your questions.',
+        clickToStart: 'Click the card to begin',
+        questionDialogTitle: 'How would you like to ask?',
+        writeQuestionBtn: 'Type your question (Focus Tarot)',
+        mindQuestionBtn: 'Think in your mind (Open Tarot)',
+        focusPrompt: 'Please enter your question.',
+        questionPlaceholder: 'e.g., How will my love life be?',
+        startFocusButton: 'Done typing — draw cards',
+        selectInstruction: (n) => `Select ${n} cards.`,
+        cardsLeft: (left) => `Cards left: ${left}`,
+        preparingAll: 'Preparing interpretations for all selected cards...',
+        aiLoading: 'AI is interpreting the card...',
+        nthCardTitle: (n) => `${n}${n===1?'st':n===2?'nd':n===3?'rd':'th'} card`,
+        prev: 'Previous',
+        next: 'Next',
+        summary: 'View Summary',
+        restart: 'Restart',
+        enterQuestionAlert: 'Please enter your question.'
+    },
+    can: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: '我哋會聽你嘅問題。',
+        clickToStart: '撳卡開始',
+        questionDialogTitle: '你想點樣發問？',
+        writeQuestionBtn: '打字發問（專注塔羅）',
+        mindQuestionBtn: '心入面諗（開放塔羅）',
+        focusPrompt: '請輸入你嘅問題。',
+        questionPlaceholder: '例如：我嘅感情運點樣？',
+        startFocusButton: '完成輸入 — 抽牌',
+        selectInstruction: (n) => `請揀 ${n} 張牌。`,
+        cardsLeft: (left) => `仲有：${left} 張`,
+        preparingAll: '緊準備所有所揀牌嘅解讀…',
+        aiLoading: 'AI 正在解讀呢張牌…',
+        nthCardTitle: (n) => `第 ${n} 張牌`,
+        prev: '上一張',
+        next: '下一張',
+        summary: '總結',
+        restart: '重新開始',
+        enterQuestionAlert: '請輸入你的問題。'
+    },
+    vi: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: 'Chúng tôi lắng nghe câu hỏi của bạn.',
+        clickToStart: 'Nhấp vào lá bài để bắt đầu',
+        questionDialogTitle: 'Bạn muốn hỏi theo cách nào?',
+        writeQuestionBtn: 'Gõ câu hỏi (Tarot Tập trung)',
+        mindQuestionBtn: 'Nghĩ trong đầu (Tarot Mở)',
+        focusPrompt: 'Vui lòng nhập câu hỏi của bạn.',
+        questionPlaceholder: 'VD: Chuyện tình cảm của tôi sẽ thế nào?',
+        startFocusButton: 'Xong — rút bài',
+        selectInstruction: (n) => `Hãy chọn ${n} lá.`,
+        cardsLeft: (left) => `Còn lại: ${left} lá`,
+        preparingAll: 'Đang chuẩn bị diễn giải cho tất cả lá đã chọn...',
+        aiLoading: 'AI đang diễn giải lá bài...',
+        nthCardTitle: (n) => `Lá thứ ${n}`,
+        prev: 'Trước',
+        next: 'Sau',
+        summary: 'Xem Tổng kết',
+        restart: 'Khởi động lại',
+        enterQuestionAlert: 'Vui lòng nhập câu hỏi.'
+    },
+    id: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: 'Kami mendengarkan pertanyaan Anda.',
+        clickToStart: 'Klik kartu untuk mulai',
+        questionDialogTitle: 'Ingin bertanya dengan cara apa?',
+        writeQuestionBtn: 'Ketik pertanyaan (Tarot Fokus)',
+        mindQuestionBtn: 'Pikirkan dalam hati (Tarot Terbuka)',
+        focusPrompt: 'Silakan masukkan pertanyaan Anda.',
+        questionPlaceholder: 'contoh: Bagaimana asmara saya?',
+        startFocusButton: 'Selesai — ambil kartu',
+        selectInstruction: (n) => `Pilih ${n} kartu.`,
+        cardsLeft: (left) => `Sisa kartu: ${left}`,
+        preparingAll: 'Menyiapkan interpretasi untuk semua kartu terpilih...',
+        aiLoading: 'AI sedang menafsirkan kartu...',
+        nthCardTitle: (n) => `Kartu ke-${n}`,
+        prev: 'Sebelumnya',
+        next: 'Berikutnya',
+        summary: 'Lihat Ringkasan',
+        restart: 'Mulai lagi',
+        enterQuestionAlert: 'Silakan masukkan pertanyaan.'
+    },
+    chn: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: '我们倾听你的问题。',
+        clickToStart: '点击卡片开始',
+        questionDialogTitle: '你想怎样提问？',
+        writeQuestionBtn: '输入问题（专注塔罗）',
+        mindQuestionBtn: '在心里思考（开放塔罗）',
+        focusPrompt: '请输入你的问题。',
+        questionPlaceholder: '例如：我的感情运势如何？',
+        startFocusButton: '完成输入 — 抽牌',
+        selectInstruction: (n) => `请选择 ${n} 张牌。`,
+        cardsLeft: (left) => `剩余：${left} 张`,
+        preparingAll: '正在为所有选中的牌准备解读…',
+        aiLoading: 'AI 正在解读这张牌…',
+        nthCardTitle: (n) => `第 ${n} 张牌`,
+        prev: '上一张',
+        next: '下一张',
+        summary: '查看总结',
+        restart: '重新开始',
+        enterQuestionAlert: '请输入你的问题。'
+    },
+    fr: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: 'Nous écoutons vos questions.',
+        clickToStart: 'Cliquez sur la carte pour commencer',
+        questionDialogTitle: 'Comment souhaitez-vous demander ?',
+        writeQuestionBtn: 'Écrire votre question (Tarot Focalisé)',
+        mindQuestionBtn: 'Penser intérieurement (Tarot Ouvert)',
+        focusPrompt: 'Veuillez saisir votre question.',
+        questionPlaceholder: 'ex : Comment sera ma vie amoureuse ?',
+        startFocusButton: 'Terminer — tirer les cartes',
+        selectInstruction: (n) => `Sélectionnez ${n} cartes.`,
+        cardsLeft: (left) => `Cartes restantes : ${left}`,
+        preparingAll: 'Préparation des interprétations pour toutes les cartes sélectionnées...',
+        aiLoading: 'L’IA interprète la carte…',
+        nthCardTitle: (n) => `${n}ᵉ carte`,
+        prev: 'Précédent',
+        next: 'Suivant',
+        summary: 'Voir le résumé',
+        restart: 'Recommencer',
+        enterQuestionAlert: 'Veuillez saisir votre question.'
+    },
+    es: {
+        appTitle: 'ASK ANYTHING',
+        subtitle: 'Escuchamos tus preguntas.',
+        clickToStart: 'Haz clic en la carta para comenzar',
+        questionDialogTitle: '¿Cómo quieres preguntar?',
+        writeQuestionBtn: 'Escribe tu pregunta (Tarot Enfoque)',
+        mindQuestionBtn: 'Piensa en tu mente (Tarot Abierto)',
+        focusPrompt: 'Por favor, ingresa tu pregunta.',
+        questionPlaceholder: 'ej.: ¿Cómo será mi vida amorosa?',
+        startFocusButton: 'Listo — sacar cartas',
+        selectInstruction: (n) => `Selecciona ${n} cartas.`,
+        cardsLeft: (left) => `Cartas restantes: ${left}`,
+        preparingAll: 'Preparando interpretaciones para todas las cartas seleccionadas...',
+        aiLoading: 'La IA está interpretando la carta…',
+        nthCardTitle: (n) => `Carta ${n}`,
+        prev: 'Anterior',
+        next: 'Siguiente',
+        summary: 'Ver Resumen',
+        restart: 'Reiniciar',
+        enterQuestionAlert: 'Por favor, ingresa tu pregunta.'
+    }
+};
+
 // --- 1. 변수 및 요소 설정 ---
 const screens = document.querySelectorAll('.screen');
 const mainShuffleArea = document.getElementById('main-shuffle-area');
@@ -108,6 +302,9 @@ const nextBtn = document.getElementById('next-btn');
 const summaryBtn = document.getElementById('summary-btn');
 const restartBtn = document.getElementById('restart-btn');
 const selectSound = document.getElementById('select-sound');
+// 언어 스위처 요소
+const langButton = document.getElementById('lang-button');
+const langMenu = document.getElementById('lang-menu');
 
 let userQuestion = "";
 let selectedCards = []; // 선택된 카드의 인덱스를 저장할 배열
@@ -115,6 +312,39 @@ let cardInterpretations = []; // 각 카드의 해석 결과를 저장할 배열
 let currentResultIndex = 0;
 const CARDS_TO_PICK = 4;
 let deck = [];
+
+// --- i18n 적용 함수 ---
+function applyTranslations() {
+    const t = UI_TEXTS[selectedLanguage];
+    // html lang
+    document.documentElement.setAttribute('lang', htmlLangByCode[selectedLanguage] || 'en');
+    // 메인 화면
+    const mainTitle = document.querySelector('#main-screen h1');
+    const mainSub = document.querySelector('#main-screen p');
+    const clickGuide = document.querySelector('#main-shuffle-area p');
+    if (mainTitle) mainTitle.textContent = t.appTitle;
+    if (mainSub) mainSub.textContent = t.subtitle;
+    if (clickGuide) clickGuide.textContent = t.clickToStart;
+    // 질문 선택 화면
+    const qTitle = document.querySelector('#question-dialog h2');
+    if (qTitle) qTitle.textContent = t.questionDialogTitle;
+    if (writeQuestionBtn) writeQuestionBtn.textContent = t.writeQuestionBtn;
+    if (mindQuestionBtn) mindQuestionBtn.textContent = t.mindQuestionBtn;
+    // 질문 입력 화면
+    const focusTitle = document.querySelector('#focus-tarot-screen h2');
+    if (focusTitle) focusTitle.textContent = t.focusPrompt;
+    if (questionInput) questionInput.placeholder = t.questionPlaceholder;
+    if (startFocusReadingBtn) startFocusReadingBtn.textContent = t.startFocusButton;
+    // 카드 선택 화면
+    const selectInstruction = document.getElementById('select-instruction');
+    if (selectInstruction) selectInstruction.textContent = t.selectInstruction(CARDS_TO_PICK);
+    updateCardsLeftText();
+    // 결과 화면 버튼
+    if (prevBtn) prevBtn.textContent = t.prev;
+    if (nextBtn) nextBtn.textContent = t.next;
+    if (summaryBtn) summaryBtn.textContent = t.summary;
+    if (restartBtn) restartBtn.textContent = t.restart;
+}
 
 // --- 2. 핵심 함수들 ---
 
@@ -136,6 +366,7 @@ function resetApp() {
     questionInput.value = '';
     updateCardsLeftText();
     showScreen('main-screen');
+    applyTranslations();
 }
 
 // 덱 생성 및 셔플 함수
@@ -150,7 +381,8 @@ function shuffleDeck() {
 // 남은 카드 개수 텍스트 업데이트
 function updateCardsLeftText() {
     const cardsLeft = CARDS_TO_PICK - selectedCards.length;
-    cardsLeftText.innerText = `남은 카드: ${cardsLeft}장`;
+    const t = UI_TEXTS[selectedLanguage];
+    cardsLeftText.innerText = t.cardsLeft(cardsLeft);
 }
 
 // 개선된 타이핑 효과 함수 (HTML 안전)
@@ -186,7 +418,7 @@ function typeWriter(element, text, onComplete) {
 // Gemini API 호출 함수 (!!! 중요 !!!)
 async function getInterpretation(cardNames, question) {
     // 로딩 중임을 표시
-    interpretationText.textContent = "AI가 카드를 해석하고 있습니다...";
+    interpretationText.textContent = UI_TEXTS[selectedLanguage].aiLoading;
     
     // 실제 배포된 URL 사용
     const SERVERLESS_FUNCTION_URL = '/api/interpret';
@@ -197,7 +429,7 @@ async function getInterpretation(cardNames, question) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ cardNames, question }),
+            body: JSON.stringify({ cardNames, question, language: selectedLanguage }),
         });
 
         if (!response.ok) {
@@ -216,7 +448,35 @@ async function getInterpretation(cardNames, question) {
 // --- 3. 이벤트 리스너 설정 ---
 
 // 앱 시작
-window.onload = resetApp;
+window.onload = () => {
+    // 언어 스위처 세팅
+    if (langButton && langMenu) {
+        langButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const expanded = langButton.getAttribute('aria-expanded') === 'true';
+            langButton.setAttribute('aria-expanded', String(!expanded));
+            langMenu.classList.toggle('show');
+        });
+        langMenu.querySelectorAll('li[data-lang]').forEach((item) => {
+            item.addEventListener('click', (e) => {
+                const code = item.getAttribute('data-lang');
+                if (code && UI_TEXTS[code]) {
+                    selectedLanguage = code;
+                    langMenu.classList.remove('show');
+                    langButton.setAttribute('aria-expanded', 'false');
+                    applyTranslations();
+                }
+            });
+        });
+        document.addEventListener('click', () => {
+            if (langMenu.classList.contains('show')) {
+                langMenu.classList.remove('show');
+                langButton.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+    resetApp();
+};
 
 // 메인 화면 -> 질문 선택 (사운드 추가)
 mainShuffleArea.addEventListener('click', () => {
@@ -240,7 +500,7 @@ mindQuestionBtn.addEventListener('click', () => {
 startFocusReadingBtn.addEventListener('click', () => {
     userQuestion = questionInput.value;
     if (userQuestion.trim() === "") {
-        alert("질문을 입력해주세요.");
+        alert(UI_TEXTS[selectedLanguage].enterQuestionAlert);
         return;
     }
     shuffleDeck();
@@ -276,7 +536,7 @@ shuffleAnimationArea.addEventListener('click', () => {
 async function showResultScreen() {
     showScreen('result-screen');
     // 로딩 표시
-    interpretationText.textContent = "선택된 모든 카드의 해석을 준비 중입니다...";
+    interpretationText.textContent = UI_TEXTS[selectedLanguage].preparingAll;
     
     // 4장 카드에 대한 해석을 미리 모두 받아오기 (효율적)
     for(let i = 0; i < selectedCards.length; i++) {
@@ -295,8 +555,9 @@ async function showResultScreen() {
 function displayCardResult(index) {
     currentResultIndex = index;
     const cardIndex = selectedCards[index];
+    const t = UI_TEXTS[selectedLanguage];
     
-    resultCardTitle.textContent = `${index + 1}번째 카드: ${tarotData[cardIndex].name}`;
+    resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${tarotData[cardIndex].name}`;
     resultCardImage.src = tarotData[cardIndex].img;
     resultCardImage.style.display = 'block'; // 카드 이미지 표시
     
@@ -323,7 +584,14 @@ nextBtn.addEventListener('click', () => {
 });
 
 summaryBtn.addEventListener('click', async () => {
-    resultCardTitle.textContent = "총정리";
+    const t = UI_TEXTS[selectedLanguage];
+    resultCardTitle.textContent = '총정리';
+    if (selectedLanguage !== 'kor') {
+        // 간단한 다국어 제목 처리
+        resultCardTitle.textContent = {
+            eng: 'Summary', can: '總結', vi: 'Tổng kết', id: 'Ringkasan', chn: '总结', fr: 'Résumé', es: 'Resumen', kor: '총정리'
+        }[selectedLanguage] || 'Summary';
+    }
     resultCardImage.style.display = 'none'; // 총정리에선 큰 카드 이미지 숨김
 
     const cardNames = selectedCards.map(index => tarotData[index].name);
