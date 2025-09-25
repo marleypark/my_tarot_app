@@ -58,6 +58,8 @@
                     <img id="result-card-image" src="" alt="선택된 카드">
                 </div>
                 <div id="interpretation-box">
+                    <!-- 👇 키워드를 표시할 영역을 추가합니다. -->
+                    <div id="keywords-area"></div> 
                     <p id="interpretation-text"></p>
                     <div class="typing-cursor"></div>
                 </div>
@@ -66,6 +68,8 @@
                 <button id="prev-btn">이전</button>
                 <button id="next-btn">다음</button>
                 <button id="summary-btn">총정리 보기</button>
+                <!-- 👇 '현실 조언' 버튼을 추가하고, 처음에는 숨깁니다. -->
+                <button id="action-plan-btn" style="display: none;">현실 조언 보기</button>
             </div>
             <button id="restart-btn">처음으로</button>
         </div>

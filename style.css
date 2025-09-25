@@ -149,3 +149,33 @@ button:hover {
 .navigation-buttons button:hover {
     background-color: #3a3a52;
 }
+
+/* 키워드 영역 스타일 */
+#keywords-area {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #4a4a68;
+    display: none; /* 평소에는 숨김 */
+}
+.keyword-group {
+    margin-bottom: 8px;
+}
+.keyword-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 8px;
+}
+.keyword {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 12px;
+    margin: 2px;
+}
+.keyword.positive {
+    color: #a6e22e; /* 긍정 키워드 색상 */
+}
+.keyword.negative {
+    color: #f92672; /* 부정 키워드 색상 */
+}
