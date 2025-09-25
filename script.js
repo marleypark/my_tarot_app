@@ -510,6 +510,9 @@ function showMbtiQuestion(questionIndex) {
 
 // MBTI 옵션 선택 함수
 function selectMbtiOption(selectedButton, type) {
+    // 버튼 클릭 소리 재생
+    playButtonSound();
+    
     // 모든 옵션에서 selected 클래스 제거
     document.querySelectorAll('.mbti-option').forEach(btn => {
         btn.classList.remove('selected');
