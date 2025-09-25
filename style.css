@@ -342,36 +342,50 @@ body {
     border: 2px solid #e94560;
     border-radius: 15px;
     margin: 20px 0;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .error-message h3 {
     color: #e94560;
     margin-bottom: 15px;
-    font-size: 20px;
+    font-size: 22px;
+    font-weight: bold;
 }
 
 .error-message p {
-    color: #ccc;
-    margin-bottom: 20px;
-    line-height: 1.5;
+    color: #fff;
+    margin-bottom: 25px;
+    line-height: 1.6;
+    font-size: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #e94560;
 }
 
 .error-message button {
     background: linear-gradient(135deg, #e94560 0%, #f27121 100%);
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 15px 30px;
     border-radius: 25px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+    min-width: 200px;
 }
 
 .error-message button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(233, 69, 96, 0.6);
+}
+
+.error-message button:active {
+    transform: translateY(0);
 }
 
 .app-container {

@@ -377,15 +377,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("API Error:", error);
-            // 사용자 친화적 에러 메시지 표시
+            let errorMessage = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.'; // 기본 메시지
+
+            const errorStr = error.message.toLowerCase();
+            
+            if (errorStr.includes('404')) {
+                errorMessage = 'API 모델을 찾을 수 없습니다. 서비스 점검 중일 수 있습니다.';
+            } else if (errorStr.includes('403') || errorStr.includes('permission denied')) {
+                errorMessage = 'API 인증에 문제가 있습니다. 관리자에게 문의해주세요.';
+            } else if (errorStr.includes('429') || errorStr.includes('quota')) {
+                errorMessage = 'API 사용량이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+            } else if (errorStr.includes('failed to fetch')) {
+                errorMessage = '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.';
+            }
+            
             elements.resultScreen.loadingSection.innerHTML = `
                 <div class="error-message">
-                    <h3>오류가 발생했습니다</h3>
-                    <p>${error.message}</p>
-                    <button id="error-restart-btn">처음으로 돌아가기</button>
+                    <h3>오류 발생</h3>
+                    <p>${errorMessage}</p>
+                    <button id="error-restart-btn-2">처음으로 돌아가기</button>
                 </div>
             `;
-            document.getElementById('error-restart-btn').onclick = resetApp;
+            document.getElementById('error-restart-btn-2').onclick = resetApp;
         }
     }
 
