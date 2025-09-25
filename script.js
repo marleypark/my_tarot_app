@@ -879,7 +879,7 @@ window.onload = () => {
 
     // 오픈 타로 준비 화면 이벤트 리스너
     document.getElementById('ready-for-cards-btn').addEventListener('click', () => {
-        showScreen('card-select-screen');
+        showScreen('mbti-input-screen');
         playButtonSound();
     });
 
