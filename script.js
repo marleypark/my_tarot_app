@@ -199,6 +199,7 @@ const UI_TEXTS = {
 const screens = document.querySelectorAll('.screen');
 const mainShuffleArea = document.getElementById('main-shuffle-area');
 const writeQuestionBtn = document.getElementById('write-question-btn');
+const mindQuestionBtn = document.getElementById('mind-question-btn');
 const questionInput = document.getElementById('question-input');
 const startFocusReadingBtn = document.getElementById('start-focus-reading-btn');
 const shuffleAnimationArea = document.getElementById('shuffle-animation-area');
@@ -876,7 +877,16 @@ window.onload = () => {
         playButtonSound();
     });
 
-    // 오픈 타로 준비 화면은 제거됨 (새로운 UI로 대체)
+    // 오픈 타로 준비 화면 이벤트 리스너
+    document.getElementById('ready-for-cards-btn').addEventListener('click', () => {
+        showScreen('card-select-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('back-to-question-dialog-from-prepare-btn').addEventListener('click', () => {
+        showScreen('question-dialog');
+        playButtonSound();
+    });
 
     // 질문 선택 화면 이전 버튼은 제거됨 (새로운 UI로 대체)
 
@@ -907,6 +917,12 @@ mainShuffleArea.addEventListener('click', () => {
 writeQuestionBtn.addEventListener('click', () => { 
     playButtonSound(); 
     showScreen('custom-question-screen'); 
+});
+
+mindQuestionBtn.addEventListener('click', () => {
+    userQuestion = ""; // 질문 없음
+    showScreen('open-tarot-prepare-screen');
+    playButtonSound();
 });
 
 // 운선택 드롭다운 버튼
