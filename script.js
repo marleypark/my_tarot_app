@@ -1242,7 +1242,7 @@ function shuffleDeck() {
 function updateCardsLeftText() {
     const cardsLeft = CARDS_TO_PICK - selectedCards.length;
     const t = UI_TEXTS[selectedLanguage];
-    cardsLeftText.innerText = `${t.cardsLeft}: ${cardsLeft}장`;
+    cardsLeftText.innerText = `${t.cardsLeft}: ${cardsLeft}`;
 }
 
 function typeWriter(element, text, onComplete) {
