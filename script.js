@@ -1559,13 +1559,23 @@ window.onload = () => {
     console.log('언어 버튼 초기화:', langButton, langMenu);
     
     if (langButton && langMenu) {
+        const closeLangMenu = () => {
+            langMenu.classList.remove('show');
+            langButton.setAttribute('aria-expanded', 'false');
+        };
+
         // 언어 버튼 클릭 이벤트
         langButton.addEventListener('click', (e) => {
             console.log('언어 버튼 클릭됨');
+            e.preventDefault();
             e.stopPropagation();
-            const isOpen = langMenu.style.display === 'block';
-            langMenu.style.display = isOpen ? 'none' : 'block';
-            langButton.setAttribute('aria-expanded', !isOpen);
+            const willOpen = !langMenu.classList.contains('show');
+            if (willOpen) {
+                langMenu.classList.add('show');
+                langButton.setAttribute('aria-expanded', 'true');
+            } else {
+                closeLangMenu();
+            }
         });
         
         // 언어 메뉴 항목 클릭 이벤트
@@ -1574,8 +1584,7 @@ window.onload = () => {
             option.addEventListener('click', (e) => {
                 selectedLanguage = e.target.getAttribute('data-lang');
                 langButton.textContent = languageNameByCode[selectedLanguage];
-                langMenu.style.display = 'none';
-                langButton.setAttribute('aria-expanded', 'false');
+                closeLangMenu();
                 applyTranslations();
                 
                 // MBTI 질문이 진행 중이면 현재 질문을 새 언어로 업데이트
@@ -1593,13 +1602,13 @@ window.onload = () => {
         // 외부 클릭 시 메뉴 닫기
         document.addEventListener('click', (e) => {
             if (!langButton.contains(e.target) && !langMenu.contains(e.target)) {
-                langMenu.style.display = 'none';
-                langButton.setAttribute('aria-expanded', 'false');
+                closeLangMenu();
             }
         });
         
         // 초기 언어 설정
         langButton.textContent = languageNameByCode[selectedLanguage];
+        closeLangMenu();
     } else {
         console.error('언어 버튼 또는 메뉴를 찾을 수 없습니다.');
     }
