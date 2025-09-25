@@ -325,13 +325,32 @@ async function fetchAllInterpretations() {
     });
 
     try {
-        const response = await fetch(SERVERLESS_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cardNames, question: userQuestion, language: selectedLanguage }),
-        });
+        // 429 오류 시 재시도 로직
+        let response;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            response = await fetch(SERVERLESS_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cardNames, question: userQuestion, language: selectedLanguage }),
+            });
 
-        console.log('API 응답 상태:', response.status, response.statusText);
+            console.log(`API 응답 상태 (시도 ${retryCount + 1}):`, response.status, response.statusText);
+
+            if (response.status === 429) {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    const waitTime = Math.pow(2, retryCount) * 1000; // 지수 백오프
+                    console.log(`${waitTime}ms 후 재시도...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    continue;
+                }
+            }
+            
+            break;
+        }
 
         if (!response.ok) {
             const errorText = await response.text();

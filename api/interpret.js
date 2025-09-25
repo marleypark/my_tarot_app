@@ -86,8 +86,20 @@ export default async function handler(request, response) {
     // Gemini가 보내준 텍스트 해석을 추출합니다.
     const interpretation = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
+    // 프론트엔드가 기대하는 형식으로 데이터 구성
+    const result = {
+      interpretations: cardNames.map((cardName, index) => ({
+        cardName: cardName,
+        fullInterpretation: interpretation,
+        positiveKeywords: ['희망', '기회', '성장'],
+        negativeKeywords: ['주의', '신중함']
+      })),
+      summary: interpretation,
+      actionPlan: interpretation
+    };
+
     // 6. 성공적인 결과를 프론트엔드로 다시 보내줍니다.
-    return response.status(200).json({ interpretation });
+    return response.status(200).json(result);
 
   } catch (error) {
     console.error('서버 함수 내부 오류:', error);
