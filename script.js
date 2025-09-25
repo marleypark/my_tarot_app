@@ -481,7 +481,6 @@ function showMbtiQuestion(questionIndex) {
     const titleElement = document.getElementById('mbti-question-title');
     const textElement = document.getElementById('mbti-question-text');
     const optionsContainer = document.getElementById('mbti-options-container');
-    const nextBtn = document.getElementById('mbti-next-question-btn');
     
     titleElement.textContent = `질문 ${questionIndex + 1}`;
     textElement.textContent = question.question;
@@ -497,7 +496,17 @@ function showMbtiQuestion(questionIndex) {
         optionsContainer.appendChild(button);
     });
     
-    nextBtn.style.display = 'none';
+    // 진행률 표시 추가
+    const progressText = document.createElement('div');
+    progressText.style.cssText = `
+        text-align: center;
+        margin: 15px 0;
+        color: #e94560;
+        font-size: 14px;
+        font-weight: bold;
+    `;
+    progressText.textContent = `${questionIndex + 1} / ${MBTI_QUESTIONS.length}`;
+    optionsContainer.appendChild(progressText);
 }
 
 // MBTI 옵션 선택 함수
@@ -513,8 +522,16 @@ function selectMbtiOption(selectedButton, type) {
     // 답변 저장
     mbtiAnswers[type]++;
     
-    // 다음 버튼 표시
-    document.getElementById('mbti-next-question-btn').style.display = 'inline-block';
+    // 0.5초 후 자동으로 다음 질문으로 이동
+    setTimeout(() => {
+        if (currentMbtiQuestion < MBTI_QUESTIONS.length - 1) {
+            currentMbtiQuestion++;
+            showMbtiQuestion(currentMbtiQuestion);
+        } else {
+            // 마지막 질문이면 결과 화면으로
+            showMbtiResult();
+        }
+    }, 500);
 }
 
 // MBTI 결과 표시 함수
@@ -806,16 +823,7 @@ window.onload = () => {
         playButtonSound();
     });
 
-    document.getElementById('mbti-next-question-btn').addEventListener('click', () => {
-        currentMbtiQuestion++;
-        if (currentMbtiQuestion < MBTI_QUESTIONS.length) {
-            showMbtiQuestion(currentMbtiQuestion);
-        } else {
-            showMbtiResult();
-            showScreen('mbti-result-screen');
-        }
-        playButtonSound();
-    });
+    // MBTI 질문 자동 진행으로 인해 "다음" 버튼 이벤트 리스너 제거
 
     document.getElementById('mbti-question-restart-btn').addEventListener('click', () => {
         resetApp();
@@ -845,7 +853,11 @@ window.onload = () => {
         playButtonSound();
     });
 
-    // MBTI 조언 버튼은 이제 통합 화면에서 자동으로 표시되므로 별도 이벤트 리스너 불필요
+    // PDF 저장 버튼 이벤트 리스너
+    document.getElementById('pdf-save-btn').addEventListener('click', () => {
+        generatePDF();
+        playButtonSound();
+    });
 
     // MBTI 조언 페이지 이벤트 리스너들
     document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
@@ -1098,4 +1110,218 @@ restartBtn.addEventListener('click', () => {
     playButtonSound(); 
     resetApp(); 
 });
+
+// PDF 생성 함수
+function generatePDF() {
+    if (!window.fullInterpretationData) {
+        alert('PDF로 저장할 데이터가 없습니다. 먼저 타로 리딩을 완료해주세요.');
+        return;
+    }
+
+    // PDF용 HTML 콘텐츠 생성
+    const pdfContent = createPDFContent();
+    
+    // jsPDF 라이브러리 로드 및 PDF 생성
+    loadJSPDF().then(() => {
+        createPDF(pdfContent);
+    }).catch(error => {
+        console.error('PDF 생성 오류:', error);
+        alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+    });
+}
+
+// PDF용 HTML 콘텐츠 생성
+function createPDFContent() {
+    const data = window.fullInterpretationData;
+    const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
+    
+    let content = `
+        <div class="pdf-content">
+            <h1>🔮 타로 리딩 결과</h1>
+            
+            <div class="summary-section">
+                <h2>📋 기본 정보</h2>
+                <p><strong>질문:</strong> ${userQuestion || '일반적인 인생 조언'}</p>
+                <p><strong>MBTI 유형:</strong> ${userMBTI || '제공되지 않음'}</p>
+                <p><strong>뽑힌 카드:</strong> ${cardNames.join(', ')}</p>
+                <p><strong>리딩 날짜:</strong> ${new Date().toLocaleDateString('ko-KR')}</p>
+            </div>
+    `;
+
+    // 개별 카드 해석
+    content += '<h2>🃏 개별 카드 해석</h2>';
+    data.cardInterpretations.forEach((card, index) => {
+        content += `
+            <div class="card-section">
+                <div class="card-title">${index + 1}번째 카드 - ${card.cardName}</div>
+                <div class="keywords">
+                    <strong>긍정 키워드:</strong> ${card.keywords.positive.join(', ')}<br>
+                    <strong>주의 키워드:</strong> ${card.keywords.caution.join(', ')}
+                </div>
+                <div>${card.interpretation}</div>
+            </div>
+        `;
+    });
+
+    // 총정리
+    if (data.overallReading) {
+        content += `
+            <div class="summary-section">
+                <h2>📊 종합 리딩</h2>
+                <h3>${data.overallReading.title || '타로 리딩 결과'}</h3>
+                <div>${data.overallReading.summary}</div>
+            </div>
+        `;
+
+        // MBTI 액션 플랜
+        if (data.overallReading.mbtiActionPlan) {
+            const plan = data.overallReading.mbtiActionPlan;
+            content += `
+                <div class="mbti-section">
+                    <h2>🎯 MBTI 기반 액션 플랜</h2>
+                    <h3>${plan.title}</h3>
+                    <p>${plan.introduction}</p>
+            `;
+
+            if (plan.phases && plan.phases.length > 0) {
+                plan.phases.forEach(phase => {
+                    content += `
+                        <div class="phase">
+                            <div class="phase-title">${phase.phaseTitle}</div>
+                            <ul class="phase-steps">
+                                ${phase.steps.map(step => `<li>${step}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+            }
+
+            content += '</div>';
+        }
+    }
+
+    content += '</div>';
+    return content;
+}
+
+// jsPDF 라이브러리 로드
+function loadJSPDF() {
+    return new Promise((resolve, reject) => {
+        if (window.jsPDF) {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('jsPDF 라이브러리 로드 실패'));
+        document.head.appendChild(script);
+    });
+}
+
+// PDF 생성 및 다운로드
+function createPDF(htmlContent) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // 임시 div에 HTML 콘텐츠 추가
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '-9999px';
+        document.body.appendChild(tempDiv);
+
+        // HTML을 PDF로 변환
+        doc.html(tempDiv, {
+            callback: function(doc) {
+                // 파일명 생성
+                const fileName = `타로리딩_${new Date().toISOString().split('T')[0]}.pdf`;
+                
+                // PDF 다운로드
+                doc.save(fileName);
+                
+                // 사용자에게 저장 완료 알림
+                showPDFSaveNotification(fileName);
+                
+                // 임시 div 제거
+                document.body.removeChild(tempDiv);
+            },
+            x: 10,
+            y: 10,
+            width: 190,
+            windowWidth: 800
+        });
+    } catch (error) {
+        console.error('PDF 생성 중 오류:', error);
+        alert('PDF 생성 중 오류가 발생했습니다.');
+    }
+}
+
+// PDF 저장 완료 알림
+function showPDFSaveNotification(fileName) {
+    // 알림 메시지 생성
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 1000;
+        font-size: 14px;
+        max-width: 300px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    // 플랫폼별 저장 위치 안내
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    let saveLocation = '';
+    if (isMobile) {
+        if (isIOS) {
+            saveLocation = '파일 앱 > 다운로드 폴더';
+        } else {
+            saveLocation = '다운로드 폴더 또는 내 파일 앱';
+        }
+    } else {
+        saveLocation = '다운로드 폴더';
+    }
+    
+    notification.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">✅ PDF 저장 완료!</div>
+        <div style="font-size: 12px; opacity: 0.9;">
+            파일명: ${fileName}<br>
+            저장 위치: ${saveLocation}
+        </div>
+    `;
+    
+    // CSS 애니메이션 추가
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // 3초 후 자동 제거
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+        if (style.parentNode) {
+            style.parentNode.removeChild(style);
+        }
+    }, 3000);
+}
 
