@@ -1083,6 +1083,9 @@ function toggleLangMenu() {
     }
 }
 
+// 전역 함수로 명시적 할당
+window.toggleLangMenu = toggleLangMenu;
+
 function applyTranslations() {
     // 언어 스위처 버튼 텍스트 업데이트
     const langButton = document.getElementById('lang-button');
@@ -1574,9 +1577,13 @@ async function getMbtiAdvice(cardNames, question, interpretations) {
 
 // --- 3. 이벤트 리스너 설정 ---
 
-window.onload = () => {
+// DOM이 로드되면 즉시 실행
+document.addEventListener('DOMContentLoaded', initLanguageSwitcher);
+window.onload = initLanguageSwitcher;
+
+function initLanguageSwitcher() {
     // 언어 스위처 초기화
-    console.log('페이지 로드 완료');
+    console.log('언어 스위처 초기화 시작');
     const langButton = document.getElementById('lang-button');
     const langMenu = document.getElementById('lang-menu');
     console.log('언어 버튼 초기화:', langButton, langMenu);
@@ -1589,8 +1596,8 @@ window.onload = () => {
             langButton.setAttribute('aria-expanded', 'false');
         };
 
-        // 언어 버튼 클릭 이벤트 (직접적인 방법)
-        langButton.onclick = (e) => {
+        // 언어 버튼 클릭 이벤트 (여러 방법으로 시도)
+        const handleLangButtonClick = (e) => {
             console.log('언어 버튼 클릭됨!');
             e.preventDefault();
             e.stopPropagation();
@@ -1605,6 +1612,12 @@ window.onload = () => {
                 console.log('메뉴 닫힘');
             }
         };
+        
+        // 여러 방법으로 이벤트 리스너 추가
+        langButton.addEventListener('click', handleLangButtonClick);
+        langButton.onclick = handleLangButtonClick;
+        langButton.addEventListener('mousedown', handleLangButtonClick);
+        langButton.addEventListener('touchstart', handleLangButtonClick);
         
         console.log('언어 버튼 이벤트 리스너 추가됨');
         
@@ -2158,5 +2171,8 @@ function showPDFSaveNotification(fileName) {
             style.parentNode.removeChild(style);
         }
     }, 5000);
+}
+
+// initLanguageSwitcher 함수 종료
 }
 
