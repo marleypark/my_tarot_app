@@ -322,6 +322,26 @@ button:hover {
     margin: 20px auto;
 }
 
+/* 통합 결과 화면 스타일 */
+.section-divider {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #4a4a68, transparent);
+    margin: 40px 0;
+    width: 80%;
+}
+
+#mbti-advice-content {
+    margin-top: 30px;
+}
+
+#mbti-advice-content h3 {
+    color: #e94560;
+    font-size: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
 /* MBTI 조언 페이지 스타일 */
 #mbti-advice-box {
     background-color: rgba(233, 69, 96, 0.1);

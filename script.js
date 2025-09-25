@@ -436,19 +436,13 @@ function applyTranslations() {
 }
 
 function showScreen(screenId) {
-    console.log('showScreen 호출됨:', screenId);
-    console.log('screens 개수:', screens.length);
-    
     screens.forEach(screen => {
         screen.classList.remove('active');
     });
     
     const targetScreen = document.getElementById(screenId);
-    console.log('대상 화면 요소:', targetScreen);
-    
     if (targetScreen) {
         targetScreen.classList.add('active');
-        console.log('화면 전환 완료:', screenId);
     } else {
         console.error('화면을 찾을 수 없습니다:', screenId);
     }
@@ -577,7 +571,7 @@ function typeWriter(element, text, onComplete) {
     typing();
 }
 
-// 전체 타로 해석을 가져오는 함수 (1회 API 호출)
+// 통합된 1회 API 호출 함수
 async function getFullInterpretation(cardNames, question) {
     const SERVERLESS_FUNCTION_URL = '/api/interpret';
 
@@ -589,8 +583,7 @@ async function getFullInterpretation(cardNames, question) {
                 cardNames: cardNames, 
                 question: question, 
                 language: selectedLanguage,
-                mbti: userMBTI,
-                isFullReading: true
+                mbti: userMBTI
             }),
         });
 
@@ -601,20 +594,40 @@ async function getFullInterpretation(cardNames, question) {
         }
         
         const data = await response.json();
-        return data;
+        console.log('API 응답 데이터:', data);
+        
+        if (data.success && data.data) {
+            return data.data;
+        } else {
+            throw new Error('API 응답이 올바르지 않습니다.');
+        }
 
     } catch (error) {
         console.error("API 호출 오류:", error);
         // 테스트 데이터 반환
         return {
-            fullInterpretation: `이것은 ${cardNames.join(', ')} 카드들의 테스트 해석입니다. (MBTI: ${userMBTI})`,
             cardInterpretations: cardNames.map((cardName, index) => ({
+                cardName: cardName,
                 interpretation: `${index + 1}번째 카드 ${cardName}의 해석입니다.`,
-                positiveKeywords: ['희망', '기회', '성장'],
-                negativeKeywords: ['주의', '신중함']
+                keywords: {
+                    positive: ['희망', '기회', '성장'],
+                    caution: ['주의', '신중함']
+                }
             })),
-            summary: '전체적인 요약입니다.',
-            mbtiAdvice: `${userMBTI} 유형에 맞는 조언입니다.`
+            overallReading: {
+                title: '타로 리딩 결과',
+                summary: '전체적인 요약입니다.',
+                mbtiActionPlan: {
+                    title: 'MBTI 기반 액션 플랜',
+                    introduction: `${userMBTI} 유형에 맞는 조언입니다.`,
+                    phases: [
+                        {
+                            phaseTitle: '1단계: 즉시 실행',
+                            steps: ['구체적인 행동 계획 1', '구체적인 행동 계획 2']
+                        }
+                    ]
+                }
+            }
         };
     }
 }
@@ -832,27 +845,7 @@ window.onload = () => {
         playButtonSound();
     });
 
-    document.getElementById('mbti-advice-btn').addEventListener('click', async () => {
-        console.log('MBTI 조언 버튼 클릭됨!');
-        console.log('현재 화면:', document.querySelector('.screen.active')?.id);
-        
-        showScreen('mbti-advice-screen');
-        console.log('화면 전환 후:', document.querySelector('.screen.active')?.id);
-        
-        // 저장된 전체 해석 데이터에서 MBTI 조언 부분만 표시
-        if (window.fullInterpretationData && window.fullInterpretationData.mbtiAdvice) {
-            console.log('MBTI 조언 데이터:', window.fullInterpretationData.mbtiAdvice);
-            typeWriter(document.getElementById('mbti-advice-text'), window.fullInterpretationData.mbtiAdvice);
-        } else {
-            console.log('MBTI 조언 데이터가 없습니다. 백업 방식으로 API 호출');
-            // 백업: 기존 방식으로 API 호출
-            document.getElementById('mbti-advice-text').textContent = "MBTI 기반 조언을 준비하고 있습니다...";
-            const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
-            const mbtiAdvice = await getMbtiAdvice(cardNames, userQuestion, cardInterpretations);
-            typeWriter(document.getElementById('mbti-advice-text'), mbtiAdvice);
-        }
-        playButtonSound();
-    });
+    // MBTI 조언 버튼은 이제 통합 화면에서 자동으로 표시되므로 별도 이벤트 리스너 불필요
 
     // MBTI 조언 페이지 이벤트 리스너들
     document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
@@ -926,8 +919,12 @@ async function showResultScreen() {
     const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
     const fullInterpretation = await getFullInterpretation(cardNames, userQuestion);
     
-    // 전체 해석을 카드별로 분할하여 저장
-    cardInterpretations = fullInterpretation.cardInterpretations;
+    // 새로운 JSON 구조에 맞게 데이터 변환
+    cardInterpretations = fullInterpretation.cardInterpretations.map(card => ({
+        interpretation: card.interpretation,
+        positiveKeywords: card.keywords.positive,
+        negativeKeywords: card.keywords.caution
+    }));
     
     // 전체 해석 데이터를 전역 변수에 저장 (총정리와 MBTI 조언에서 사용)
     window.fullInterpretationData = fullInterpretation;
@@ -1019,31 +1016,54 @@ function showSummaryScreen() {
     });
     
     // 저장된 전체 해석에서 총정리 부분만 표시
-    if (window.fullInterpretationData) {
+    if (window.fullInterpretationData && window.fullInterpretationData.overallReading) {
         console.log('총정리 데이터:', window.fullInterpretationData);
         
+        const overallReading = window.fullInterpretationData.overallReading;
         let summaryContent = '';
         
-        // 연결성 분석 추가
-        if (window.fullInterpretationData.connectionAnalysis) {
-            console.log('연결성 분석:', window.fullInterpretationData.connectionAnalysis);
-            summaryContent += window.fullInterpretationData.connectionAnalysis + '\n\n';
+        // 제목 추가
+        if (overallReading.title) {
+            summaryContent += `# ${overallReading.title}\n\n`;
         }
         
-        // 실생활 적용 가이드 추가
-        if (window.fullInterpretationData.practicalGuide) {
-            console.log('실생활 적용 가이드:', window.fullInterpretationData.practicalGuide);
-            summaryContent += window.fullInterpretationData.practicalGuide + '\n\n';
-        }
-        
-        // 마무리 메시지 추가
-        if (window.fullInterpretationData.summary) {
-            console.log('요약:', window.fullInterpretationData.summary);
-            summaryContent += window.fullInterpretationData.summary;
+        // 요약 추가
+        if (overallReading.summary) {
+            console.log('요약:', overallReading.summary);
+            summaryContent += overallReading.summary;
         }
         
         console.log('최종 총정리 내용:', summaryContent);
         typeWriter(document.getElementById('summary-text'), summaryContent);
+        
+        // MBTI 조언도 함께 표시
+        if (overallReading.mbtiActionPlan) {
+            const mbtiPlan = overallReading.mbtiActionPlan;
+            let mbtiContent = '';
+            
+            // 제목과 소개
+            if (mbtiPlan.title) {
+                mbtiContent += `# ${mbtiPlan.title}\n\n`;
+            }
+            if (mbtiPlan.introduction) {
+                mbtiContent += mbtiPlan.introduction + '\n\n';
+            }
+            
+            // 단계별 액션 플랜
+            if (mbtiPlan.phases && mbtiPlan.phases.length > 0) {
+                mbtiPlan.phases.forEach((phase, index) => {
+                    mbtiContent += `## ${phase.phaseTitle}\n\n`;
+                    if (phase.steps && phase.steps.length > 0) {
+                        phase.steps.forEach((step, stepIndex) => {
+                            mbtiContent += `${stepIndex + 1}. ${step}\n`;
+                        });
+                        mbtiContent += '\n';
+                    }
+                });
+            }
+            
+            typeWriter(document.getElementById('mbti-advice-text'), mbtiContent);
+        }
     } else {
         console.log('전체 해석 데이터가 없습니다.');
         // 백업: 기존 방식으로 생성

@@ -135,37 +135,36 @@
             </div>
         </div>
         
-        <!-- 8. 총정리 화면 -->
+        <!-- 8. 통합 결과 화면 (총정리 + MBTI 조언) -->
         <div id="summary-screen" class="screen">
             <h2>총정리</h2>
             <div id="summary-cards-display">
                 <!-- 4개 카드가 상단에 배치됩니다 -->
             </div>
+            
+            <!-- 총정리 섹션 -->
             <div id="summary-content">
                 <div id="summary-interpretation-box">
                     <p id="summary-text"></p>
                     <div class="typing-cursor"></div>
                 </div>
             </div>
-            <div class="navigation-buttons">
-                <button id="summary-prev-btn">이전</button>
-                <button id="summary-restart-btn">처음으로</button>
-                <button id="mbti-advice-btn" onclick="console.log('직접 클릭 테스트'); showScreen('mbti-advice-screen');">MBTI기반 조언</button>
-            </div>
-        </div>
-        
-        <!-- 9. MBTI 기반 조언 화면 -->
-        <div id="mbti-advice-screen" class="screen">
-            <h2>MBTI 기반 조언</h2>
+            
+            <!-- 구분선 -->
+            <hr class="section-divider">
+            
+            <!-- MBTI 조언 섹션 -->
             <div id="mbti-advice-content">
+                <h3>MBTI 기반 조언</h3>
                 <div id="mbti-advice-box">
                     <p id="mbti-advice-text"></p>
                     <div class="typing-cursor"></div>
                 </div>
             </div>
+            
             <div class="navigation-buttons">
-                <button id="mbti-advice-prev-btn">이전</button>
-                <button id="mbti-advice-restart-btn">처음으로</button>
+                <button id="summary-prev-btn">이전</button>
+                <button id="summary-restart-btn">처음으로</button>
             </div>
         </div>
     </div>
