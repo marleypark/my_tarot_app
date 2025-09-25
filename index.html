@@ -33,13 +33,13 @@
             <h1>ASK ANYTHING</h1>
             <div id="main-shuffle-area">
                 <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">
-                <p>카드를 클릭하여 시작하세요</p>
+                <p id="main-subtitle">카드를 클릭하여 시작하세요</p>
             </div>
         </div>
 
         <!-- 2. 질문 방식 선택 대화상자 -->
         <div id="question-dialog" class="screen">
-            <h2>질문을 어떻게 하시겠어요?</h2>
+            <h2 id="question-dialog-title">질문을 어떻게 하시겠어요?</h2>
             <div class="question-method-buttons">
                 <button id="write-question-btn" class="small-button">직접입력</button>
                 <div class="fortune-dropdown">
@@ -170,7 +170,9 @@
         
         <!-- 8. 통합 결과 화면 (총정리 + MBTI 조언) -->
         <div id="summary-screen" class="screen">
-            <h2>총정리</h2>
+            <h2 id="summary-title">총정리</h2>
+            <h3 id="summary-subtitle">뽑힌 카드들</h3>
+            <p id="summary-description">전체적인 요약입니다.</p>
             <div id="summary-cards-display">
                 <!-- 4개 카드가 상단에 배치됩니다 -->
             </div>
@@ -188,7 +190,8 @@
             
             <!-- MBTI 조언 섹션 -->
             <div id="mbti-advice-content">
-                <h3>MBTI 기반 조언</h3>
+                <h3 id="mbti-advice-title">MBTI 기반 액션 플랜</h3>
+                <p id="mbti-advice-description">INFP 유형에 맞는 조언입니다.</p>
                 <div id="mbti-advice-box">
                     <p id="mbti-advice-text"></p>
                     <div class="typing-cursor"></div>

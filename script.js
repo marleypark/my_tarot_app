@@ -1082,12 +1082,12 @@ function updateUITexts() {
     
     // 메인 화면
     const mainTitle = document.querySelector('#main-screen h1');
-    const mainSubtitle = document.querySelector('#main-screen p');
+    const mainSubtitle = document.getElementById('main-subtitle');
     if (mainTitle) mainTitle.textContent = t.mainTitle;
     if (mainSubtitle) mainSubtitle.textContent = t.mainSubtitle;
     
     // 질문 방식 선택
-    const questionDialogTitle = document.querySelector('#question-dialog h2');
+    const questionDialogTitle = document.getElementById('question-dialog-title');
     const writeQuestionBtn = document.getElementById('write-question-btn');
     const fortuneSelectBtn = document.getElementById('fortune-select-btn');
     const mindQuestionBtn = document.getElementById('mind-question-btn');
@@ -1184,17 +1184,23 @@ function updateUITexts() {
     if (mbtiResultRestartBtn) mbtiResultRestartBtn.textContent = t.restartButton;
     
     // 총정리 화면
-    const summaryTitle = document.querySelector('#summary-screen h2');
-    const summarySubtitle = document.querySelector('#summary-screen h3');
-    const summaryDescription = document.querySelector('#summary-screen p');
-    const mbtiAdviceTitle = document.querySelector('#mbti-advice-content h3');
-    const mbtiAdviceDescription = document.querySelector('#mbti-advice-content p');
+    const summaryTitle = document.getElementById('summary-title');
+    const summarySubtitle = document.getElementById('summary-subtitle');
+    const summaryDescription = document.getElementById('summary-description');
+    const mbtiAdviceTitle = document.getElementById('mbti-advice-title');
+    const mbtiAdviceDescription = document.getElementById('mbti-advice-description');
+    const summaryPrevBtn = document.getElementById('summary-prev-btn');
+    const summaryRestartBtn = document.getElementById('summary-restart-btn');
+    const pdfSaveBtn = document.getElementById('pdf-save-btn');
     
     if (summaryTitle) summaryTitle.textContent = t.summaryTitle;
     if (summarySubtitle) summarySubtitle.textContent = t.summarySubtitle;
     if (summaryDescription) summaryDescription.textContent = t.summaryDescription;
     if (mbtiAdviceTitle) mbtiAdviceTitle.textContent = t.mbtiAdviceTitle;
     if (mbtiAdviceDescription) mbtiAdviceDescription.textContent = t.mbtiAdviceDescription;
+    if (summaryPrevBtn) summaryPrevBtn.textContent = t.prevButton;
+    if (summaryRestartBtn) summaryRestartBtn.textContent = t.restartButton;
+    if (pdfSaveBtn) pdfSaveBtn.textContent = t.pdfSaveButton;
 }
 
 function updateFortuneMenu() {
@@ -1848,7 +1854,10 @@ function displayCardResult(index) {
         keywordsArea.style.display = 'none';
     }
 
-    typeWriter(interpretationText, cardResult.interpretation);
+    // 카드 해석 텍스트를 다국어로 설정
+    const cardName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
+    const fullInterpretationText = t.cardInterpretation(cardName) + '\n\n' + cardResult.interpretation;
+    typeWriter(interpretationText, fullInterpretationText);
 
     const prevButton = document.getElementById('prev-btn');
     const nextButton = document.getElementById('next-btn');
