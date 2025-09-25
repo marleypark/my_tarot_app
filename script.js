@@ -163,6 +163,36 @@ const MINOR_LOCALIZATION = {
         cups: ['聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯侍者','聖杯騎士','聖杯皇后','聖杯國王'],
         swords: ['寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍侍者','寶劍騎士','寶劍皇后','寶劍國王'],
         pentacles: ['錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣侍者','錢幣騎士','錢幣皇后','錢幣國王']
+    },
+    vi: {
+        wands: ['Gậy','Gậy','Gậy','Gậy','Gậy','Gậy','Gậy','Gậy','Gậy','Gậy','Gậy Trang','Gậy Kỵ sĩ','Gậy Hoàng hậu','Gậy Vua'],
+        cups: ['Cốc','Cốc','Cốc','Cốc','Cốc','Cốc','Cốc','Cốc','Cốc','Cốc','Cốc Trang','Cốc Kỵ sĩ','Cốc Hoàng hậu','Cốc Vua'],
+        swords: ['Kiếm','Kiếm','Kiếm','Kiếm','Kiếm','Kiếm','Kiếm','Kiếm','Kiếm','Kiếm','Kiếm Trang','Kiếm Kỵ sĩ','Kiếm Hoàng hậu','Kiếm Vua'],
+        pentacles: ['Tiền','Tiền','Tiền','Tiền','Tiền','Tiền','Tiền','Tiền','Tiền','Tiền','Tiền Trang','Tiền Kỵ sĩ','Tiền Hoàng hậu','Tiền Vua']
+    },
+    id: {
+        wands: ['Tongkat','Tongkat','Tongkat','Tongkat','Tongkat','Tongkat','Tongkat','Tongkat','Tongkat','Tongkat','Tongkat Page','Tongkat Knight','Tongkat Queen','Tongkat King'],
+        cups: ['Cangkir','Cangkir','Cangkir','Cangkir','Cangkir','Cangkir','Cangkir','Cangkir','Cangkir','Cangkir','Cangkir Page','Cangkir Knight','Cangkir Queen','Cangkir King'],
+        swords: ['Pedang','Pedang','Pedang','Pedang','Pedang','Pedang','Pedang','Pedang','Pedang','Pedang','Pedang Page','Pedang Knight','Pedang Queen','Pedang King'],
+        pentacles: ['Pentakel','Pentakel','Pentakel','Pentakel','Pentakel','Pentakel','Pentakel','Pentakel','Pentakel','Pentakel','Pentakel Page','Pentakel Knight','Pentakel Queen','Pentakel King']
+    },
+    chn: {
+        wands: ['权杖','权杖','权杖','权杖','权杖','权杖','权杖','权杖','权杖','权杖','权杖侍者','权杖骑士','权杖皇后','权杖国王'],
+        cups: ['圣杯','圣杯','圣杯','圣杯','圣杯','圣杯','圣杯','圣杯','圣杯','圣杯','圣杯侍者','圣杯骑士','圣杯皇后','圣杯国王'],
+        swords: ['宝剑','宝剑','宝剑','宝剑','宝剑','宝剑','宝剑','宝剑','宝剑','宝剑','宝剑侍者','宝剑骑士','宝剑皇后','宝剑国王'],
+        pentacles: ['钱币','钱币','钱币','钱币','钱币','钱币','钱币','钱币','钱币','钱币','钱币侍者','钱币骑士','钱币皇后','钱币国王']
+    },
+    fr: {
+        wands: ['Bâton','Bâton','Bâton','Bâton','Bâton','Bâton','Bâton','Bâton','Bâton','Bâton','Bâton Page','Bâton Chevalier','Bâton Reine','Bâton Roi'],
+        cups: ['Coupe','Coupe','Coupe','Coupe','Coupe','Coupe','Coupe','Coupe','Coupe','Coupe','Coupe Page','Coupe Chevalier','Coupe Reine','Coupe Roi'],
+        swords: ['Épée','Épée','Épée','Épée','Épée','Épée','Épée','Épée','Épée','Épée','Épée Page','Épée Chevalier','Épée Reine','Épée Roi'],
+        pentacles: ['Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle Page','Pentacle Chevalier','Pentacle Reine','Pentacle Roi']
+    },
+    es: {
+        wands: ['Vara','Vara','Vara','Vara','Vara','Vara','Vara','Vara','Vara','Vara','Vara Paje','Vara Caballero','Vara Reina','Vara Rey'],
+        cups: ['Copa','Copa','Copa','Copa','Copa','Copa','Copa','Copa','Copa','Copa','Copa Paje','Copa Caballero','Copa Reina','Copa Rey'],
+        swords: ['Espada','Espada','Espada','Espada','Espada','Espada','Espada','Espada','Espada','Espada','Espada Paje','Espada Caballero','Espada Reina','Espada Rey'],
+        pentacles: ['Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo','Pentáculo Paje','Pentáculo Caballero','Pentáculo Reina','Pentáculo Rey']
     }
 };
 
@@ -237,7 +267,7 @@ const UI_TEXTS = {
         mbtiResultTitle: '당신의 MBTI는',
         // 카드 선택
         cardsLeft: '남은 카드',
-        selectCards: '카드를 선택해주세요',
+        selectCards: '4장의 카드를 선택하세요.',
         // 결과 화면
         interpreting: '카드 해석중... 쫌만 참아요.',
         positiveKeywords: '긍정',
@@ -302,7 +332,7 @@ const UI_TEXTS = {
         mbtiResultTitle: 'Your MBTI is',
         // 카드 선택
         cardsLeft: 'Cards Left',
-        selectCards: 'Please select cards',
+        selectCards: 'Please select 4 cards.',
         // 결과 화면
         interpreting: 'Interpreting cards... Please wait.',
         positiveKeywords: 'Positive',
@@ -367,7 +397,7 @@ const UI_TEXTS = {
         mbtiResultTitle: '你嘅MBTI係',
         // 카드 선택
         cardsLeft: '剩餘卡牌',
-        selectCards: '請選擇卡牌',
+        selectCards: '請選擇4張卡牌。',
         // 결과 화면
         interpreting: '卡牌解釋緊... 請等等。',
         positiveKeywords: '正面',
@@ -381,6 +411,331 @@ const UI_TEXTS = {
         summaryButton: '總整理',
         pdfSaveButton: '儲存為PDF',
         restartButton: '重新開始'
+    },
+    vi: {
+        preparingAll: 'Đang chuẩn bị giải thích cho tất cả các lá bài...',
+        nthCardTitle: (n) => `Lá bài thứ ${n}`,
+        summary: 'Tổng kết',
+        actionPlan: 'Lời khuyên thực tế',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: 'Nhấp vào lá bài để bắt đầu',
+        // 질문 방식 선택
+        questionDialogTitle: 'Bạn muốn hỏi như thế nào?',
+        directInput: 'Nhập trực tiếp',
+        fortuneSelect: 'Chọn vận may',
+        mindQuestion: 'Hỏi trong tâm trí',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: 'Vận may tổng thể',
+            business: 'Vận may kinh doanh',
+            love: 'Vận may tình yêu',
+            marriage: 'Vận may hôn nhân',
+            children: 'Vận may con cái',
+            work: 'Vận may công việc',
+            money: 'Vận may tài chính',
+            health: 'Vận may sức khỏe',
+            relationship: 'Vận may mối quan hệ'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 Chuẩn bị Tarot mở',
+        prepareMessage: 'Hãy chuẩn bị câu hỏi trong tâm trí',
+        readyButton: 'Sẵn sàng',
+        backButton: 'Trước',
+        // 직접 질문 입력
+        customQuestionTitle: 'Vui lòng nhập câu hỏi trực tiếp',
+        customQuestionDesc: 'Câu hỏi cụ thể hơn sẽ cho bạn câu trả lời chính xác hơn.',
+        questionPlaceholder: 'Ví dụ: Tôi có thể thành công trong công việc mới không?',
+        nextButton: 'Tiếp theo',
+        // MBTI 입력
+        mbtiInputTitle: 'Vui lòng nhập MBTI của bạn',
+        mbtiInputDesc: 'Bạn có biết loại MBTI của mình không?',
+        mbtiPlaceholder: 'Ví dụ: INFP, ENFJ',
+        mbtiUnknownButton: 'Tôi không biết MBTI của mình',
+        restartButton: 'Bắt đầu lại',
+        // MBTI 검사
+        mbtiTestTitle: 'Đánh giá loại tính cách MBTI',
+        mbtiTestDesc1: 'Không có câu trả lời đúng hay sai. Hãy chọn phiên bản bản năng và trung thực nhất của bạn.',
+        mbtiTestDesc2: 'Tốt nhất là trả lời mỗi câu hỏi một cách trực giác.',
+        startTestButton: 'Bắt đầu kiểm tra',
+        questionTitle: 'Câu hỏi',
+        mbtiResultTitle: 'MBTI của bạn là',
+        // 카드 선택
+        cardsLeft: 'Lá bài còn lại',
+        selectCards: 'Vui lòng chọn 4 lá bài.',
+        // 결과 화면
+        interpreting: 'Đang giải thích lá bài... Vui lòng chờ.',
+        positiveKeywords: 'Tích cực',
+        cautionKeywords: 'Cẩn thận',
+        // 총정리
+        summaryTitle: 'Tổng kết',
+        summarySubtitle: 'Các lá bài đã chọn',
+        // 버튼들
+        prevButton: 'Trước',
+        nextButton: 'Tiếp theo',
+        summaryButton: 'Tổng kết',
+        pdfSaveButton: 'Lưu dưới dạng PDF',
+        restartButton: 'Bắt đầu lại'
+    },
+    id: {
+        preparingAll: 'Mempersiapkan interpretasi untuk semua kartu...',
+        nthCardTitle: (n) => `Kartu ke-${n}`,
+        summary: 'Ringkasan',
+        actionPlan: 'Nasihat praktis',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: 'Klik kartu untuk memulai',
+        // 질문 방식 선택
+        questionDialogTitle: 'Bagaimana Anda ingin bertanya?',
+        directInput: 'Input langsung',
+        fortuneSelect: 'Pilih keberuntungan',
+        mindQuestion: 'Bertanya dalam hati',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: 'Keberuntungan umum',
+            business: 'Keberuntungan bisnis',
+            love: 'Keberuntungan cinta',
+            marriage: 'Keberuntungan pernikahan',
+            children: 'Keberuntungan anak',
+            work: 'Keberuntungan kerja',
+            money: 'Keberuntungan finansial',
+            health: 'Keberuntungan kesehatan',
+            relationship: 'Keberuntungan hubungan'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 Persiapan Tarot Terbuka',
+        prepareMessage: 'Silakan siapkan pertanyaan dalam hati Anda',
+        readyButton: 'Siap',
+        backButton: 'Sebelumnya',
+        // 직접 질문 입력
+        customQuestionTitle: 'Silakan masukkan pertanyaan langsung',
+        customQuestionDesc: 'Pertanyaan yang lebih spesifik akan memberikan jawaban yang lebih akurat.',
+        questionPlaceholder: 'Contoh: Apakah saya bisa sukses di pekerjaan baru?',
+        nextButton: 'Selanjutnya',
+        // MBTI 입력
+        mbtiInputTitle: 'Silakan masukkan MBTI Anda',
+        mbtiInputDesc: 'Apakah Anda tahu tipe MBTI Anda?',
+        mbtiPlaceholder: 'Contoh: INFP, ENFJ',
+        mbtiUnknownButton: 'Saya tidak tahu MBTI saya',
+        restartButton: 'Mulai ulang',
+        // MBTI 검사
+        mbtiTestTitle: 'Penilaian Tipe Kepribadian MBTI',
+        mbtiTestDesc1: 'Tidak ada jawaban benar atau salah. Pilih versi diri Anda yang paling naluriah dan jujur.',
+        mbtiTestDesc2: 'Sebaiknya jawab setiap pertanyaan secara intuitif.',
+        startTestButton: 'Mulai tes',
+        questionTitle: 'Pertanyaan',
+        mbtiResultTitle: 'MBTI Anda adalah',
+        // 카드 선택
+        cardsLeft: 'Kartu tersisa',
+        selectCards: 'Silakan pilih 4 kartu.',
+        // 결과 화면
+        interpreting: 'Menginterpretasi kartu... Mohon tunggu.',
+        positiveKeywords: 'Positif',
+        cautionKeywords: 'Hati-hati',
+        // 총정리
+        summaryTitle: 'Ringkasan',
+        summarySubtitle: 'Kartu yang dipilih',
+        // 버튼들
+        prevButton: 'Sebelumnya',
+        nextButton: 'Selanjutnya',
+        summaryButton: 'Ringkasan',
+        pdfSaveButton: 'Simpan sebagai PDF',
+        restartButton: 'Mulai ulang'
+    },
+    chn: {
+        preparingAll: '正在准备所有卡牌的解释...',
+        nthCardTitle: (n) => `第${n}张牌`,
+        summary: '总结',
+        actionPlan: '现实建议',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: '点击卡牌开始',
+        // 질문 방식 선택
+        questionDialogTitle: '您想如何提问？',
+        directInput: '直接输入',
+        fortuneSelect: '运势选择',
+        mindQuestion: '在心中提问',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: '整体运势',
+            business: '事业运',
+            love: '爱情运',
+            marriage: '婚姻运',
+            children: '子女运',
+            work: '工作运',
+            money: '财运',
+            health: '健康运',
+            relationship: '人际关系运'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 开放塔罗准备',
+        prepareMessage: '请在心中准备好问题',
+        readyButton: '准备完成',
+        backButton: '上一页',
+        // 직접 질문 입력
+        customQuestionTitle: '请直接输入您的问题',
+        customQuestionDesc: '更具体的问题会为您提供更准确的答案。',
+        questionPlaceholder: '例如：我在新工作中会成功吗？',
+        nextButton: '下一步',
+        // MBTI 입력
+        mbtiInputTitle: '请输入您的MBTI',
+        mbtiInputDesc: '您知道自己的MBTI类型吗？',
+        mbtiPlaceholder: '例如：INFP, ENFJ',
+        mbtiUnknownButton: '我不知道我的MBTI',
+        restartButton: '重新开始',
+        // MBTI 검사
+        mbtiTestTitle: 'MBTI性格类型诊断',
+        mbtiTestDesc1: '没有正确答案。请选择最本能和诚实的自己。',
+        mbtiTestDesc2: '凭直觉回答每个问题会更好。',
+        startTestButton: '开始测试',
+        questionTitle: '问题',
+        mbtiResultTitle: '您的MBTI是',
+        // 카드 선택
+        cardsLeft: '剩余卡牌',
+        selectCards: '请选择4张卡牌。',
+        // 결과 화면
+        interpreting: '卡牌解释中... 请稍等。',
+        positiveKeywords: '正面',
+        cautionKeywords: '注意',
+        // 총정리
+        summaryTitle: '总结',
+        summarySubtitle: '选中的卡牌',
+        // 버튼들
+        prevButton: '上一页',
+        nextButton: '下一页',
+        summaryButton: '总结',
+        pdfSaveButton: '保存为PDF',
+        restartButton: '重新开始'
+    },
+    fr: {
+        preparingAll: 'Préparation des interprétations pour toutes les cartes...',
+        nthCardTitle: (n) => `${n}ème carte`,
+        summary: 'Résumé',
+        actionPlan: 'Conseils pratiques',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: 'Cliquez sur la carte pour commencer',
+        // 질문 방식 선택
+        questionDialogTitle: 'Comment souhaitez-vous poser votre question ?',
+        directInput: 'Saisie directe',
+        fortuneSelect: 'Sélection de fortune',
+        mindQuestion: 'Poser dans votre esprit',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: 'Fortune générale',
+            business: 'Fortune professionnelle',
+            love: 'Fortune amoureuse',
+            marriage: 'Fortune matrimoniale',
+            children: 'Fortune des enfants',
+            work: 'Fortune du travail',
+            money: 'Fortune financière',
+            health: 'Fortune de la santé',
+            relationship: 'Fortune relationnelle'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 Préparation Tarot Ouvert',
+        prepareMessage: 'Veuillez préparer votre question dans votre esprit',
+        readyButton: 'Prêt',
+        backButton: 'Précédent',
+        // 직접 질문 입력
+        customQuestionTitle: 'Veuillez saisir votre question directement',
+        customQuestionDesc: 'Des questions plus spécifiques vous donneront des réponses plus précises.',
+        questionPlaceholder: 'Exemple : Puis-je réussir dans mon nouvel emploi ?',
+        nextButton: 'Suivant',
+        // MBTI 입력
+        mbtiInputTitle: 'Veuillez saisir votre MBTI',
+        mbtiInputDesc: 'Connaissez-vous votre type MBTI ?',
+        mbtiPlaceholder: 'Exemple : INFP, ENFJ',
+        mbtiUnknownButton: 'Je ne connais pas mon MBTI',
+        restartButton: 'Recommencer',
+        // MBTI 검사
+        mbtiTestTitle: 'Évaluation du Type de Personnalité MBTI',
+        mbtiTestDesc1: 'Il n\'y a pas de bonnes ou mauvaises réponses. Choisissez la version la plus instinctive et honnête de vous-même.',
+        mbtiTestDesc2: 'Il est préférable de répondre à chaque question de manière intuitive.',
+        startTestButton: 'Commencer le test',
+        questionTitle: 'Question',
+        mbtiResultTitle: 'Votre MBTI est',
+        // 카드 선택
+        cardsLeft: 'Cartes restantes',
+        selectCards: 'Veuillez sélectionner 4 cartes.',
+        // 결과 화면
+        interpreting: 'Interprétation des cartes... Veuillez patienter.',
+        positiveKeywords: 'Positif',
+        cautionKeywords: 'Attention',
+        // 총정리
+        summaryTitle: 'Résumé',
+        summarySubtitle: 'Cartes sélectionnées',
+        // 버튼들
+        prevButton: 'Précédent',
+        nextButton: 'Suivant',
+        summaryButton: 'Résumé',
+        pdfSaveButton: 'Enregistrer en PDF',
+        restartButton: 'Recommencer'
+    },
+    es: {
+        preparingAll: 'Preparando interpretaciones para todas las cartas...',
+        nthCardTitle: (n) => `${n}ª carta`,
+        summary: 'Resumen',
+        actionPlan: 'Consejos prácticos',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: 'Haz clic en la carta para comenzar',
+        // 질문 방식 선택
+        questionDialogTitle: '¿Cómo te gustaría hacer tu pregunta?',
+        directInput: 'Entrada directa',
+        fortuneSelect: 'Selección de fortuna',
+        mindQuestion: 'Preguntar en tu mente',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: 'Fortuna general',
+            business: 'Fortuna empresarial',
+            love: 'Fortuna amorosa',
+            marriage: 'Fortuna matrimonial',
+            children: 'Fortuna de hijos',
+            work: 'Fortuna laboral',
+            money: 'Fortuna financiera',
+            health: 'Fortuna de salud',
+            relationship: 'Fortuna relacional'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 Preparación Tarot Abierto',
+        prepareMessage: 'Por favor prepara tu pregunta en tu mente',
+        readyButton: 'Listo',
+        backButton: 'Anterior',
+        // 직접 질문 입력
+        customQuestionTitle: 'Por favor ingresa tu pregunta directamente',
+        customQuestionDesc: 'Preguntas más específicas te darán respuestas más precisas.',
+        questionPlaceholder: 'Ejemplo: ¿Puedo tener éxito en mi nuevo trabajo?',
+        nextButton: 'Siguiente',
+        // MBTI 입력
+        mbtiInputTitle: 'Por favor ingresa tu MBTI',
+        mbtiInputDesc: '¿Conoces tu tipo MBTI?',
+        mbtiPlaceholder: 'Ejemplo: INFP, ENFJ',
+        mbtiUnknownButton: 'No conozco mi MBTI',
+        restartButton: 'Empezar de nuevo',
+        // MBTI 검사
+        mbtiTestTitle: 'Evaluación de Tipo de Personalidad MBTI',
+        mbtiTestDesc1: 'No hay respuestas correctas o incorrectas. Elige la versión más instintiva y honesta de ti mismo.',
+        mbtiTestDesc2: 'Es mejor responder cada pregunta de manera intuitiva.',
+        startTestButton: 'Comenzar prueba',
+        questionTitle: 'Pregunta',
+        mbtiResultTitle: 'Tu MBTI es',
+        // 카드 선택
+        cardsLeft: 'Cartas restantes',
+        selectCards: 'Por favor selecciona 4 cartas.',
+        // 결과 화면
+        interpreting: 'Interpretando cartas... Por favor espera.',
+        positiveKeywords: 'Positivo',
+        cautionKeywords: 'Precaución',
+        // 총정리
+        summaryTitle: 'Resumen',
+        summarySubtitle: 'Cartas seleccionadas',
+        // 버튼들
+        prevButton: 'Anterior',
+        nextButton: 'Siguiente',
+        summaryButton: 'Resumen',
+        pdfSaveButton: 'Guardar como PDF',
+        restartButton: 'Empezar de nuevo'
     }
 };
 
@@ -706,21 +1061,31 @@ function updateUITexts() {
     if (mbtiResultTitle) mbtiResultTitle.textContent = t.mbtiResultTitle;
     
     // 카드 선택
+    const selectInstruction = document.getElementById('select-instruction');
     const cardsLeftText = document.getElementById('cards-left-text');
+    if (selectInstruction) selectInstruction.textContent = t.selectCards;
     if (cardsLeftText) cardsLeftText.textContent = t.cardsLeft;
     
-    // 결과 화면 버튼들
+    // 결과 화면
+    const resultCardTitle = document.getElementById('result-card-title');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const summaryBtn = document.getElementById('summary-btn');
     const restartBtn = document.getElementById('restart-btn');
     const pdfSaveBtn = document.getElementById('pdf-save-btn');
     
+    if (resultCardTitle) resultCardTitle.textContent = t.nthCardTitle(1);
     if (prevBtn) prevBtn.textContent = t.prevButton;
     if (nextBtn) nextBtn.textContent = t.nextButton;
     if (summaryBtn) summaryBtn.textContent = t.summaryButton;
     if (restartBtn) restartBtn.textContent = t.restartButton;
     if (pdfSaveBtn) pdfSaveBtn.textContent = t.pdfSaveButton;
+    
+    // MBTI 결과 화면 버튼들
+    const mbtiResultNextBtn = document.getElementById('mbti-result-next-btn');
+    const mbtiResultRestartBtn = document.getElementById('mbti-result-restart-btn');
+    if (mbtiResultNextBtn) mbtiResultNextBtn.textContent = t.nextButton;
+    if (mbtiResultRestartBtn) mbtiResultRestartBtn.textContent = t.restartButton;
 }
 
 function updateFortuneMenu() {
