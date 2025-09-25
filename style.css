@@ -591,13 +591,14 @@ button:hover {
 
 /* 오픈 타로 준비 팝업 스타일 */
 .prepare-popup {
-    background: transparent;
+    background: transparent !important;
     border-radius: 20px;
     padding: 40px;
     max-width: 600px;
     margin: 0 auto;
     color: #e0e0e0;
     text-align: center;
+    box-shadow: none !important;
 }
 
 .prepare-content {
