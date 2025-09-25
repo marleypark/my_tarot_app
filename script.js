@@ -201,7 +201,6 @@ const mainShuffleArea = document.getElementById('main-shuffle-area');
 const writeQuestionBtn = document.getElementById('write-question-btn');
 const mindQuestionBtn = document.getElementById('mind-question-btn');
 const questionInput = document.getElementById('question-input');
-const startFocusReadingBtn = document.getElementById('start-focus-reading-btn');
 const shuffleAnimationArea = document.getElementById('shuffle-animation-area');
 const cardsLeftText = document.getElementById('cards-left-text');
 const selectedCardsPreview = document.getElementById('selected-cards-preview');
@@ -893,16 +892,7 @@ window.onload = () => {
 
     // 질문 선택 화면 이전 버튼은 제거됨 (새로운 UI로 대체)
 
-    // MBTI 조언 페이지 이벤트 리스너들
-    document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
-        showSummaryScreen();
-        playButtonSound();
-    });
-
-    document.getElementById('mbti-advice-restart-btn').addEventListener('click', () => {
-        resetApp();
-        playButtonSound();
-    });
+    // MBTI 조언 페이지 이벤트 리스너들은 HTML에 존재하지 않으므로 제거됨
     
     resetApp();
 };
@@ -966,14 +956,7 @@ if (fortuneSelectBtn && fortuneMenu) {
 
 // 기존 mindQuestionBtn은 제거됨 (운선택으로 대체)
 
-startFocusReadingBtn.addEventListener('click', () => {
-    userQuestion = questionInput.value;
-    if (userQuestion.trim() === "") {
-        alert("질문을 입력해주세요.");
-        return;
-    }
-    showScreen('mbti-input-screen');
-});
+// startFocusReadingBtn은 HTML에 존재하지 않으므로 제거됨
 
 // 카드 선택 로직
 shuffleAnimationArea.addEventListener('click', () => {
