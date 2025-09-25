@@ -226,3 +226,127 @@ button:hover {
 .keyword.negative {
     color: #f92672; /* 부정 키워드 색상 */
 }
+
+/* MBTI 관련 스타일 */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+#mbti-input {
+    background-color: #2a2a44;
+    border: 2px solid #4a4a68;
+    color: #e0e0e0;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    text-align: center;
+    margin: 20px 0;
+    width: 200px;
+}
+
+#mbti-input:focus {
+    outline: none;
+    border-color: #e94560;
+}
+
+#mbti-options-container {
+    margin: 20px 0;
+}
+
+.mbti-option {
+    background-color: #4a4a68;
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 10px 0;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.3s;
+}
+
+.mbti-option:hover {
+    background-color: #3a3a52;
+}
+
+.mbti-option.selected {
+    background-color: #e94560;
+}
+
+#mbti-result-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #e94560;
+    margin: 20px 0;
+    padding: 20px;
+    background-color: rgba(233, 69, 96, 0.1);
+    border-radius: 15px;
+    border: 2px solid #e94560;
+}
+
+#mbti-result-description {
+    font-size: 16px;
+    margin: 20px 0;
+    line-height: 1.6;
+}
+
+/* 총정리 페이지 스타일 */
+#summary-cards-display {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+#summary-cards-display img {
+    width: 80px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+#summary-interpretation-box {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 200px;
+    width: 90%;
+    text-align: left;
+    white-space: pre-wrap;
+    margin: 20px auto;
+}
+
+/* MBTI 조언 페이지 스타일 */
+#mbti-advice-box {
+    background-color: rgba(233, 69, 96, 0.1);
+    border: 2px solid #e94560;
+    border-radius: 15px;
+    padding: 25px;
+    min-height: 300px;
+    width: 90%;
+    text-align: left;
+    white-space: pre-wrap;
+    margin: 20px auto;
+    line-height: 1.6;
+}
+
+/* 질문 진행 표시 */
+#mbti-question-title {
+    color: #e94560;
+    margin-bottom: 20px;
+}
+
+#mbti-question-text {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 20px 0;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
