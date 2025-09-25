@@ -48,8 +48,8 @@ body {
     padding: 6px 0;
     display: none;
     min-width: 140px;
-    text-align: left;
     z-index: 1000;
+    text-align: left;
 }
 .lang-menu.show {
     display: block;

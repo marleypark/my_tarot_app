@@ -184,12 +184,14 @@ const UI_TEXTS = {
     kor: {
         preparingAll: '모든 카드의 해석을 준비하고 있습니다...',
         nthCardTitle: (n) => `${n}번째 카드`,
-        summary: '총정리'
+        summary: '총정리',
+        actionPlan: '현실 조언'
     },
     eng: {
         preparingAll: 'Preparing interpretations for all cards...',
         nthCardTitle: (n) => `${n}th Card`,
-        summary: 'Summary'
+        summary: 'Summary',
+        actionPlan: 'Action Plan'
     }
 };
 
@@ -315,6 +317,13 @@ async function fetchAllInterpretations() {
     const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
     const SERVERLESS_FUNCTION_URL = '/api/interpret';
 
+    console.log('API 호출 시작:', {
+        cardNames,
+        question: userQuestion,
+        language: selectedLanguage,
+        url: SERVERLESS_FUNCTION_URL
+    });
+
     try {
         const response = await fetch(SERVERLESS_FUNCTION_URL, {
             method: 'POST',
@@ -322,36 +331,81 @@ async function fetchAllInterpretations() {
             body: JSON.stringify({ cardNames, question: userQuestion, language: selectedLanguage }),
         });
 
-        if (!response.ok) throw new Error(`API 요청 실패: ${response.status}`);
+        console.log('API 응답 상태:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API 응답 오류:', errorText);
+            throw new Error(`API 요청 실패: ${response.status} - ${errorText}`);
+        }
         
         fullResultData = await response.json(); // 모든 결과(JSON)를 변수에 저장
+        console.log('API 응답 데이터:', fullResultData);
         
         // 첫 번째 카드 결과부터 보여주기
         displayCardResult(0);
 
     } catch (error) {
         console.error("API 호출 및 데이터 처리 오류:", error);
-        interpretationText.textContent = "해석을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.";
+        
+        // API가 작동하지 않을 경우 테스트 데이터 사용
+        console.log('API 실패, 테스트 데이터 사용');
+        fullResultData = generateTestData(cardNames);
+        displayCardResult(0);
     }
+}
+
+// 테스트 데이터 생성 함수 (API가 작동하지 않을 때 사용)
+function generateTestData(cardNames) {
+    const interpretations = cardNames.map((cardName, index) => ({
+        cardName: cardName,
+        fullInterpretation: `이것은 ${cardName} 카드의 테스트 해석입니다. 실제 API가 작동하지 않아서 표시되는 임시 데이터입니다. 카드의 의미와 상징을 통해 당신의 질문에 대한 답을 찾아보세요.`,
+        positiveKeywords: ['희망', '기회', '성장'],
+        negativeKeywords: ['주의', '신중함']
+    }));
+    
+    return {
+        interpretations: interpretations,
+        summary: '이것은 모든 카드의 총정리 테스트 데이터입니다. 각 카드의 의미를 종합하여 전체적인 조언을 제공합니다.',
+        actionPlan: '현실적인 조언: 이 테스트 데이터를 바탕으로 실제 상황에 적용할 수 있는 구체적인 행동 계획을 세워보세요.'
+    };
 }
 
 // --- 3. 이벤트 리스너 설정 ---
 
 window.onload = () => {
     // 언어 스위처 초기화
-    if (langSwitcher) {
-        Object.keys(languageNameByCode).forEach(code => {
-            const option = document.createElement('option');
-            option.value = code;
-            option.textContent = languageNameByCode[code];
-            langSwitcher.appendChild(option);
+    if (langButton && langMenu) {
+        // 언어 버튼 클릭 이벤트
+        langButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = langMenu.style.display === 'block';
+            langMenu.style.display = isOpen ? 'none' : 'block';
+            langButton.setAttribute('aria-expanded', !isOpen);
         });
-        langSwitcher.value = selectedLanguage;
         
-        langSwitcher.addEventListener('change', (e) => {
-            selectedLanguage = e.target.value;
-            applyTranslations();
+        // 언어 메뉴 항목 클릭 이벤트
+        const langOptions = langMenu.querySelectorAll('li[data-lang]');
+        langOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                selectedLanguage = e.target.getAttribute('data-lang');
+                langButton.textContent = languageNameByCode[selectedLanguage];
+                langMenu.style.display = 'none';
+                langButton.setAttribute('aria-expanded', 'false');
+                applyTranslations();
+            });
         });
+        
+        // 외부 클릭 시 메뉴 닫기
+        document.addEventListener('click', (e) => {
+            if (!langButton.contains(e.target) && !langMenu.contains(e.target)) {
+                langMenu.style.display = 'none';
+                langButton.setAttribute('aria-expanded', 'false');
+            }
+        });
+        
+        // 초기 언어 설정
+        langButton.textContent = languageNameByCode[selectedLanguage];
     }
     
     resetApp();
@@ -409,12 +463,29 @@ shuffleAnimationArea.addEventListener('click', () => {
 
 // 저장된 데이터로 화면을 구성하는 함수
 function displayCardResult(index) {
-    if (!fullResultData || !fullResultData.interpretations) return;
+    console.log('displayCardResult 호출:', { index, fullResultData });
+    
+    if (!fullResultData) {
+        console.error('fullResultData가 없습니다');
+        return;
+    }
+    
+    if (!fullResultData.interpretations) {
+        console.error('fullResultData.interpretations가 없습니다:', fullResultData);
+        return;
+    }
+    
+    if (!fullResultData.interpretations[index]) {
+        console.error(`interpretations[${index}]가 없습니다:`, fullResultData.interpretations);
+        return;
+    }
 
     currentResultIndex = index;
     const cardResult = fullResultData.interpretations[index];
     const cardIndex = selectedCards[index]; // 원본 카드 인덱스
     const t = UI_TEXTS[selectedLanguage];
+    
+    console.log('카드 결과 표시:', { cardResult, cardIndex });
     
     resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${cardResult.cardName}`;
     resultCardImage.src = tarotData[cardIndex].img;
@@ -481,7 +552,8 @@ summaryBtn.addEventListener('click', () => {
 // 현실 조언 버튼: API 호출 없이 저장된 데이터 사용
 actionPlanBtn.addEventListener('click', () => {
     if (!fullResultData || !fullResultData.actionPlan) return;
-    resultCardTitle.textContent = '현실 조언'; // 이 부분도 다국어 처리 가능
+    const t = UI_TEXTS[selectedLanguage];
+    resultCardTitle.textContent = t.actionPlan;
     
     typeWriter(interpretationText, fullResultData.actionPlan);
     
