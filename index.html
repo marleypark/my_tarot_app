@@ -1,3 +1,4 @@
+<!-- 📁 index.html (전체 교체) -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -5,215 +6,141 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASK ANYTHING</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-    </style>
+    <!-- PDF 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-
-    <!-- 현재 화면을 감싸는 컨테이너 -->
     <div class="app-container">
         <!-- 언어 스위처 -->
-        <div class="lang-switcher" id="lang-switcher">
-            <button class="lang-button" id="lang-button" aria-haspopup="listbox" aria-expanded="false">Korean</button>
-            <ul class="lang-menu" id="lang-menu" role="listbox" aria-label="Language">
-                <li role="option" data-lang="kor">KOR</li>
-                <li role="option" data-lang="eng">ENG</li>
-                <li role="option" data-lang="can">CAN</li>
-                <li role="option" data-lang="vi">VI</li>
-                <li role="option" data-lang="id">ID</li>
-                <li role="option" data-lang="chn">CHN</li>
-                <li role="option" data-lang="fr">FR</li>
-                <li role="option" data-lang="es">ES</li>
+        <div class="lang-switcher">
+            <button class="lang-button" id="lang-button">Language</button>
+            <ul class="lang-menu" id="lang-menu">
+                <li data-lang="kor">KOR</li><li data-lang="eng">ENG</li><li data-lang="can">CAN</li>
+                <li data-lang="vi">VI</li><li data-lang="id">ID</li><li data-lang="chn">CHN</li>
+                <li data-lang="fr">FR</li><li data-lang="es">ES</li>
             </ul>
         </div>
 
         <!-- 1. 메인 시작 화면 -->
-        <div id="main-screen" class="screen active">
-            <h1>ASK ANYTHING</h1>
+        <div id="main-screen" class="screen">
+            <h1 data-i18n-key="mainTitle">ASK ANYTHING</h1>
             <div id="main-shuffle-area">
                 <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">
-                <p id="main-subtitle">카드를 클릭하여 시작하세요</p>
+                <p data-i18n-key="mainSubtitle">카드를 클릭하여 시작하세요</p>
             </div>
         </div>
 
-        <!-- 2. 질문 방식 선택 대화상자 -->
-        <div id="question-dialog" class="screen">
-            <h2 id="question-dialog-title">질문을 어떻게 하시겠어요?</h2>
+        <!-- 2. 질문 방식 선택 -->
+        <div id="question-dialog-screen" class="screen">
+            <h2 data-i18n-key="questionDialogTitle">질문을 어떻게 하시겠어요?</h2>
             <div class="question-method-buttons">
-                <button id="write-question-btn" class="small-button">직접입력</button>
+                <button id="direct-input-btn" data-i18n-key="directInput">직접입력</button>
                 <div class="fortune-dropdown">
-                    <button id="fortune-select-btn" class="small-button">운선택</button>
-                    <ul id="fortune-menu" class="fortune-menu">
-                        <li data-question="전반적인 운세는 어떨까요?">전반적 운세</li>
-                        <li data-question="사업이 성공할까요?">사업운</li>
-                        <li data-question="연애운(궁합)은 어떨까요?">연애운(궁합)</li>
-                        <li data-question="결혼생활은 어떨까요?">결혼운</li>
-                        <li data-question="자식과의 관계는 어떨까요?">자식운</li>
-                        <li data-question="직장에서의 운세는 어떨까요?">직장운</li>
-                        <li data-question="재물운은 어떨까요?">재물운</li>
-                        <li data-question="건강은 어떨까요?">건강운</li>
-                        <li data-question="인간관계는 어떨까요?">인간관계운</li>
-                    </ul>
+                    <button id="fortune-select-btn" data-i18n-key="fortuneSelect">운세 선택</button>
+                    <!-- 👇 JavaScript가 동적으로 채울 수 있도록 비워둡니다. -->
+                    <ul id="fortune-menu" class="fortune-menu"></ul>
                 </div>
-                <button id="mind-question-btn" class="small-button">마음속으로 질문하기</button>
+                <button id="mind-question-btn" data-i18n-key="mindQuestion">마음속으로 질문하기</button>
             </div>
         </div>
-
-        <!-- 3. 오픈 타로 준비 화면 -->
-        <div id="open-tarot-prepare-screen" class="screen">
-            <div class="prepare-popup">
-                <div class="prepare-content">
-                    <p class="prepare-message">질문을 반드시 마음속으로 준비하세요</p>
-                    
-                </div>
-                <div class="button-group">
-                    <button id="ready-for-cards-btn" class="small-button">준비 완료</button>
-                    <button id="back-to-question-dialog-from-prepare-btn" class="small-button">이전</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3-1. 직접 질문 입력 화면 -->
+        
+        <!-- 3. 직접 질문 입력 -->
         <div id="custom-question-screen" class="screen">
-            <h2>질문을 직접 입력해주세요</h2>
-            <p>구체적인 질문을 하면 더 정확한 답을 받을 수 있습니다.</p>
-            <textarea id="question-input" placeholder="예: 새로운 직장에서 성공할 수 있을까요?"></textarea>
-            <div class="button-group">
-                <button id="submit-question-btn">다음</button>
-                <button id="back-to-question-options-btn">이전</button>
+            <h2 data-i18n-key="customQuestionTitle">질문을 직접 입력해주세요</h2>
+            <textarea id="question-input" data-i18n-placeholder="questionPlaceholder"></textarea>
+            <div class="navigation-buttons">
+                <button id="back-to-dialog-btn" data-i18n-key="backButton">이전</button>
+                <button id="submit-question-btn" data-i18n-key="nextButton">다음</button>
             </div>
         </div>
-        
-        <!-- 3-1. MBTI 직접 입력 화면 -->
-        <div id="mbti-input-screen" class="screen">
-            <h2>MBTI를 입력해주세요</h2>
-            <p>본인의 MBTI 유형을 알고 계신가요?</p>
-            <input type="text" id="mbti-input" placeholder="예) INFP, ENFJ" maxlength="4" style="text-transform: uppercase;">
-            <div class="button-group">
-                <button id="mbti-submit-btn">다음</button>
-                <button id="mbti-test-btn">MBTI를 모른다면</button>
-                <button id="mbti-restart-btn">처음으로</button>
-            </div>
-        </div>
-        
-        <!-- 3-2. MBTI 검사 시작 화면 -->
-        <div id="mbti-test-start-screen" class="screen">
-            <h2>MBTI 성격 유형 진단</h2>
-            <p>정답은 없습니다. 가장 본능적이고 솔직한 당신의 모습을 선택해주세요.</p>
-            <p>각 질문을 직관적으로 답변하는 것이 좋습니다.</p>
-            <div class="button-group">
-                <button id="start-mbti-test-btn">검사 시작</button>
-                <button id="mbti-test-restart-btn">처음으로</button>
-            </div>
-        </div>
-        
-        <!-- 3-2-1 ~ 3-2-16. MBTI 질문 화면들 -->
-        <div id="mbti-question-screen" class="screen">
-            <h2 id="mbti-question-title">질문 1</h2>
-            <p id="mbti-question-text"></p>
-            <div id="mbti-options-container">
-                <!-- JavaScript로 동적 생성 -->
-            </div>
-            <div class="button-group">
-                <button id="mbti-question-restart-btn">처음으로</button>
-            </div>
-        </div>
-        
-        <!-- 3-2-마지막. MBTI 결과 화면 -->
-        <div id="mbti-result-screen" class="screen">
-            <h2>당신의 MBTI는</h2>
-            <div id="mbti-result-display">
-                <span id="mbti-result-type"></span>
-            </div>
-            <p id="mbti-result-description"></p>
-            <div class="button-group">
-                <button id="mbti-result-next-btn">다음</button>
-                <button id="mbti-result-restart-btn">처음으로</button>
-            </div>
-        </div>
-        
 
-        <!-- 4. 카드 선택 화면 -->
+        <!-- 4. MBTI 입력/검사 선택 -->
+        <div id="mbti-entry-screen" class="screen">
+            <h2 data-i18n-key="mbtiInputTitle">MBTI를 입력해주세요</h2>
+            <p data-i18n-key="mbtiInputDesc">본인의 MBTI 유형을 알고 계신가요?</p>
+            <input type="text" id="mbti-input" data-i18n-placeholder="mbtiPlaceholder" maxlength="4">
+            <div class="navigation-buttons">
+                 <button id="mbti-skip-btn" data-i18n-key="skipButton">건너뛰기</button>
+                 <button id="mbti-submit-btn" data-i18n-key="nextButton">다음</button>
+            </div>
+            <button id="start-mbti-test-btn" class="text-button" data-i18n-key="mbtiUnknownButton">MBTI를 모른다면? 검사하기</button>
+        </div>
+
+        <!-- 5. MBTI 검사 -->
+        <div id="mbti-test-screen" class="screen">
+            <div id="mbti-progress-bar-container"><div id="mbti-progress-bar"></div></div>
+            <p id="mbti-progress-text"></p>
+            <h3 id="mbti-question-text"></h3>
+            <div id="mbti-options-container"></div>
+        </div>
+
+        <!-- 6. 카드 선택 -->
         <div id="card-select-screen" class="screen">
-            <h2 id="select-instruction">4장의 카드를 선택하세요.</h2>
-            <p id="cards-left-text">남은 카드: 4장</p>
-            <div id="shuffle-animation-area">
-                 <!-- JavaScript로 셔플 애니메이션을 여기에 추가 -->
-            </div>
-            <div id="selected-cards-preview">
-                <!-- 선택된 카드의 작은 이미지가 여기에 표시됩니다 -->
-            </div>
-        </div>
-
-        <!-- 5. 결과 보기 화면 (4-7페이지) -->
-        <div id="result-screen" class="screen">
-            <h3 id="result-card-title">첫 번째 카드</h3>
-            <div class="result-content">
-                <div class="card-image-wrapper">
-                    <img id="result-card-image" src="" alt="선택된 카드">
-                </div>
-                <div id="interpretation-box">
-                    <!-- 👇 키워드를 표시할 영역을 추가합니다. -->
-                    <div id="keywords-area"></div> 
-                    <p id="interpretation-text"></p>
-                    <div class="typing-cursor"></div>
-                </div>
-            </div>
-            <div class="navigation-buttons">
-                <button id="prev-btn">이전</button>
-                <button id="next-btn">다음</button>
-                <button id="summary-btn">총정리로</button>
-                <button id="restart-btn">처음으로</button>
-            </div>
+            <h2 data-i18n-key="selectCards">4장의 카드를 선택하세요.</h2>
+            <p id="cards-left-text"></p>
+            <div id="shuffle-animation-area"></div>
+            <div id="selected-cards-preview"></div>
         </div>
         
-        <!-- 8. 통합 결과 화면 (총정리 + MBTI 조언) -->
-        <div id="summary-screen" class="screen">
-            <h2 id="summary-title">총정리</h2>
-            <h3 id="summary-subtitle">뽑힌 카드들</h3>
-            <p id="summary-description">전체적인 요약입니다.</p>
-            <div id="summary-cards-display">
-                <!-- 4개 카드가 상단에 배치됩니다 -->
+        <!-- 7. 통합 결과 화면 -->
+        <div id="result-screen" class="screen">
+            <div class="result-nav">
+                <button id="pdf-save-btn" data-i18n-key="pdfSaveButton">PDF로 저장</button>
+                <button id="restart-btn" data-i18n-key="restartButton">처음으로</button>
             </div>
             
-            <!-- 총정리 섹션 -->
-            <div id="summary-content">
-                <div id="summary-interpretation-box">
-                    <p id="summary-text"></p>
-                    <div class="typing-cursor"></div>
+            <div id="result-content-wrapper">
+                <!-- 로딩 화면 -->
+                <div id="loading-section">
+                    <div class="spinner"></div>
+                    <p data-i18n-key="interpreting">해석을 불러오는 중입니다...</p>
                 </div>
-            </div>
-            
-            <!-- 구분선 -->
-            <hr class="section-divider">
-            
-            <!-- MBTI 조언 섹션 -->
-            <div id="mbti-advice-content">
-                <h3 id="mbti-advice-title">MBTI 기반 액션 플랜</h3>
-                <p id="mbti-advice-description">INFP 유형에 맞는 조언입니다.</p>
-                <div id="mbti-advice-box">
-                    <p id="mbti-advice-text"></p>
-                    <div class="typing-cursor"></div>
+
+                <!-- 결과 표시 영역 (로딩 후 표시) -->
+                <div id="result-sections" style="display: none;">
+                    <section id="individual-cards-section">
+                        <h2 data-i18n-key="individualCardsTitle">개별 카드 해석</h2>
+                        <div class="result-content">
+                            <div class="card-image-wrapper">
+                                <img id="result-card-image" src="" alt="Selected Card">
+                            </div>
+                            <div id="interpretation-box">
+                                <h3 id="result-card-title"></h3>
+                                <div id="keywords-area"></div>
+                                <p id="interpretation-text"></p>
+                            </div>
+                        </div>
+                        <div class="navigation-buttons">
+                            <button id="prev-btn" data-i18n-key="prevButton">이전</button>
+                            <button id="next-btn" data-i18n-key="nextButton">다음</button>
+                        </div>
+                    </section>
+                    <hr class="section-divider">
+                    <section id="summary-section">
+                        <h2 id="summary-title"></h2>
+                        <div id="summary-cards-display"></div>
+                        <div id="summary-box">
+                            <p id="summary-text"></p>
+                        </div>
+                    </section>
+                    <hr class="section-divider">
+                    <section id="action-plan-section">
+                        <h2 id="action-plan-title"></h2>
+                        <div id="action-plan-box">
+                            <p id="action-plan-intro"></p>
+                            <div id="action-plan-phases"></div>
+                        </div>
+                    </section>
                 </div>
-            </div>
-            
-            <div class="navigation-buttons">
-                <button id="summary-prev-btn">이전</button>
-                <button id="summary-restart-btn">처음으로</button>
-                <button id="pdf-save-btn">PDF로 저장</button>
             </div>
         </div>
     </div>
     
-    <!-- 오디오 요소 (경로를 실제 파일에 맞게 수정하세요) -->
     <audio id="select-sound" src="sounds/card-select.wav"></audio>
     <audio id="shuffle-sound" src="sounds/card-shuffle.mp3"></audio>
     <audio id="button-sound" src="sounds/button-press.mp3"></audio>
-
-    <!-- JavaScript 파일 연결 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script src="translation.js"></script>
     <script src="script.js"></script>
 </body>

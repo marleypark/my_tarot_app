@@ -1,3 +1,88 @@
+// 언어 코드와 HTML lang 속성 매핑
+const htmlLangByCode = {
+    kor: 'ko',
+    eng: 'en',
+    can: 'zh-HK',
+    vi: 'vi',
+    id: 'id',
+    chn: 'zh-CN',
+    fr: 'fr',
+    es: 'es'
+};
+
+// 다국어 텍스트 데이터
+const UI_TEXTS = {
+    kor: {
+        mainTitle: "ASK ANYTHING",
+        mainSubtitle: "카드를 클릭하여 시작하세요",
+        questionDialogTitle: "질문을 어떻게 하시겠어요?",
+        directInput: "직접입력",
+        fortuneSelect: "운세 선택",
+        mindQuestion: "마음속으로 질문하기",
+        customQuestionTitle: "질문을 직접 입력해주세요",
+        questionPlaceholder: "예: 새로운 직장에서 성공할 수 있을까요?",
+        backButton: "이전",
+        nextButton: "다음",
+        mbtiInputTitle: "MBTI를 입력해주세요",
+        mbtiInputDesc: "본인의 MBTI 유형을 알고 계신가요?",
+        mbtiPlaceholder: "예) INFP, ENFJ",
+        skipButton: "건너뛰기",
+        mbtiUnknownButton: "MBTI를 모른다면? 검사하기",
+        selectCards: "4장의 카드를 선택하세요.",
+        interpreting: "해석을 불러오는 중입니다...",
+        individualCardsTitle: "개별 카드 해석",
+        prevButton: "이전",
+        pdfSaveButton: "PDF로 저장",
+        restartButton: "처음으로",
+        fortuneOptions: {
+            general: "전반적 운세",
+            love: "연애운",
+            business: "사업운",
+            marriage: "결혼운",
+            children: "자식운",
+            career: "직장운",
+            money: "재물운",
+            health: "건강운",
+            relationships: "인간관계운"
+        }
+    },
+    eng: {
+        mainTitle: "ASK ANYTHING",
+        mainSubtitle: "Click the card to start",
+        questionDialogTitle: "How would you like to ask your question?",
+        directInput: "Direct Input",
+        fortuneSelect: "Fortune Selection",
+        mindQuestion: "Ask in Your Mind",
+        customQuestionTitle: "Please enter your question directly",
+        questionPlaceholder: "e.g., Will I succeed in my new job?",
+        backButton: "Back",
+        nextButton: "Next",
+        mbtiInputTitle: "Please enter your MBTI",
+        mbtiInputDesc: "Do you know your MBTI type?",
+        mbtiPlaceholder: "e.g., INFP, ENFJ",
+        skipButton: "Skip",
+        mbtiUnknownButton: "Don't know MBTI? Take the test",
+        selectCards: "Select 4 cards.",
+        interpreting: "Interpreting...",
+        individualCardsTitle: "Individual Card Interpretations",
+        prevButton: "Previous",
+        pdfSaveButton: "Save as PDF",
+        restartButton: "Start Over",
+        fortuneOptions: {
+            general: "General Fortune",
+            love: "Love Fortune",
+            business: "Business Fortune",
+            marriage: "Marriage Fortune",
+            children: "Children Fortune",
+            career: "Career Fortune",
+            money: "Money Fortune",
+            health: "Health Fortune",
+            relationships: "Relationship Fortune"
+        }
+    }
+    // 다른 언어들도 필요에 따라 추가...
+};
+
 const MBTI_QUESTIONS_I18N = {
     kor: [
       { question: "📱 SNS 사용 패턴", options: [ { text: "일상의 소소한 순간들을 자주 포스팅하고, 친구들의 게시물에 적극적으로 댓글과 반응을 남기며 활발하게 소통한다.", type: "E" }, { text: "정말 특별한 순간이나 의미 있는 생각이 있을 때만 포스팅하고, 주로 다른 사람들의 글을 조용히 구경하는 편이다.", type: "I" } ] },
@@ -1089,3 +1174,100 @@ const MBTI_QUESTIONS_I18N = {
       }
     ]
 };
+
+// 타로 카드 데이터 (기존 데이터 유지)
+const tarotData = [
+    // 메이저 아르카나
+    { name: { kor: "바보", eng: "The Fool" }, img: "images/메이저_아르카나/0. 바보 카드.jpg" },
+    { name: { kor: "마법사", eng: "The Magician" }, img: "images/메이저_아르카나/1. 마법사 카드.jpg" },
+    { name: { kor: "여사제", eng: "The High Priestess" }, img: "images/메이저_아르카나/2. 여사제 카드.jpg" },
+    { name: { kor: "여황제", eng: "The Empress" }, img: "images/메이저_아르카나/3. 여황제 카드.jpg" },
+    { name: { kor: "황제", eng: "The Emperor" }, img: "images/메이저_아르카나/4. 황제 카드.jpg" },
+    { name: { kor: "교황", eng: "The Hierophant" }, img: "images/메이저_아르카나/5. 교황 카드.jpg" },
+    { name: { kor: "연인", eng: "The Lovers" }, img: "images/메이저_아르카나/6. 연인 카드.jpg" },
+    { name: { kor: "전차", eng: "The Chariot" }, img: "images/메이저_아르카나/7. 전차 카드.jpg" },
+    { name: { kor: "힘", eng: "Strength" }, img: "images/메이저_아르카나/8. 힘 카드.jpg" },
+    { name: { kor: "은둔자", eng: "The Hermit" }, img: "images/메이저_아르카나/9. 은둔자 카드.jpg" },
+    { name: { kor: "운명의 수레바퀴", eng: "Wheel of Fortune" }, img: "images/메이저_아르카나/10. 운명의 수레바퀴.jpg" },
+    { name: { kor: "정의", eng: "Justice" }, img: "images/메이저_아르카나/11. 정의 카드.jpg" },
+    { name: { kor: "행맨", eng: "The Hanged Man" }, img: "images/메이저_아르카나/12. 행맨 카드.jpg" },
+    { name: { kor: "죽음", eng: "Death" }, img: "images/메이저_아르카나/13. 죽음 카드.jpg" },
+    { name: { kor: "절제", eng: "Temperance" }, img: "images/메이저_아르카나/14. 절제 카드.jpg" },
+    { name: { kor: "악마", eng: "The Devil" }, img: "images/메이저_아르카나/15. 악마 카드.jpg" },
+    { name: { kor: "타워", eng: "The Tower" }, img: "images/메이저_아르카나/16. 타워 카드.jpg" },
+    { name: { kor: "별", eng: "The Star" }, img: "images/메이저_아르카나/17. 별 카드.jpg" },
+    { name: { kor: "달", eng: "The Moon" }, img: "images/메이저_아르카나/18. 달 카드.jpg" },
+    { name: { kor: "태양", eng: "The Sun" }, img: "images/메이저_아르카나/19. 태양 카드.jpg" },
+    { name: { kor: "심판", eng: "Judgement" }, img: "images/메이저_아르카나/20. 심판 카드.jpg" },
+    { name: { kor: "세계", eng: "The World" }, img: "images/메이저_아르카나/21. 세계 카드.jpg" },
+    
+    // 소드 (22-31)
+    { name: { kor: "소드 에이스", eng: "Ace of Swords" }, img: "images/소드/소드 에이스.jpg" },
+    { name: { kor: "소드 2", eng: "Two of Swords" }, img: "images/소드/소드2.jpg" },
+    { name: { kor: "소드 3", eng: "Three of Swords" }, img: "images/소드/소드3.jpg" },
+    { name: { kor: "소드 4", eng: "Four of Swords" }, img: "images/소드/소드4.jpg" },
+    { name: { kor: "소드 5", eng: "Five of Swords" }, img: "images/소드/소드5.jpg" },
+    { name: { kor: "소드 6", eng: "Six of Swords" }, img: "images/소드/소드6.jpg" },
+    { name: { kor: "소드 7", eng: "Seven of Swords" }, img: "images/소드/소드7.jpg" },
+    { name: { kor: "소드 8", eng: "Eight of Swords" }, img: "images/소드/소드8.jpg" },
+    { name: { kor: "소드 9", eng: "Nine of Swords" }, img: "images/소드/소드9.jpg" },
+    { name: { kor: "소드 10", eng: "Ten of Swords" }, img: "images/소드/소드10.jpg" },
+    { name: { kor: "소드 페이지", eng: "Page of Swords" }, img: "images/소드/소드 페이지.jpg" },
+    { name: { kor: "소드 나이트", eng: "Knight of Swords" }, img: "images/소드/소드 나이트.jpg" },
+    { name: { kor: "소드 퀸", eng: "Queen of Swords" }, img: "images/소드/소드 퀸.jpg" },
+    { name: { kor: "소드 킹", eng: "King of Swords" }, img: "images/소드/소드 킹.jpg" },
+    
+    // 완드 (32-41)
+    { name: { kor: "완드 에이스", eng: "Ace of Wands" }, img: "images/완드/완드 에이스.jpg" },
+    { name: { kor: "완드 2", eng: "Two of Wands" }, img: "images/완드/완드2.jpg" },
+    { name: { kor: "완드 3", eng: "Three of Wands" }, img: "images/완드/완드3.jpg" },
+    { name: { kor: "완드 4", eng: "Four of Wands" }, img: "images/완드/완드4.jpg" },
+    { name: { kor: "완드 5", eng: "Five of Wands" }, img: "images/완드/완드5.jpg" },
+    { name: { kor: "완드 6", eng: "Six of Wands" }, img: "images/완드/완드6.jpg" },
+    { name: { kor: "완드 7", eng: "Seven of Wands" }, img: "images/완드/완드7.jpg" },
+    { name: { kor: "완드 8", eng: "Eight of Wands" }, img: "images/완드/완드8.jpg" },
+    { name: { kor: "완드 9", eng: "Nine of Wands" }, img: "images/완드/완드9.jpg" },
+    { name: { kor: "완드 10", eng: "Ten of Wands" }, img: "images/완드/완드10.jpg" },
+    { name: { kor: "완드 페이지", eng: "Page of Wands" }, img: "images/완드/완드 페이지.jpg" },
+    { name: { kor: "완드 나이트", eng: "Knight of Wands" }, img: "images/완드/완드 나이트.jpg" },
+    { name: { kor: "완드 퀸", eng: "Queen of Wands" }, img: "images/완드/완드 퀸.jpg" },
+    { name: { kor: "완드 킹", eng: "King of Wands" }, img: "images/완드/완드 킹.jpg" },
+    
+    // 컵 (42-51)
+    { name: { kor: "컵 에이스", eng: "Ace of Cups" }, img: "images/컵/컵 에이스.jpg" },
+    { name: { kor: "컵 2", eng: "Two of Cups" }, img: "images/컵/컵2.jpg" },
+    { name: { kor: "컵 3", eng: "Three of Cups" }, img: "images/컵/컵3.jpg" },
+    { name: { kor: "컵 4", eng: "Four of Cups" }, img: "images/컵/컵4.jpg" },
+    { name: { kor: "컵 5", eng: "Five of Cups" }, img: "images/컵/컵5.jpg" },
+    { name: { kor: "컵 6", eng: "Six of Cups" }, img: "images/컵/컵6.jpg" },
+    { name: { kor: "컵 7", eng: "Seven of Cups" }, img: "images/컵/컵7.jpg" },
+    { name: { kor: "컵 8", eng: "Eight of Cups" }, img: "images/컵/컵8.jpg" },
+    { name: { kor: "컵 9", eng: "Nine of Cups" }, img: "images/컵/컵9.jpg" },
+    { name: { kor: "컵 10", eng: "Ten of Cups" }, img: "images/컵/컵10.jpg" },
+    { name: { kor: "컵 페이지", eng: "Page of Cups" }, img: "images/컵/컵 페이지.jpg" },
+    { name: { kor: "컵 나이트", eng: "Knight of Cups" }, img: "images/컵/컵 나이트.jpg" },
+    { name: { kor: "컵 퀸", eng: "Queen of Cups" }, img: "images/컵/컵 퀸.jpg" },
+    { name: { kor: "컵 킹", eng: "King of Cups" }, img: "images/컵/컵 킹.jpg" },
+    
+    // 펜타클 (52-61)
+    { name: { kor: "펜타클 에이스", eng: "Ace of Pentacles" }, img: "images/펜타클/펜타클 에이스.jpg" },
+    { name: { kor: "펜타클 2", eng: "Two of Pentacles" }, img: "images/펜타클/펜타클2.jpg" },
+    { name: { kor: "펜타클 3", eng: "Three of Pentacles" }, img: "images/펜타클/펜타클3.jpg" },
+    { name: { kor: "펜타클 4", eng: "Four of Pentacles" }, img: "images/펜타클/펜타클4.jpg" },
+    { name: { kor: "펜타클 5", eng: "Five of Pentacles" }, img: "images/펜타클/펜타클5.jpg" },
+    { name: { kor: "펜타클 6", eng: "Six of Pentacles" }, img: "images/펜타클/펜타클6.jpg" },
+    { name: { kor: "펜타클 7", eng: "Seven of Pentacles" }, img: "images/펜타클/펜타클7.jpg" },
+    { name: { kor: "펜타클 8", eng: "Eight of Pentacles" }, img: "images/펜타클/펜타클8.jpg" },
+    { name: { kor: "펜타클 9", eng: "Nine of Pentacles" }, img: "images/펜타클/펜타클9.jpg" },
+    { name: { kor: "펜타클 10", eng: "Ten of Pentacles" }, img: "images/펜타클/펜타클10.jpg" },
+    { name: { kor: "펜타클 페이지", eng: "Page of Pentacles" }, img: "images/펜타클/펜타클 페이지.jpg" },
+    { name: { kor: "펜타클 나이트", eng: "Knight of Pentacles" }, img: "images/펜타클/펜타클 나이트.jpg" },
+    { name: { kor: "펜타클 퀸", eng: "Queen of Pentacles" }, img: "images/펜타클/펜타클 퀸.jpg" },
+    { name: { kor: "펜타클 킹", eng: "King of Pentacles" }, img: "images/펜타클/펜타클 킹.jpg" }
+];
+
+// 카드 이름을 언어별로 가져오는 함수
+function getLocalizedCardNameByIndex(index, language) {
+    const card = tarotData[index];
+    return card ? card.name[language] || card.name.kor : `Card ${index}`;
+}
