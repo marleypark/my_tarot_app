@@ -854,8 +854,6 @@ const summaryBtn = document.getElementById('summary-btn');
 const restartBtn = document.getElementById('restart-btn');
 const selectSound = document.getElementById('select-sound');
 const buttonSound = document.getElementById('button-sound');
-const langButton = document.getElementById('lang-button');
-const langMenu = document.getElementById('lang-menu');
 const langSwitcher = document.getElementById('lang-switcher');
 
 function playButtonSound() {
@@ -1065,6 +1063,7 @@ const MBTI_QUESTIONS = [
 
 function applyTranslations() {
     // 언어 스위처 버튼 텍스트 업데이트
+    const langButton = document.getElementById('lang-button');
     if (langButton) {
         langButton.textContent = languageNameByCode[selectedLanguage];
     }
@@ -1555,9 +1554,14 @@ async function getMbtiAdvice(cardNames, question, interpretations) {
 
 window.onload = () => {
     // 언어 스위처 초기화
+    const langButton = document.getElementById('lang-button');
+    const langMenu = document.getElementById('lang-menu');
+    console.log('언어 버튼 초기화:', langButton, langMenu);
+    
     if (langButton && langMenu) {
         // 언어 버튼 클릭 이벤트
         langButton.addEventListener('click', (e) => {
+            console.log('언어 버튼 클릭됨');
             e.stopPropagation();
             const isOpen = langMenu.style.display === 'block';
             langMenu.style.display = isOpen ? 'none' : 'block';
@@ -1596,6 +1600,8 @@ window.onload = () => {
         
         // 초기 언어 설정
         langButton.textContent = languageNameByCode[selectedLanguage];
+    } else {
+        console.error('언어 버튼 또는 메뉴를 찾을 수 없습니다.');
     }
     
     // 초기 번역 적용
