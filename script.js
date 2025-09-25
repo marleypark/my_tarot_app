@@ -544,6 +544,9 @@ function showMbtiResult() {
     resultDescElement.textContent = `${mbtiType} 유형의 특성을 바탕으로 타로 리딩을 진행하겠습니다.`;
     
     userMBTI = mbtiType;
+    
+    // MBTI 결과 화면으로 이동
+    showScreen('mbti-result-screen');
 }
 
 function shuffleDeck() {
@@ -974,8 +977,17 @@ startFocusReadingBtn.addEventListener('click', () => {
 
 // 카드 선택 로직
 shuffleAnimationArea.addEventListener('click', () => {
+    console.log('카드 선택 영역 클릭됨', { selectedCards: selectedCards.length, deck: deck.length });
+    
     if (selectedCards.length < CARDS_TO_PICK) {
+        if (deck.length === 0) {
+            console.log('덱이 비어있음, 셔플 실행');
+            shuffleDeck();
+        }
+        
         const pickedCardIndex = deck.pop();
+        console.log('선택된 카드 인덱스:', pickedCardIndex);
+        
         selectedCards.push(pickedCardIndex);
         if(selectSound) selectSound.play();
         const previewImg = document.createElement('img');
