@@ -199,7 +199,6 @@ const UI_TEXTS = {
 const screens = document.querySelectorAll('.screen');
 const mainShuffleArea = document.getElementById('main-shuffle-area');
 const writeQuestionBtn = document.getElementById('write-question-btn');
-const mindQuestionBtn = document.getElementById('mind-question-btn');
 const questionInput = document.getElementById('question-input');
 const startFocusReadingBtn = document.getElementById('start-focus-reading-btn');
 const shuffleAnimationArea = document.getElementById('shuffle-animation-area');
@@ -859,23 +858,7 @@ window.onload = () => {
         playButtonSound();
     });
 
-    // 질문 선택 옵션 이벤트 리스너
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('question-option')) {
-            const questionType = e.target.dataset.type;
-            const questionText = e.target.dataset.question;
-            
-            if (questionType === 'custom') {
-                // 직접 입력 화면으로
-                showScreen('custom-question-screen');
-            } else if (questionText) {
-                // 프리셋 질문 선택
-                userQuestion = questionText;
-                showScreen('mbti-input-screen');
-            }
-            playButtonSound();
-        }
-    });
+    // 기존 질문 선택 옵션 이벤트 리스너는 제거됨 (새로운 UI로 대체)
 
     // 직접 질문 입력 화면 이벤트 리스너
     document.getElementById('submit-question-btn').addEventListener('click', () => {
@@ -889,26 +872,13 @@ window.onload = () => {
     });
 
     document.getElementById('back-to-question-options-btn').addEventListener('click', () => {
-        showScreen('focus-tarot-screen');
-        playButtonSound();
-    });
-
-    // 오픈 타로 준비 화면 이벤트 리스너
-    document.getElementById('ready-for-cards-btn').addEventListener('click', () => {
-        showScreen('card-select-screen');
-        playButtonSound();
-    });
-
-    document.getElementById('back-to-question-dialog-from-prepare-btn').addEventListener('click', () => {
         showScreen('question-dialog');
         playButtonSound();
     });
 
-    // 질문 선택 화면 이전 버튼
-    document.getElementById('back-to-question-dialog-btn').addEventListener('click', () => {
-        showScreen('question-dialog');
-        playButtonSound();
-    });
+    // 오픈 타로 준비 화면은 제거됨 (새로운 UI로 대체)
+
+    // 질문 선택 화면 이전 버튼은 제거됨 (새로운 UI로 대체)
 
     // MBTI 조언 페이지 이벤트 리스너들
     document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
@@ -933,15 +903,49 @@ mainShuffleArea.addEventListener('click', () => {
     showScreen('question-dialog');
 });
 
+// 새로운 버튼들에 대한 이벤트 리스너
 writeQuestionBtn.addEventListener('click', () => { 
     playButtonSound(); 
-    showScreen('focus-tarot-screen'); 
+    showScreen('custom-question-screen'); 
 });
 
-mindQuestionBtn.addEventListener('click', () => {
-    userQuestion = ""; // 질문 없음
-    showScreen('open-tarot-prepare-screen');
-});
+// 운선택 드롭다운 버튼
+const fortuneSelectBtn = document.getElementById('fortune-select-btn');
+const fortuneMenu = document.getElementById('fortune-menu');
+
+if (fortuneSelectBtn && fortuneMenu) {
+    fortuneSelectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = fortuneMenu.classList.contains('show');
+        if (isOpen) {
+            fortuneMenu.classList.remove('show');
+        } else {
+            fortuneMenu.classList.add('show');
+        }
+        playButtonSound();
+    });
+    
+    // 운선택 메뉴 항목 클릭 이벤트
+    const fortuneOptions = fortuneMenu.querySelectorAll('li[data-question]');
+    fortuneOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            const questionText = e.target.getAttribute('data-question');
+            userQuestion = questionText;
+            fortuneMenu.classList.remove('show');
+            showScreen('mbti-input-screen');
+            playButtonSound();
+        });
+    });
+    
+    // 외부 클릭 시 메뉴 닫기
+    document.addEventListener('click', (e) => {
+        if (!fortuneSelectBtn.contains(e.target) && !fortuneMenu.contains(e.target)) {
+            fortuneMenu.classList.remove('show');
+        }
+    });
+}
+
+// 기존 mindQuestionBtn은 제거됨 (운선택으로 대체)
 
 startFocusReadingBtn.addEventListener('click', () => {
     userQuestion = questionInput.value;
@@ -1044,18 +1048,18 @@ function displayCardResult(index) {
 }
 
 // 이전/다음 버튼
-prevBtn.addEventListener('click', () => { 
-    if (currentResultIndex > 0) { 
-        displayCardResult(currentResultIndex - 1); 
+prevBtn.addEventListener('click', () => {
+    if (currentResultIndex > 0) {
+        displayCardResult(currentResultIndex - 1);
         playButtonSound(); 
-    } 
+    }
 });
 
-nextBtn.addEventListener('click', () => { 
-    if (currentResultIndex < CARDS_TO_PICK - 1) { 
-        displayCardResult(currentResultIndex + 1); 
+nextBtn.addEventListener('click', () => {
+    if (currentResultIndex < CARDS_TO_PICK - 1) {
+        displayCardResult(currentResultIndex + 1);
         playButtonSound(); 
-    } 
+    }
 });
 
 // 총정리 버튼: 총정리 페이지로 이동
