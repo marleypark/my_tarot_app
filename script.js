@@ -1241,7 +1241,8 @@ function shuffleDeck() {
 
 function updateCardsLeftText() {
     const cardsLeft = CARDS_TO_PICK - selectedCards.length;
-    cardsLeftText.innerText = `남은 카드: ${cardsLeft}장`;
+    const t = UI_TEXTS[selectedLanguage];
+    cardsLeftText.innerText = `${t.cardsLeft}: ${cardsLeft}장`;
 }
 
 function typeWriter(element, text, onComplete) {
@@ -1461,6 +1462,11 @@ window.onload = () => {
                 // MBTI 질문이 진행 중이면 현재 질문을 새 언어로 업데이트
                 if (currentMbtiQuestion > 0 && currentMbtiQuestion < (MBTI_QUESTIONS_I18N[selectedLanguage] || MBTI_QUESTIONS).length) {
                     showMbtiQuestion(currentMbtiQuestion);
+                }
+                
+                // 카드 선택 화면이 활성화되어 있으면 남은 카드 텍스트 업데이트
+                if (document.getElementById('card-select-screen').classList.contains('active')) {
+                    updateCardsLeftText();
                 }
             });
         });
