@@ -1063,16 +1063,16 @@ function displayCardResult(index) {
 
 // 이전/다음 버튼
 prevBtn.addEventListener('click', () => {
+    playButtonSound();
     if (currentResultIndex > 0) {
         displayCardResult(currentResultIndex - 1);
-        playButtonSound(); 
     }
 });
 
 nextBtn.addEventListener('click', () => {
+    playButtonSound();
     if (currentResultIndex < CARDS_TO_PICK - 1) {
         displayCardResult(currentResultIndex + 1);
-        playButtonSound(); 
     }
 });
 
@@ -1187,16 +1187,35 @@ function generatePDF() {
         return;
     }
 
-    // PDF용 HTML 콘텐츠 생성
-    const pdfContent = createPDFContent();
-    
-    // jsPDF 라이브러리 로드 및 PDF 생성
-    loadJSPDF().then(() => {
-        createPDF(pdfContent);
-    }).catch(error => {
+    // 로딩 상태 표시
+    const originalText = document.getElementById('pdf-save-btn').textContent;
+    document.getElementById('pdf-save-btn').textContent = 'PDF 생성 중...';
+    document.getElementById('pdf-save-btn').disabled = true;
+
+    try {
+        // PDF용 HTML 콘텐츠 생성
+        const pdfContent = createPDFContent();
+        
+        // jsPDF 라이브러리 로드 및 PDF 생성
+        loadJSPDF().then(() => {
+            createPDF(pdfContent);
+            // 버튼 상태 복원
+            document.getElementById('pdf-save-btn').textContent = originalText;
+            document.getElementById('pdf-save-btn').disabled = false;
+        }).catch(error => {
+            console.error('PDF 생성 오류:', error);
+            alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+            // 버튼 상태 복원
+            document.getElementById('pdf-save-btn').textContent = originalText;
+            document.getElementById('pdf-save-btn').disabled = false;
+        });
+    } catch (error) {
         console.error('PDF 생성 오류:', error);
         alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
-    });
+        // 버튼 상태 복원
+        document.getElementById('pdf-save-btn').textContent = originalText;
+        document.getElementById('pdf-save-btn').disabled = false;
+    }
 }
 
 // PDF용 HTML 콘텐츠 생성
@@ -1367,6 +1386,9 @@ function createPDF(htmlContent) {
     } catch (error) {
         console.error('PDF 생성 중 오류:', error);
         alert('PDF 생성 중 오류가 발생했습니다.');
+        // 버튼 상태 복원
+        document.getElementById('pdf-save-btn').textContent = 'PDF로 저장';
+        document.getElementById('pdf-save-btn').disabled = false;
     }
 }
 
@@ -1395,21 +1417,27 @@ function generatePDFFromHTML(doc, tempDiv) {
 
 // PDF 저장 완료 알림
 function showPDFSaveNotification(fileName) {
+    // 버튼 상태 복원
+    document.getElementById('pdf-save-btn').textContent = 'PDF로 저장';
+    document.getElementById('pdf-save-btn').disabled = false;
+    
     // 알림 메시지 생성
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
-        top: 20px;
-        right: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        z-index: 1000;
-        font-size: 14px;
-        max-width: 300px;
-        animation: slideIn 0.3s ease;
+        padding: 20px 30px;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        z-index: 10000;
+        font-size: 16px;
+        max-width: 400px;
+        text-align: center;
+        animation: popIn 0.3s ease;
     `;
     
     // 플랫폼별 저장 위치 안내
@@ -1428,26 +1456,35 @@ function showPDFSaveNotification(fileName) {
     }
     
     notification.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 5px;">✅ PDF 저장 완료!</div>
-        <div style="font-size: 12px; opacity: 0.9;">
+        <div style="font-weight: bold; margin-bottom: 10px; font-size: 18px;">✅ PDF 저장 완료!</div>
+        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 15px;">
             파일명: ${fileName}<br>
             저장 위치: ${saveLocation}
         </div>
+        <button onclick="this.parentElement.remove()" style="
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        ">확인</button>
     `;
     
     // CSS 애니메이션 추가
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes popIn {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
     `;
     document.head.appendChild(style);
     
     document.body.appendChild(notification);
     
-    // 3초 후 자동 제거
+    // 5초 후 자동 제거
     setTimeout(() => {
         if (notification.parentNode) {
             notification.parentNode.removeChild(notification);
@@ -1455,6 +1492,6 @@ function showPDFSaveNotification(fileName) {
         if (style.parentNode) {
             style.parentNode.removeChild(style);
         }
-    }, 3000);
+    }, 5000);
 }
 
