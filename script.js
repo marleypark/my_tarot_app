@@ -211,7 +211,6 @@ const keywordsArea = document.getElementById('keywords-area'); // 키워드 영�
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 const summaryBtn = document.getElementById('summary-btn');
-const actionPlanBtn = document.getElementById('action-plan-btn'); // 현실 조언 버튼 추가
 const restartBtn = document.getElementById('restart-btn');
 const selectSound = document.getElementById('select-sound');
 const buttonSound = document.getElementById('button-sound');
@@ -973,7 +972,7 @@ shuffleAnimationArea.addEventListener('click', () => {
         
         const pickedCardIndex = deck.pop();
         console.log('선택된 카드 인덱스:', pickedCardIndex);
-        
+
         selectedCards.push(pickedCardIndex);
         if(selectSound) selectSound.play();
         const previewImg = document.createElement('img');
@@ -1055,10 +1054,9 @@ function displayCardResult(index) {
     typeWriter(interpretationText, cardResult.interpretation);
 
     // 버튼 상태 업데이트
-    prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
-    nextBtn.style.visibility = index === CARDS_TO_PICK - 1 ? 'hidden' : 'visible';
-    summaryBtn.style.display = index === CARDS_TO_PICK - 1 ? 'inline-block' : 'none';
-    actionPlanBtn.style.display = 'none'; // 개별 카드 볼 때는 숨김
+    if (prevBtn) prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+    if (nextBtn) nextBtn.style.visibility = index === CARDS_TO_PICK - 1 ? 'hidden' : 'visible';
+    if (summaryBtn) summaryBtn.style.display = index === CARDS_TO_PICK - 1 ? 'inline-block' : 'none';
 }
 
 // 이전/다음 버튼
@@ -1155,25 +1153,7 @@ function showSummaryScreen() {
     }
 }
 
-// 현실 조언 버튼: 별도 API 호출로 구체적인 액션 플랜 생성
-actionPlanBtn.addEventListener('click', async () => {
-    const t = UI_TEXTS[selectedLanguage];
-    resultCardTitle.textContent = t.actionPlan;
-    
-    // 로딩 표시
-    interpretationText.textContent = "현실적인 조언을 준비하고 있습니다...";
-    
-    // 카드 이름들 가져오기
-    const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
-    
-    // 현실 조언 API 호출
-    const actionPlan = await getActionPlan(cardNames, userQuestion, cardInterpretations);
-    
-    typeWriter(interpretationText, actionPlan);
-    
-    actionPlanBtn.style.display = 'none'; // 한번 보면 숨김
-    playButtonSound();
-});
+// 현실 조언 버튼은 HTML에 존재하지 않으므로 제거됨
 
 restartBtn.addEventListener('click', () => { 
     playButtonSound(); 
@@ -1188,34 +1168,30 @@ function generatePDF() {
     }
 
     // 로딩 상태 표시
-    const originalText = document.getElementById('pdf-save-btn').textContent;
-    document.getElementById('pdf-save-btn').textContent = 'PDF 생성 중...';
-    document.getElementById('pdf-save-btn').disabled = true;
+    const pdfBtn = document.getElementById('pdf-save-btn');
+    const originalText = pdfBtn.textContent;
+    pdfBtn.textContent = 'PDF 생성 중...';
+    pdfBtn.disabled = true;
 
-    try {
-        // PDF용 HTML 콘텐츠 생성
-        const pdfContent = createPDFContent();
-        
-        // jsPDF 라이브러리 로드 및 PDF 생성
-        loadJSPDF().then(() => {
-            createPDF(pdfContent);
-            // 버튼 상태 복원
-            document.getElementById('pdf-save-btn').textContent = originalText;
-            document.getElementById('pdf-save-btn').disabled = false;
-        }).catch(error => {
+    // 비동기로 처리하여 UI 블록 방지
+    setTimeout(async () => {
+        try {
+            // PDF용 HTML 콘텐츠 생성
+            const pdfContent = createPDFContent();
+            
+            // jsPDF 라이브러리 로드 및 PDF 생성
+            await loadJSPDF();
+            await createPDF(pdfContent);
+            
+        } catch (error) {
             console.error('PDF 생성 오류:', error);
             alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
             // 버튼 상태 복원
-            document.getElementById('pdf-save-btn').textContent = originalText;
-            document.getElementById('pdf-save-btn').disabled = false;
-        });
-    } catch (error) {
-        console.error('PDF 생성 오류:', error);
-        alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
-        // 버튼 상태 복원
-        document.getElementById('pdf-save-btn').textContent = originalText;
-        document.getElementById('pdf-save-btn').disabled = false;
-    }
+            pdfBtn.textContent = originalText;
+            pdfBtn.disabled = false;
+        }
+    }, 100);
 }
 
 // PDF용 HTML 콘텐츠 생성
@@ -1335,61 +1311,64 @@ function loadJSPDF() {
 
 // PDF 생성 및 다운로드
 function createPDF(htmlContent) {
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // 임시 div에 HTML 콘텐츠 추가
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '-9999px';
-        document.body.appendChild(tempDiv);
+    return new Promise((resolve, reject) => {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // 임시 div에 HTML 콘텐츠 추가
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            document.body.appendChild(tempDiv);
 
-        // 이미지 로딩 대기
-        const images = tempDiv.querySelectorAll('img');
-        let loadedImages = 0;
-        const totalImages = images.length;
+            // 이미지 로딩 대기
+            const images = tempDiv.querySelectorAll('img');
+            let loadedImages = 0;
+            const totalImages = images.length;
 
-        if (totalImages === 0) {
-            // 이미지가 없으면 바로 PDF 생성
-            generatePDFFromHTML(doc, tempDiv);
-            return;
-        }
-
-        // 이미지 로딩 완료 대기
-        images.forEach(img => {
-            if (img.complete) {
-                loadedImages++;
-            } else {
-                img.onload = () => {
-                    loadedImages++;
-                    if (loadedImages === totalImages) {
-                        generatePDFFromHTML(doc, tempDiv);
-                    }
-                };
-                img.onerror = () => {
-                    loadedImages++;
-                    if (loadedImages === totalImages) {
-                        generatePDFFromHTML(doc, tempDiv);
-                    }
-                };
+            if (totalImages === 0) {
+                // 이미지가 없으면 바로 PDF 생성
+                generatePDFFromHTML(doc, tempDiv);
+                resolve();
+                return;
             }
-        });
 
-        // 모든 이미지가 이미 로드된 경우
-        if (loadedImages === totalImages) {
-            generatePDFFromHTML(doc, tempDiv);
+            // 이미지 로딩 완료 대기
+            images.forEach(img => {
+                if (img.complete) {
+                    loadedImages++;
+                } else {
+                    img.onload = () => {
+                        loadedImages++;
+                        if (loadedImages === totalImages) {
+                            generatePDFFromHTML(doc, tempDiv);
+                            resolve();
+                        }
+                    };
+                    img.onerror = () => {
+                        loadedImages++;
+                        if (loadedImages === totalImages) {
+                            generatePDFFromHTML(doc, tempDiv);
+                            resolve();
+                        }
+                    };
+                }
+            });
+
+            // 모든 이미지가 이미 로드된 경우
+            if (loadedImages === totalImages) {
+                generatePDFFromHTML(doc, tempDiv);
+                resolve();
+            }
+
+        } catch (error) {
+            console.error('PDF 생성 중 오류:', error);
+            reject(error);
         }
-
-    } catch (error) {
-        console.error('PDF 생성 중 오류:', error);
-        alert('PDF 생성 중 오류가 발생했습니다.');
-        // 버튼 상태 복원
-        document.getElementById('pdf-save-btn').textContent = 'PDF로 저장';
-        document.getElementById('pdf-save-btn').disabled = false;
-    }
+    });
 }
 
 // HTML을 PDF로 변환하는 함수
