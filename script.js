@@ -157,6 +157,12 @@ const MINOR_LOCALIZATION = {
         cups: ['Cup','Cup','Cup','Cup','Cup','Cup','Cup','Cup','Cup','Cup','Cup Page','Cup Knight','Cup Queen','Cup King'],
         swords: ['Sword','Sword','Sword','Sword','Sword','Sword','Sword','Sword','Sword','Sword','Sword Page','Sword Knight','Sword Queen','Sword King'],
         pentacles: ['Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle','Pentacle Page','Pentacle Knight','Pentacle Queen','Pentacle King']
+    },
+    can: {
+        wands: ['權杖','權杖','權杖','權杖','權杖','權杖','權杖','權杖','權杖','權杖','權杖侍者','權杖騎士','權杖皇后','權杖國王'],
+        cups: ['聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯','聖杯侍者','聖杯騎士','聖杯皇后','聖杯國王'],
+        swords: ['寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍','寶劍侍者','寶劍騎士','寶劍皇后','寶劍國王'],
+        pentacles: ['錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣','錢幣侍者','錢幣騎士','錢幣皇后','錢幣國王']
     }
 };
 
@@ -185,13 +191,196 @@ const UI_TEXTS = {
         preparingAll: '모든 카드의 해석을 준비하고 있습니다...',
         nthCardTitle: (n) => `${n}번째 카드`,
         summary: '총정리',
-        actionPlan: '현실 조언'
+        actionPlan: '현실 조언',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: '카드를 클릭하여 시작하세요',
+        // 질문 방식 선택
+        questionDialogTitle: '질문을 어떻게 하시겠어요?',
+        directInput: '직접입력',
+        fortuneSelect: '운선택',
+        mindQuestion: '마음속으로 질문하기',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: '전반적 운세',
+            business: '사업운',
+            love: '연애운',
+            marriage: '결혼운',
+            children: '자식운',
+            work: '직장운',
+            money: '재물운',
+            health: '건강운',
+            relationship: '인간관계운'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 오픈 타로 준비',
+        prepareMessage: '질문을 반드시 마음속으로 준비하세요',
+        readyButton: '준비 완료',
+        backButton: '이전',
+        // 직접 질문 입력
+        customQuestionTitle: '질문을 직접 입력해주세요',
+        customQuestionDesc: '구체적인 질문을 하면 더 정확한 답을 받을 수 있습니다.',
+        questionPlaceholder: '예: 새로운 직장에서 성공할 수 있을까요?',
+        nextButton: '다음',
+        // MBTI 입력
+        mbtiInputTitle: 'MBTI를 입력해주세요',
+        mbtiInputDesc: '본인의 MBTI 유형을 알고 계신가요?',
+        mbtiPlaceholder: '예) INFP, ENFJ',
+        mbtiUnknownButton: 'MBTI를 모른다면',
+        restartButton: '처음으로',
+        // MBTI 검사
+        mbtiTestTitle: 'MBTI 성격 유형 진단',
+        mbtiTestDesc1: '정답은 없습니다. 가장 본능적이고 솔직한 당신의 모습을 선택해주세요.',
+        mbtiTestDesc2: '각 질문을 직관적으로 답변하는 것이 좋습니다.',
+        startTestButton: '검사 시작',
+        questionTitle: '질문',
+        mbtiResultTitle: '당신의 MBTI는',
+        // 카드 선택
+        cardsLeft: '남은 카드',
+        selectCards: '카드를 선택해주세요',
+        // 결과 화면
+        interpreting: '카드 해석중... 쫌만 참아요.',
+        positiveKeywords: '긍정',
+        cautionKeywords: '주의',
+        // 총정리
+        summaryTitle: '총정리',
+        summarySubtitle: '뽑힌 카드들',
+        // 버튼들
+        prevButton: '이전',
+        nextButton: '다음',
+        summaryButton: '총정리',
+        pdfSaveButton: 'PDF로 저장',
+        restartButton: '처음으로'
     },
     eng: {
         preparingAll: 'Preparing interpretations for all cards...',
         nthCardTitle: (n) => `${n}th Card`,
         summary: 'Summary',
-        actionPlan: 'Action Plan'
+        actionPlan: 'Action Plan',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: 'Click the card to start',
+        // 질문 방식 선택
+        questionDialogTitle: 'How would you like to ask?',
+        directInput: 'Direct Input',
+        fortuneSelect: 'Fortune Selection',
+        mindQuestion: 'Ask in your mind',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: 'General Fortune',
+            business: 'Business Luck',
+            love: 'Love Fortune',
+            marriage: 'Marriage Luck',
+            children: 'Children Luck',
+            work: 'Work Fortune',
+            money: 'Money Luck',
+            health: 'Health Fortune',
+            relationship: 'Relationship Luck'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 Open Tarot Preparation',
+        prepareMessage: 'Please prepare your question in your mind',
+        readyButton: 'Ready',
+        backButton: 'Previous',
+        // 직접 질문 입력
+        customQuestionTitle: 'Please enter your question directly',
+        customQuestionDesc: 'More specific questions will give you more accurate answers.',
+        questionPlaceholder: 'e.g., Will I succeed in my new job?',
+        nextButton: 'Next',
+        // MBTI 입력
+        mbtiInputTitle: 'Please enter your MBTI',
+        mbtiInputDesc: 'Do you know your MBTI type?',
+        mbtiPlaceholder: 'e.g., INFP, ENFJ',
+        mbtiUnknownButton: 'I don\'t know my MBTI',
+        restartButton: 'Start Over',
+        // MBTI 검사
+        mbtiTestTitle: 'MBTI Personality Type Assessment',
+        mbtiTestDesc1: 'There are no right or wrong answers. Choose the most instinctive and honest version of yourself.',
+        mbtiTestDesc2: 'It\'s best to answer each question intuitively.',
+        startTestButton: 'Start Test',
+        questionTitle: 'Question',
+        mbtiResultTitle: 'Your MBTI is',
+        // 카드 선택
+        cardsLeft: 'Cards Left',
+        selectCards: 'Please select cards',
+        // 결과 화면
+        interpreting: 'Interpreting cards... Please wait.',
+        positiveKeywords: 'Positive',
+        cautionKeywords: 'Caution',
+        // 총정리
+        summaryTitle: 'Summary',
+        summarySubtitle: 'Selected Cards',
+        // 버튼들
+        prevButton: 'Previous',
+        nextButton: 'Next',
+        summaryButton: 'Summary',
+        pdfSaveButton: 'Save as PDF',
+        restartButton: 'Start Over'
+    },
+    can: {
+        preparingAll: '準備緊所有卡牌嘅解釋...',
+        nthCardTitle: (n) => `第${n}張卡`,
+        summary: '總整理',
+        actionPlan: '現實建議',
+        // 메인 화면
+        mainTitle: 'ASK ANYTHING',
+        mainSubtitle: '點擊卡牌開始',
+        // 질문 방식 선택
+        questionDialogTitle: '你想點樣問問題？',
+        directInput: '直接輸入',
+        fortuneSelect: '運勢選擇',
+        mindQuestion: '心入面問問題',
+        // 운선택 옵션들
+        fortuneOptions: {
+            general: '整體運勢',
+            business: '事業運',
+            love: '愛情運',
+            marriage: '婚姻運',
+            children: '子女運',
+            work: '工作運',
+            money: '財運',
+            health: '健康運',
+            relationship: '人際關係運'
+        },
+        // 오픈 타로 준비
+        prepareTitle: '🔮 開放塔羅準備',
+        prepareMessage: '請一定要喺心入面準備好問題',
+        readyButton: '準備完成',
+        backButton: '上一頁',
+        // 직접 질문 입력
+        customQuestionTitle: '請直接輸入你嘅問題',
+        customQuestionDesc: '更具體嘅問題會俾你更準確嘅答案。',
+        questionPlaceholder: '例如：我喺新工作會成功嗎？',
+        nextButton: '下一步',
+        // MBTI 입력
+        mbtiInputTitle: '請輸入你嘅MBTI',
+        mbtiInputDesc: '你知唔知自己嘅MBTI類型？',
+        mbtiPlaceholder: '例如：INFP, ENFJ',
+        mbtiUnknownButton: '我唔知我嘅MBTI',
+        restartButton: '重新開始',
+        // MBTI 검사
+        mbtiTestTitle: 'MBTI性格類型診斷',
+        mbtiTestDesc1: '冇正確答案。請選擇最本能同誠實嘅自己。',
+        mbtiTestDesc2: '直覺咁回答每個問題會更好。',
+        startTestButton: '開始測試',
+        questionTitle: '問題',
+        mbtiResultTitle: '你嘅MBTI係',
+        // 카드 선택
+        cardsLeft: '剩餘卡牌',
+        selectCards: '請選擇卡牌',
+        // 결과 화면
+        interpreting: '卡牌解釋緊... 請等等。',
+        positiveKeywords: '正面',
+        cautionKeywords: '注意',
+        // 총정리
+        summaryTitle: '總整理',
+        summarySubtitle: '選中嘅卡牌',
+        // 버튼들
+        prevButton: '上一頁',
+        nextButton: '下一頁',
+        summaryButton: '總整理',
+        pdfSaveButton: '儲存為PDF',
+        restartButton: '重新開始'
     }
 };
 
@@ -237,7 +426,7 @@ let userMBTI = "";
 let mbtiAnswers = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
 let currentMbtiQuestion = 0;
 
-// MBTI 질문 데이터
+// MBTI 질문 데이터 (기본 한국어)
 const MBTI_QUESTIONS = [
     // Part 1. 에너지의 방향과 소통 방식 (E/I)
     {
@@ -431,6 +620,130 @@ function applyTranslations() {
     
     // HTML lang 속성 업데이트
     document.documentElement.lang = htmlLangByCode[selectedLanguage];
+    
+    // UI 텍스트 업데이트
+    updateUITexts();
+}
+
+function updateUITexts() {
+    const t = UI_TEXTS[selectedLanguage];
+    if (!t) return;
+    
+    // 메인 화면
+    const mainTitle = document.querySelector('#main-screen h1');
+    const mainSubtitle = document.querySelector('#main-screen p');
+    if (mainTitle) mainTitle.textContent = t.mainTitle;
+    if (mainSubtitle) mainSubtitle.textContent = t.mainSubtitle;
+    
+    // 질문 방식 선택
+    const questionDialogTitle = document.querySelector('#question-dialog h2');
+    const writeQuestionBtn = document.getElementById('write-question-btn');
+    const fortuneSelectBtn = document.getElementById('fortune-select-btn');
+    const mindQuestionBtn = document.getElementById('mind-question-btn');
+    
+    if (questionDialogTitle) questionDialogTitle.textContent = t.questionDialogTitle;
+    if (writeQuestionBtn) writeQuestionBtn.textContent = t.directInput;
+    if (fortuneSelectBtn) fortuneSelectBtn.textContent = t.fortuneSelect;
+    if (mindQuestionBtn) mindQuestionBtn.textContent = t.mindQuestion;
+    
+    // 운선택 메뉴 업데이트
+    updateFortuneMenu();
+    
+    // 오픈 타로 준비
+    const prepareTitle = document.querySelector('#open-tarot-prepare-screen h2');
+    const prepareMessage = document.querySelector('.prepare-message');
+    const readyBtn = document.getElementById('ready-for-cards-btn');
+    const backFromPrepareBtn = document.getElementById('back-to-question-dialog-from-prepare-btn');
+    
+    if (prepareTitle) prepareTitle.textContent = t.prepareTitle;
+    if (prepareMessage) prepareMessage.textContent = t.prepareMessage;
+    if (readyBtn) readyBtn.textContent = t.readyButton;
+    if (backFromPrepareBtn) backFromPrepareBtn.textContent = t.backButton;
+    
+    // 직접 질문 입력
+    const customQuestionTitle = document.querySelector('#custom-question-screen h2');
+    const customQuestionDesc = document.querySelector('#custom-question-screen p');
+    const questionInput = document.getElementById('question-input');
+    const submitQuestionBtn = document.getElementById('submit-question-btn');
+    const backToQuestionBtn = document.getElementById('back-to-question-options-btn');
+    
+    if (customQuestionTitle) customQuestionTitle.textContent = t.customQuestionTitle;
+    if (customQuestionDesc) customQuestionDesc.textContent = t.customQuestionDesc;
+    if (questionInput) questionInput.placeholder = t.questionPlaceholder;
+    if (submitQuestionBtn) submitQuestionBtn.textContent = t.nextButton;
+    if (backToQuestionBtn) backToQuestionBtn.textContent = t.backButton;
+    
+    // MBTI 입력
+    const mbtiInputTitle = document.querySelector('#mbti-input-screen h2');
+    const mbtiInputDesc = document.querySelector('#mbti-input-screen p');
+    const mbtiInput = document.getElementById('mbti-input');
+    const mbtiSubmitBtn = document.getElementById('mbti-submit-btn');
+    const mbtiTestBtn = document.getElementById('mbti-test-btn');
+    const mbtiRestartBtn = document.getElementById('mbti-restart-btn');
+    
+    if (mbtiInputTitle) mbtiInputTitle.textContent = t.mbtiInputTitle;
+    if (mbtiInputDesc) mbtiInputDesc.textContent = t.mbtiInputDesc;
+    if (mbtiInput) mbtiInput.placeholder = t.mbtiPlaceholder;
+    if (mbtiSubmitBtn) mbtiSubmitBtn.textContent = t.nextButton;
+    if (mbtiTestBtn) mbtiTestBtn.textContent = t.mbtiUnknownButton;
+    if (mbtiRestartBtn) mbtiRestartBtn.textContent = t.restartButton;
+    
+    // MBTI 검사
+    const mbtiTestTitle = document.querySelector('#mbti-test-start-screen h2');
+    const mbtiTestDesc1 = document.querySelector('#mbti-test-start-screen p');
+    const mbtiTestDesc2 = document.querySelector('#mbti-test-start-screen p:nth-child(3)');
+    const startMbtiTestBtn = document.getElementById('start-mbti-test-btn');
+    const mbtiTestRestartBtn = document.getElementById('mbti-test-restart-btn');
+    
+    if (mbtiTestTitle) mbtiTestTitle.textContent = t.mbtiTestTitle;
+    if (mbtiTestDesc1) mbtiTestDesc1.textContent = t.mbtiTestDesc1;
+    if (mbtiTestDesc2) mbtiTestDesc2.textContent = t.mbtiTestDesc2;
+    if (startMbtiTestBtn) startMbtiTestBtn.textContent = t.startTestButton;
+    if (mbtiTestRestartBtn) mbtiTestRestartBtn.textContent = t.restartButton;
+    
+    // MBTI 결과
+    const mbtiResultTitle = document.querySelector('#mbti-result-screen h2');
+    if (mbtiResultTitle) mbtiResultTitle.textContent = t.mbtiResultTitle;
+    
+    // 카드 선택
+    const cardsLeftText = document.getElementById('cards-left-text');
+    if (cardsLeftText) cardsLeftText.textContent = t.cardsLeft;
+    
+    // 결과 화면 버튼들
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const summaryBtn = document.getElementById('summary-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const pdfSaveBtn = document.getElementById('pdf-save-btn');
+    
+    if (prevBtn) prevBtn.textContent = t.prevButton;
+    if (nextBtn) nextBtn.textContent = t.nextButton;
+    if (summaryBtn) summaryBtn.textContent = t.summaryButton;
+    if (restartBtn) restartBtn.textContent = t.restartButton;
+    if (pdfSaveBtn) pdfSaveBtn.textContent = t.pdfSaveButton;
+}
+
+function updateFortuneMenu() {
+    const t = UI_TEXTS[selectedLanguage];
+    if (!t || !t.fortuneOptions) return;
+    
+    const fortuneMenu = document.getElementById('fortune-menu');
+    if (!fortuneMenu) return;
+    
+    const fortuneItems = fortuneMenu.querySelectorAll('li');
+    const fortuneOptions = t.fortuneOptions;
+    
+    if (fortuneItems.length >= 9) {
+        fortuneItems[0].textContent = fortuneOptions.general;
+        fortuneItems[1].textContent = fortuneOptions.business;
+        fortuneItems[2].textContent = fortuneOptions.love;
+        fortuneItems[3].textContent = fortuneOptions.marriage;
+        fortuneItems[4].textContent = fortuneOptions.children;
+        fortuneItems[5].textContent = fortuneOptions.work;
+        fortuneItems[6].textContent = fortuneOptions.money;
+        fortuneItems[7].textContent = fortuneOptions.health;
+        fortuneItems[8].textContent = fortuneOptions.relationship;
+    }
 }
 
 function showScreen(screenId) {
@@ -475,12 +788,15 @@ function calculateMBTI() {
 
 // MBTI 질문 표시 함수
 function showMbtiQuestion(questionIndex) {
-    const question = MBTI_QUESTIONS[questionIndex];
+    // 현재 언어에 맞는 MBTI 질문 가져오기
+    const questions = MBTI_QUESTIONS_I18N[selectedLanguage] || MBTI_QUESTIONS;
+    const question = questions[questionIndex];
     const titleElement = document.getElementById('mbti-question-title');
     const textElement = document.getElementById('mbti-question-text');
     const optionsContainer = document.getElementById('mbti-options-container');
     
-    titleElement.textContent = `질문 ${questionIndex + 1}`;
+    const t = UI_TEXTS[selectedLanguage];
+    titleElement.textContent = `${t.questionTitle} ${questionIndex + 1}`;
     textElement.textContent = question.question;
     
     // 옵션 버튼들 생성
@@ -503,7 +819,7 @@ function showMbtiQuestion(questionIndex) {
         font-size: 14px;
         font-weight: bold;
     `;
-    progressText.textContent = `${questionIndex + 1} / ${MBTI_QUESTIONS.length}`;
+    progressText.textContent = `${questionIndex + 1} / ${questions.length}`;
     optionsContainer.appendChild(progressText);
 }
 
@@ -776,6 +1092,11 @@ window.onload = () => {
                 langMenu.style.display = 'none';
                 langButton.setAttribute('aria-expanded', 'false');
                 applyTranslations();
+                
+                // MBTI 질문이 진행 중이면 현재 질문을 새 언어로 업데이트
+                if (currentMbtiQuestion > 0 && currentMbtiQuestion < (MBTI_QUESTIONS_I18N[selectedLanguage] || MBTI_QUESTIONS).length) {
+                    showMbtiQuestion(currentMbtiQuestion);
+                }
             });
         });
         
@@ -790,6 +1111,9 @@ window.onload = () => {
         // 초기 언어 설정
         langButton.textContent = languageNameByCode[selectedLanguage];
     }
+    
+    // 초기 번역 적용
+    applyTranslations();
     
     // MBTI 관련 이벤트 리스너들
     document.getElementById('mbti-submit-btn').addEventListener('click', () => {
@@ -992,7 +1316,7 @@ shuffleAnimationArea.addEventListener('click', () => {
 async function showResultScreen() {
     showScreen('result-screen');
     const t = UI_TEXTS[selectedLanguage];
-    interpretationText.textContent = "카드 해석중... 쫌만 참아요.";
+    interpretationText.textContent = t.interpreting;
     keywordsArea.style.display = 'none';
     
     // 4장 카드에 대한 해석을 한 번에 받아오기
@@ -1033,11 +1357,11 @@ function displayCardResult(index) {
     if (cardResult.positiveKeywords || cardResult.negativeKeywords) {
         keywordsArea.style.display = 'block';
         if (cardResult.positiveKeywords && cardResult.positiveKeywords.length > 0) {
-            const positiveHtml = `<div class="keyword-group"><span class="keyword-title">긍정:</span>${cardResult.positiveKeywords.map(k => `<span class="keyword positive">${k}</span>`).join('')}</div>`;
+            const positiveHtml = `<div class="keyword-group"><span class="keyword-title">${t.positiveKeywords}:</span>${cardResult.positiveKeywords.map(k => `<span class="keyword positive">${k}</span>`).join('')}</div>`;
             keywordsArea.innerHTML += positiveHtml;
         }
         if (cardResult.negativeKeywords && cardResult.negativeKeywords.length > 0) {
-            const negativeHtml = `<div class="keyword-group"><span class="keyword-title">주의:</span>${cardResult.negativeKeywords.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
+            const negativeHtml = `<div class="keyword-group"><span class="keyword-title">${t.cautionKeywords}:</span>${cardResult.negativeKeywords.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
             keywordsArea.innerHTML += negativeHtml;
         }
     } else {
@@ -1076,9 +1400,17 @@ summaryBtn.addEventListener('click', async () => {
     playButtonSound();
 });
 
-// 총정리 화면 표시 함수
+    // 총정리 화면 표시 함수
 function showSummaryScreen() {
     showScreen('summary-screen');
+    
+    const t = UI_TEXTS[selectedLanguage];
+    
+    // 총정리 제목 업데이트
+    const summaryTitle = document.querySelector('#summary-screen h2');
+    const summarySubtitle = document.querySelector('#summary-screen h3');
+    if (summaryTitle) summaryTitle.textContent = t.summaryTitle;
+    if (summarySubtitle) summarySubtitle.textContent = t.summarySubtitle;
     
     // 4개 카드 이미지 표시
     const summaryCardsDisplay = document.getElementById('summary-cards-display');
