@@ -677,6 +677,108 @@ window.onload = () => {
         langButton.textContent = languageNameByCode[selectedLanguage];
     }
     
+    // MBTI 관련 이벤트 리스너들
+    document.getElementById('mbti-submit-btn').addEventListener('click', () => {
+        const mbtiInput = document.getElementById('mbti-input').value.trim().toUpperCase();
+        if (mbtiInput.length !== 4) {
+            alert("올바른 MBTI 유형을 입력해주세요. (예: INFP, ENFJ)");
+            return;
+        }
+        userMBTI = mbtiInput;
+        shuffleDeck();
+        showScreen('card-select-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-test-btn').addEventListener('click', () => {
+        showScreen('mbti-test-start-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-restart-btn').addEventListener('click', () => {
+        resetApp();
+        playButtonSound();
+    });
+
+    document.getElementById('start-mbti-test-btn').addEventListener('click', () => {
+        currentMbtiQuestion = 0;
+        mbtiAnswers = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+        showMbtiQuestion(0);
+        showScreen('mbti-question-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-test-restart-btn').addEventListener('click', () => {
+        resetApp();
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-next-question-btn').addEventListener('click', () => {
+        currentMbtiQuestion++;
+        if (currentMbtiQuestion < MBTI_QUESTIONS.length) {
+            showMbtiQuestion(currentMbtiQuestion);
+        } else {
+            showMbtiResult();
+            showScreen('mbti-result-screen');
+        }
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-question-restart-btn').addEventListener('click', () => {
+        resetApp();
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-result-next-btn').addEventListener('click', () => {
+        shuffleDeck();
+        showScreen('card-select-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-result-restart-btn').addEventListener('click', () => {
+        resetApp();
+        playButtonSound();
+    });
+
+    // 총정리 페이지 이벤트 리스너들
+    document.getElementById('summary-prev-btn').addEventListener('click', () => {
+        showScreen('result-screen');
+        displayCardResult(CARDS_TO_PICK - 1); // 마지막 카드로 돌아가기
+        playButtonSound();
+    });
+
+    document.getElementById('summary-restart-btn').addEventListener('click', () => {
+        resetApp();
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-advice-btn').addEventListener('click', async () => {
+        showScreen('mbti-advice-screen');
+        
+        // 저장된 전체 해석 데이터에서 MBTI 조언 부분만 표시
+        if (window.fullInterpretationData && window.fullInterpretationData.mbtiAdvice) {
+            typeWriter(document.getElementById('mbti-advice-text'), window.fullInterpretationData.mbtiAdvice);
+        } else {
+            // 백업: 기존 방식으로 API 호출
+            document.getElementById('mbti-advice-text').textContent = "MBTI 기반 조언을 준비하고 있습니다...";
+            const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
+            const mbtiAdvice = await getMbtiAdvice(cardNames, userQuestion, cardInterpretations);
+            typeWriter(document.getElementById('mbti-advice-text'), mbtiAdvice);
+        }
+        playButtonSound();
+    });
+
+    // MBTI 조언 페이지 이벤트 리스너들
+    document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
+        showSummaryScreen();
+        playButtonSound();
+    });
+
+    document.getElementById('mbti-advice-restart-btn').addEventListener('click', () => {
+        resetApp();
+        playButtonSound();
+    });
+    
     resetApp();
 };
 
@@ -884,104 +986,3 @@ restartBtn.addEventListener('click', () => {
     resetApp(); 
 });
 
-// MBTI 관련 이벤트 리스너들
-document.getElementById('mbti-submit-btn').addEventListener('click', () => {
-    const mbtiInput = document.getElementById('mbti-input').value.trim().toUpperCase();
-    if (mbtiInput.length !== 4) {
-        alert("올바른 MBTI 유형을 입력해주세요. (예: INFP, ENFJ)");
-        return;
-    }
-    userMBTI = mbtiInput;
-    shuffleDeck();
-    showScreen('card-select-screen');
-    playButtonSound();
-});
-
-document.getElementById('mbti-test-btn').addEventListener('click', () => {
-    showScreen('mbti-test-start-screen');
-    playButtonSound();
-});
-
-document.getElementById('mbti-restart-btn').addEventListener('click', () => {
-    resetApp();
-    playButtonSound();
-});
-
-document.getElementById('start-mbti-test-btn').addEventListener('click', () => {
-    currentMbtiQuestion = 0;
-    mbtiAnswers = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
-    showMbtiQuestion(0);
-    showScreen('mbti-question-screen');
-    playButtonSound();
-});
-
-document.getElementById('mbti-test-restart-btn').addEventListener('click', () => {
-    resetApp();
-    playButtonSound();
-});
-
-document.getElementById('mbti-next-question-btn').addEventListener('click', () => {
-    currentMbtiQuestion++;
-    if (currentMbtiQuestion < MBTI_QUESTIONS.length) {
-        showMbtiQuestion(currentMbtiQuestion);
-    } else {
-        showMbtiResult();
-        showScreen('mbti-result-screen');
-    }
-    playButtonSound();
-});
-
-document.getElementById('mbti-question-restart-btn').addEventListener('click', () => {
-    resetApp();
-    playButtonSound();
-});
-
-document.getElementById('mbti-result-next-btn').addEventListener('click', () => {
-    shuffleDeck();
-    showScreen('card-select-screen');
-    playButtonSound();
-});
-
-document.getElementById('mbti-result-restart-btn').addEventListener('click', () => {
-    resetApp();
-    playButtonSound();
-});
-
-// 총정리 페이지 이벤트 리스너들
-document.getElementById('summary-prev-btn').addEventListener('click', () => {
-    showScreen('result-screen');
-    displayCardResult(CARDS_TO_PICK - 1); // 마지막 카드로 돌아가기
-    playButtonSound();
-});
-
-document.getElementById('summary-restart-btn').addEventListener('click', () => {
-    resetApp();
-    playButtonSound();
-});
-
-document.getElementById('mbti-advice-btn').addEventListener('click', async () => {
-    showScreen('mbti-advice-screen');
-    
-    // 저장된 전체 해석 데이터에서 MBTI 조언 부분만 표시
-    if (window.fullInterpretationData && window.fullInterpretationData.mbtiAdvice) {
-        typeWriter(document.getElementById('mbti-advice-text'), window.fullInterpretationData.mbtiAdvice);
-    } else {
-        // 백업: 기존 방식으로 API 호출
-        document.getElementById('mbti-advice-text').textContent = "MBTI 기반 조언을 준비하고 있습니다...";
-        const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
-        const mbtiAdvice = await getMbtiAdvice(cardNames, userQuestion, cardInterpretations);
-        typeWriter(document.getElementById('mbti-advice-text'), mbtiAdvice);
-    }
-    playButtonSound();
-});
-
-// MBTI 조언 페이지 이벤트 리스너들
-document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
-    showSummaryScreen();
-    playButtonSound();
-});
-
-document.getElementById('mbti-advice-restart-btn').addEventListener('click', () => {
-    resetApp();
-    playButtonSound();
-});
