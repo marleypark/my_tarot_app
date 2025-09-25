@@ -275,6 +275,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: '총정리',
         summarySubtitle: '뽑힌 카드들',
+        summaryDescription: '전체적인 요약입니다.',
+        mbtiAdviceTitle: 'MBTI 기반 액션 플랜',
+        mbtiAdviceDescription: 'INFP 유형에 맞는 조언입니다.',
+        // 카드 해석
+        cardInterpretation: (cardName) => `${cardName}의 해석입니다.`,
+        // PDF 관련
+        pdfGenerating: 'PDF 생성 중...',
+        pdfSaveComplete: 'PDF 저장 완료!',
+        pdfFileName: '파일명',
+        pdfSaveLocation: '저장 위치',
+        pdfDownloadsFolder: '다운로드 폴더',
+        pdfConfirm: '확인',
         // 버튼들
         prevButton: '이전',
         nextButton: '다음',
@@ -340,6 +352,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: 'Summary',
         summarySubtitle: 'Selected Cards',
+        summaryDescription: 'This is a general summary.',
+        mbtiAdviceTitle: 'MBTI-based Action Plan',
+        mbtiAdviceDescription: 'This is advice suitable for INFP type.',
+        // 카드 해석
+        cardInterpretation: (cardName) => `This is the interpretation of ${cardName}.`,
+        // PDF 관련
+        pdfGenerating: 'Generating PDF...',
+        pdfSaveComplete: 'PDF Save Complete!',
+        pdfFileName: 'File Name',
+        pdfSaveLocation: 'Save Location',
+        pdfDownloadsFolder: 'Downloads Folder',
+        pdfConfirm: 'Confirm',
         // 버튼들
         prevButton: 'Previous',
         nextButton: 'Next',
@@ -405,6 +429,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: '總整理',
         summarySubtitle: '選中嘅卡牌',
+        summaryDescription: '呢個係整體嘅總結。',
+        mbtiAdviceTitle: 'MBTI基礎行動計劃',
+        mbtiAdviceDescription: '呢個係適合INFP類型嘅建議。',
+        // 카드 해석
+        cardInterpretation: (cardName) => `呢個係${cardName}嘅解釋。`,
+        // PDF 관련
+        pdfGenerating: 'PDF生成緊...',
+        pdfSaveComplete: 'PDF儲存完成！',
+        pdfFileName: '檔案名',
+        pdfSaveLocation: '儲存位置',
+        pdfDownloadsFolder: '下載資料夾',
+        pdfConfirm: '確認',
         // 버튼들
         prevButton: '上一頁',
         nextButton: '下一頁',
@@ -470,6 +506,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: 'Tổng kết',
         summarySubtitle: 'Các lá bài đã chọn',
+        summaryDescription: 'Đây là tóm tắt tổng thể.',
+        mbtiAdviceTitle: 'Kế hoạch hành động dựa trên MBTI',
+        mbtiAdviceDescription: 'Đây là lời khuyên phù hợp với loại INFP.',
+        // 카드 해석
+        cardInterpretation: (cardName) => `Đây là giải thích của ${cardName}.`,
+        // PDF 관련
+        pdfGenerating: 'Đang tạo PDF...',
+        pdfSaveComplete: 'Lưu PDF hoàn tất!',
+        pdfFileName: 'Tên tệp',
+        pdfSaveLocation: 'Vị trí lưu',
+        pdfDownloadsFolder: 'Thư mục Tải xuống',
+        pdfConfirm: 'Xác nhận',
         // 버튼들
         prevButton: 'Trước',
         nextButton: 'Tiếp theo',
@@ -535,6 +583,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: 'Ringkasan',
         summarySubtitle: 'Kartu yang dipilih',
+        summaryDescription: 'Ini adalah ringkasan keseluruhan.',
+        mbtiAdviceTitle: 'Rencana Aksi Berbasis MBTI',
+        mbtiAdviceDescription: 'Ini adalah saran yang sesuai untuk tipe INFP.',
+        // 카드 해석
+        cardInterpretation: (cardName) => `Ini adalah interpretasi dari ${cardName}.`,
+        // PDF 관련
+        pdfGenerating: 'Membuat PDF...',
+        pdfSaveComplete: 'Simpan PDF selesai!',
+        pdfFileName: 'Nama file',
+        pdfSaveLocation: 'Lokasi simpan',
+        pdfDownloadsFolder: 'Folder Unduhan',
+        pdfConfirm: 'Konfirmasi',
         // 버튼들
         prevButton: 'Sebelumnya',
         nextButton: 'Selanjutnya',
@@ -600,6 +660,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: '总结',
         summarySubtitle: '选中的卡牌',
+        summaryDescription: '这是整体总结。',
+        mbtiAdviceTitle: '基于MBTI的行动计划',
+        mbtiAdviceDescription: '这是适合INFP类型的建议。',
+        // 카드 해석
+        cardInterpretation: (cardName) => `这是${cardName}的解释。`,
+        // PDF 관련
+        pdfGenerating: '正在生成PDF...',
+        pdfSaveComplete: 'PDF保存完成！',
+        pdfFileName: '文件名',
+        pdfSaveLocation: '保存位置',
+        pdfDownloadsFolder: '下载文件夹',
+        pdfConfirm: '确认',
         // 버튼들
         prevButton: '上一页',
         nextButton: '下一页',
@@ -665,6 +737,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: 'Résumé',
         summarySubtitle: 'Cartes sélectionnées',
+        summaryDescription: 'Ceci est un résumé général.',
+        mbtiAdviceTitle: 'Plan d\'action basé sur MBTI',
+        mbtiAdviceDescription: 'Ceci est un conseil adapté au type INFP.',
+        // 카드 해석
+        cardInterpretation: (cardName) => `Ceci est l'interprétation de ${cardName}.`,
+        // PDF 관련
+        pdfGenerating: 'Génération du PDF...',
+        pdfSaveComplete: 'Sauvegarde PDF terminée !',
+        pdfFileName: 'Nom du fichier',
+        pdfSaveLocation: 'Emplacement de sauvegarde',
+        pdfDownloadsFolder: 'Dossier Téléchargements',
+        pdfConfirm: 'Confirmer',
         // 버튼들
         prevButton: 'Précédent',
         nextButton: 'Suivant',
@@ -730,6 +814,18 @@ const UI_TEXTS = {
         // 총정리
         summaryTitle: 'Resumen',
         summarySubtitle: 'Cartas seleccionadas',
+        summaryDescription: 'Este es un resumen general.',
+        mbtiAdviceTitle: 'Plan de Acción basado en MBTI',
+        mbtiAdviceDescription: 'Este es un consejo adecuado para el tipo INFP.',
+        // 카드 해석
+        cardInterpretation: (cardName) => `Esta es la interpretación de ${cardName}.`,
+        // PDF 관련
+        pdfGenerating: 'Generando PDF...',
+        pdfSaveComplete: '¡Guardado PDF completado!',
+        pdfFileName: 'Nombre del archivo',
+        pdfSaveLocation: 'Ubicación de guardado',
+        pdfDownloadsFolder: 'Carpeta de Descargas',
+        pdfConfirm: 'Confirmar',
         // 버튼들
         prevButton: 'Anterior',
         nextButton: 'Siguiente',
@@ -1086,6 +1182,19 @@ function updateUITexts() {
     const mbtiResultRestartBtn = document.getElementById('mbti-result-restart-btn');
     if (mbtiResultNextBtn) mbtiResultNextBtn.textContent = t.nextButton;
     if (mbtiResultRestartBtn) mbtiResultRestartBtn.textContent = t.restartButton;
+    
+    // 총정리 화면
+    const summaryTitle = document.querySelector('#summary-screen h2');
+    const summarySubtitle = document.querySelector('#summary-screen h3');
+    const summaryDescription = document.querySelector('#summary-screen p');
+    const mbtiAdviceTitle = document.querySelector('#mbti-advice-content h3');
+    const mbtiAdviceDescription = document.querySelector('#mbti-advice-content p');
+    
+    if (summaryTitle) summaryTitle.textContent = t.summaryTitle;
+    if (summarySubtitle) summarySubtitle.textContent = t.summarySubtitle;
+    if (summaryDescription) summaryDescription.textContent = t.summaryDescription;
+    if (mbtiAdviceTitle) mbtiAdviceTitle.textContent = t.mbtiAdviceTitle;
+    if (mbtiAdviceDescription) mbtiAdviceDescription.textContent = t.mbtiAdviceDescription;
 }
 
 function updateFortuneMenu() {
@@ -1780,8 +1889,10 @@ function showSummaryScreen() {
     // 총정리 제목 업데이트
     const summaryTitle = document.querySelector('#summary-screen h2');
     const summarySubtitle = document.querySelector('#summary-screen h3');
+    const summaryDescription = document.querySelector('#summary-screen p');
     if (summaryTitle) summaryTitle.textContent = t.summaryTitle;
     if (summarySubtitle) summarySubtitle.textContent = t.summarySubtitle;
+    if (summaryDescription) summaryDescription.textContent = t.summaryDescription;
     
     // 4개 카드 이미지 표시
     const summaryCardsDisplay = document.getElementById('summary-cards-display');
@@ -1820,12 +1931,8 @@ function showSummaryScreen() {
             let mbtiContent = '';
             
             // 제목과 소개
-            if (mbtiPlan.title) {
-                mbtiContent += `# ${mbtiPlan.title}\n\n`;
-            }
-            if (mbtiPlan.introduction) {
-                mbtiContent += mbtiPlan.introduction + '\n\n';
-            }
+            mbtiContent += `# ${t.mbtiAdviceTitle}\n\n`;
+            mbtiContent += t.mbtiAdviceDescription + '\n\n';
             
             // 단계별 액션 플랜
             if (mbtiPlan.phases && mbtiPlan.phases.length > 0) {
@@ -1862,19 +1969,21 @@ restartBtn.addEventListener('click', () => {
 // PDF 생성 함수
 function generatePDF() {
     if (!window.fullInterpretationData) {
-        alert('PDF로 저장할 데이터가 없습니다. 먼저 타로 리딩을 완료해주세요.');
+        const t = UI_TEXTS[selectedLanguage];
+        alert(t.pdfSaveButton + '할 데이터가 없습니다. 먼저 타로 리딩을 완료해주세요.');
         return;
     }
 
     const pdfBtn = document.getElementById('pdf-save-btn');
     if (!pdfBtn) return;
 
+    const t = UI_TEXTS[selectedLanguage];
     const originalText = pdfBtn.textContent;
-    pdfBtn.textContent = 'PDF 생성 중...';
+    pdfBtn.textContent = t.pdfGenerating;
     pdfBtn.disabled = true;
 
     const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('PDF 생성 시간이 초과되었습니다.')), 30000);
+        setTimeout(() => reject(new Error(t.pdfGenerating + ' 시간이 초과되었습니다.')), 30000);
     });
 
     const capturePromise = new Promise((resolve, reject) => {
@@ -1909,13 +2018,13 @@ function generatePDF() {
 
     Promise.race([capturePromise, timeoutPromise])
         .then(pdf => {
-            const fileName = `타로리딩_${new Date().toISOString().split('T')[0]}.pdf`;
+            const fileName = `${t.summaryTitle}_${new Date().toISOString().split('T')[0]}.pdf`;
             pdf.save(fileName);
             showPDFSaveNotification(fileName);
         })
         .catch(error => {
             console.error('PDF 생성 오류:', error);
-            alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
+            alert(t.pdfGenerating + ' 중 오류가 발생했습니다: ' + error.message);
         })
         .finally(() => {
             pdfBtn.textContent = originalText;
@@ -1926,6 +2035,7 @@ function generatePDF() {
 
 // PDF 저장 완료 알림
 function showPDFSaveNotification(fileName) {
+    const t = UI_TEXTS[selectedLanguage];
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -1950,19 +2060,19 @@ function showPDFSaveNotification(fileName) {
     let saveLocation = '';
     if (isMobile) {
         if (isIOS) {
-            saveLocation = '파일 앱 > 다운로드 폴더';
+            saveLocation = t.pdfDownloadsFolder;
         } else {
-            saveLocation = '다운로드 폴더 또는 내 파일 앱';
+            saveLocation = t.pdfDownloadsFolder;
         }
     } else {
-        saveLocation = '다운로드 폴더';
+        saveLocation = t.pdfDownloadsFolder;
     }
 
     notification.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 10px; font-size: 18px;">✅ PDF 저장 완료!</div>
+        <div style="font-weight: bold; margin-bottom: 10px; font-size: 18px;">✅ ${t.pdfSaveComplete}</div>
         <div style="font-size: 14px; opacity: 0.9; margin-bottom: 15px;">
-            파일명: ${fileName}<br>
-            저장 위치: ${saveLocation}
+            ${t.pdfFileName}: ${fileName}<br>
+            ${t.pdfSaveLocation}: ${saveLocation}
         </div>
         <button onclick="this.parentElement.remove()" style="
             background: rgba(255,255,255,0.2);
@@ -1972,7 +2082,7 @@ function showPDFSaveNotification(fileName) {
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
-        ">확인</button>
+        ">${t.pdfConfirm}</button>
     `;
 
     const style = document.createElement('style');
