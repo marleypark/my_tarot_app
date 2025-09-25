@@ -1,5 +1,4 @@
-// 이 파일은 Vercel 서버에서 실행되는 백엔드 코드입니다. (api/interpret.js)
-// CORS 헤더를 추가하여 브라우저 호환성 문제를 해결한 최종 버전입니다.
+// 현실 조언을 위한 별도 API 엔드포인트 (api/action-plan.js)
 
 // 키워드 추출 함수
 function extractKeywords(text, keywordList) {
@@ -38,7 +37,7 @@ export default async function handler(request, response) {
     }
 
     // 3. 프론트엔드(script.js)에서 보낸 데이터(카드 이름, 질문, 언어)를 받습니다.
-    const { cardNames, question, language } = request.body || {};
+    const { cardNames, question, language, interpretations } = request.body || {};
 
     if (!Array.isArray(cardNames) || cardNames.length === 0) {
       return response.status(400).json({ message: 'cardNames 배열이 필요합니다.' });
@@ -57,17 +56,17 @@ export default async function handler(request, response) {
     };
     const targetLanguage = languageMap[language]?.name || 'Korean';
 
-    // 4. Gemini API에 보낼 프롬프트(요청서)를 정교하게 만듭니다.
-    let prompt = `You are a warm, wise tarot master. The drawn card(s): ${cardNames.join(', ')}.`;
+    // 4. 현실적인 액션 플랜을 위한 프롬프트 생성
+    let prompt = `You are a practical life coach and tarot advisor. Based on the tarot cards drawn: ${cardNames.join(', ')}`;
     if (question) {
-      prompt += ` The user's question is: "${question}".`;
+      prompt += ` and the user's question: "${question}"`;
     }
-    if (cardNames.length > 1) {
-      prompt += ` Connect these cards together and provide deep, step-by-step advice.`;
-    } else {
-      prompt += ` Explain this card's symbols, core meaning, and practical advice.`;
-    }
-    prompt += ` Use a positive, hopeful tone. Answer strictly in ${targetLanguage}.`;
+    prompt += `, provide a concrete, actionable, and realistic action plan.`;
+    prompt += ` The previous interpretations were: ${interpretations || 'Not provided'}`;
+    prompt += ` Focus on practical steps the user can take in their daily life.`;
+    prompt += ` Include specific actions, timelines, and realistic expectations.`;
+    prompt += ` Be encouraging but honest about challenges.`;
+    prompt += ` Answer strictly in ${targetLanguage}.`;
 
     // 5. Google Gemini API 서버에 요청을 보냅니다.
     const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
@@ -78,7 +77,7 @@ export default async function handler(request, response) {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.8,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 1024,
@@ -95,21 +94,13 @@ export default async function handler(request, response) {
     const data = await apiResponse.json();
     
     // Gemini가 보내준 텍스트 해석을 추출합니다.
-    const interpretation = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    // 개별 카드 해석을 위한 키워드 추출 (간단한 패턴 매칭)
-    const positiveKeywords = extractKeywords(interpretation, ['희망', '기회', '성장', '성공', '긍정', '좋은', '행운', '진보', '발전', '성취']);
-    const negativeKeywords = extractKeywords(interpretation, ['주의', '신중', '경계', '위험', '부정', '어려움', '장애', '문제', '걱정', '불안']);
+    const actionPlan = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // 6. 성공적인 결과를 프론트엔드로 다시 보내줍니다.
-    return response.status(200).json({ 
-      interpretation,
-      positiveKeywords,
-      negativeKeywords
-    });
+    return response.status(200).json({ actionPlan });
 
   } catch (error) {
     console.error('서버 함수 내부 오류:', error);
-    return response.status(500).json({ message: '서버에서 해석을 생성하는 중 오류가 발생했습니다.' });
+    return response.status(500).json({ message: '서버에서 액션 플랜을 생성하는 중 오류가 발생했습니다.' });
   }
 }

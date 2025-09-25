@@ -231,7 +231,7 @@ let userQuestion = "";
 let selectedCards = [];
 const CARDS_TO_PICK = 4;
 let deck = [];
-let fullResultData = null; // 모든 해석 결과를 저장할 단일 변수
+let cardInterpretations = []; // 각 카드의 해석 결과를 저장할 배열
 let currentResultIndex = 0;
 
 // --- 2. 핵심 함수들 ---
@@ -257,7 +257,7 @@ function showScreen(screenId) {
 function resetApp() {
     userQuestion = "";
     selectedCards = [];
-    fullResultData = null; // 결과 데이터 초기화
+    cardInterpretations = []; // 결과 데이터 초기화
     currentResultIndex = 0;
     selectedCardsPreview.innerHTML = '';
     questionInput.value = '';
@@ -308,49 +308,20 @@ function typeWriter(element, text, onComplete) {
     typing();
 }
 
-// 단 한번의 API 호출로 모든 데이터를 가져오는 함수
-async function fetchAllInterpretations() {
-    const t = UI_TEXTS[selectedLanguage];
-    interpretationText.textContent = t.preparingAll;
-    keywordsArea.style.display = 'none';
-    
-    const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
+// 개별 카드 해석을 가져오는 함수
+async function getInterpretation(cardName, question) {
     const SERVERLESS_FUNCTION_URL = '/api/interpret';
 
-    console.log('API 호출 시작:', {
-        cardNames,
-        question: userQuestion,
-        language: selectedLanguage,
-        url: SERVERLESS_FUNCTION_URL
-    });
-
     try {
-        // 429 오류 시 재시도 로직
-        let response;
-        let retryCount = 0;
-        const maxRetries = 3;
-        
-        while (retryCount < maxRetries) {
-            response = await fetch(SERVERLESS_FUNCTION_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cardNames, question: userQuestion, language: selectedLanguage }),
-            });
-
-            console.log(`API 응답 상태 (시도 ${retryCount + 1}):`, response.status, response.statusText);
-
-            if (response.status === 429) {
-                retryCount++;
-                if (retryCount < maxRetries) {
-                    const waitTime = Math.pow(2, retryCount) * 1000; // 지수 백오프
-                    console.log(`${waitTime}ms 후 재시도...`);
-                    await new Promise(resolve => setTimeout(resolve, waitTime));
-                    continue;
-                }
-            }
-            
-            break;
-        }
+        const response = await fetch(SERVERLESS_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                cardNames: [cardName], 
+                question: question, 
+                language: selectedLanguage 
+            }),
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -358,37 +329,51 @@ async function fetchAllInterpretations() {
             throw new Error(`API 요청 실패: ${response.status} - ${errorText}`);
         }
         
-        fullResultData = await response.json(); // 모든 결과(JSON)를 변수에 저장
-        console.log('API 응답 데이터:', fullResultData);
-        
-        // 첫 번째 카드 결과부터 보여주기
-        displayCardResult(0);
+        const data = await response.json();
+        return data;
 
     } catch (error) {
-        console.error("API 호출 및 데이터 처리 오류:", error);
-        
-        // API가 작동하지 않을 경우 테스트 데이터 사용
-        console.log('API 실패, 테스트 데이터 사용');
-        fullResultData = generateTestData(cardNames);
-        displayCardResult(0);
+        console.error("API 호출 오류:", error);
+        // 테스트 데이터 반환
+        return {
+            interpretation: `이것은 ${cardName} 카드의 테스트 해석입니다.`,
+            positiveKeywords: ['희망', '기회', '성장'],
+            negativeKeywords: ['주의', '신중함']
+        };
     }
 }
 
-// 테스트 데이터 생성 함수 (API가 작동하지 않을 때 사용)
-function generateTestData(cardNames) {
-    const interpretations = cardNames.map((cardName, index) => ({
-        cardName: cardName,
-        fullInterpretation: `이것은 ${cardName} 카드의 테스트 해석입니다. 실제 API가 작동하지 않아서 표시되는 임시 데이터입니다. 카드의 의미와 상징을 통해 당신의 질문에 대한 답을 찾아보세요.`,
-        positiveKeywords: ['희망', '기회', '성장'],
-        negativeKeywords: ['주의', '신중함']
-    }));
-    
-    return {
-        interpretations: interpretations,
-        summary: '이것은 모든 카드의 총정리 테스트 데이터입니다. 각 카드의 의미를 종합하여 전체적인 조언을 제공합니다.',
-        actionPlan: '현실적인 조언: 이 테스트 데이터를 바탕으로 실제 상황에 적용할 수 있는 구체적인 행동 계획을 세워보세요.'
-    };
+// 현실 조언을 가져오는 함수
+async function getActionPlan(cardNames, question, interpretations) {
+    const SERVERLESS_FUNCTION_URL = '/api/action-plan';
+
+    try {
+        const response = await fetch(SERVERLESS_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                cardNames, 
+                question, 
+                language: selectedLanguage,
+                interpretations: interpretations.map(interp => interp.interpretation).join(' ')
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API 응답 오류:', errorText);
+            throw new Error(`API 요청 실패: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        return data.actionPlan;
+
+    } catch (error) {
+        console.error("액션 플랜 API 호출 오류:", error);
+        return '현실적인 조언: 이 테스트 데이터를 바탕으로 실제 상황에 적용할 수 있는 구체적인 행동 계획을 세워보세요.';
+    }
 }
+
 
 // --- 3. 이벤트 리스너 설정 ---
 
@@ -473,40 +458,50 @@ shuffleAnimationArea.addEventListener('click', () => {
 
         if (selectedCards.length === CARDS_TO_PICK) {
             setTimeout(() => {
-                showScreen('result-screen');
-                fetchAllInterpretations(); // 4장 선택 후 API 딱 한번 호출!
+                showResultScreen(); // 4장 선택 후 결과 화면 표시
             }, 1000);
         }
     }
 });
 
+// 결과 화면 보여주기 (각 카드별 개별 API 호출)
+async function showResultScreen() {
+    showScreen('result-screen');
+    const t = UI_TEXTS[selectedLanguage];
+    interpretationText.textContent = "선택된 모든 카드의 해석을 준비 중입니다...";
+    keywordsArea.style.display = 'none';
+    
+    // 4장 카드에 대한 해석을 각각 받아오기
+    for(let i = 0; i < selectedCards.length; i++) {
+        const cardIndex = selectedCards[i];
+        const cardName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
+        
+        // 각 카드별 해석 요청
+        const interpretation = await getInterpretation(cardName, userQuestion);
+        cardInterpretations.push(interpretation);
+    }
+    
+    // 첫 번째 카드 결과부터 보여주기
+    displayCardResult(0);
+}
+
 // 저장된 데이터로 화면을 구성하는 함수
 function displayCardResult(index) {
-    console.log('displayCardResult 호출:', { index, fullResultData });
+    console.log('displayCardResult 호출:', { index, cardInterpretations });
     
-    if (!fullResultData) {
-        console.error('fullResultData가 없습니다');
-        return;
-    }
-    
-    if (!fullResultData.interpretations) {
-        console.error('fullResultData.interpretations가 없습니다:', fullResultData);
-        return;
-    }
-    
-    if (!fullResultData.interpretations[index]) {
-        console.error(`interpretations[${index}]가 없습니다:`, fullResultData.interpretations);
+    if (!cardInterpretations || !cardInterpretations[index]) {
+        console.error(`cardInterpretations[${index}]가 없습니다:`, cardInterpretations);
         return;
     }
 
     currentResultIndex = index;
-    const cardResult = fullResultData.interpretations[index];
+    const cardResult = cardInterpretations[index];
     const cardIndex = selectedCards[index]; // 원본 카드 인덱스
     const t = UI_TEXTS[selectedLanguage];
     
     console.log('카드 결과 표시:', { cardResult, cardIndex });
     
-    resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${cardResult.cardName}`;
+    resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${getLocalizedCardNameByIndex(cardIndex, selectedLanguage)}`;
     resultCardImage.src = tarotData[cardIndex].img;
     resultCardImage.style.display = 'block';
     
@@ -514,11 +509,11 @@ function displayCardResult(index) {
     keywordsArea.innerHTML = ''; // 초기화
     if (cardResult.positiveKeywords || cardResult.negativeKeywords) {
         keywordsArea.style.display = 'block';
-        if (cardResult.positiveKeywords) {
+        if (cardResult.positiveKeywords && cardResult.positiveKeywords.length > 0) {
             const positiveHtml = `<div class="keyword-group"><span class="keyword-title">긍정:</span>${cardResult.positiveKeywords.map(k => `<span class="keyword positive">${k}</span>`).join('')}</div>`;
             keywordsArea.innerHTML += positiveHtml;
         }
-        if (cardResult.negativeKeywords) {
+        if (cardResult.negativeKeywords && cardResult.negativeKeywords.length > 0) {
              const negativeHtml = `<div class="keyword-group"><span class="keyword-title">주의:</span>${cardResult.negativeKeywords.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
             keywordsArea.innerHTML += negativeHtml;
         }
@@ -526,7 +521,7 @@ function displayCardResult(index) {
         keywordsArea.style.display = 'none';
     }
 
-    typeWriter(interpretationText, cardResult.fullInterpretation);
+    typeWriter(interpretationText, cardResult.interpretation);
 
     // 버튼 상태 업데이트
     prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
@@ -550,15 +545,19 @@ nextBtn.addEventListener('click', () => {
     } 
 });
 
-// 총정리 버튼: API 호출 없이 저장된 데이터 사용
-summaryBtn.addEventListener('click', () => {
-    if (!fullResultData || !fullResultData.summary) return;
+// 총정리 버튼: 모든 카드 해석을 종합하여 표시
+summaryBtn.addEventListener('click', async () => {
     const t = UI_TEXTS[selectedLanguage];
     resultCardTitle.textContent = t.summary;
     resultCardImage.style.display = 'none';
     keywordsArea.style.display = 'none';
     
-    typeWriter(interpretationText, fullResultData.summary, () => {
+    // 모든 카드 해석을 종합한 텍스트 생성
+    const summaryText = cardInterpretations.map((interp, index) => 
+        `${index + 1}번째 카드: ${interp.interpretation}`
+    ).join('\n\n');
+    
+    typeWriter(interpretationText, summaryText, () => {
         actionPlanBtn.style.display = 'inline-block'; // 총정리 후 현실 조언 버튼 표시
     });
     
@@ -568,13 +567,21 @@ summaryBtn.addEventListener('click', () => {
     playButtonSound();
 });
 
-// 현실 조언 버튼: API 호출 없이 저장된 데이터 사용
-actionPlanBtn.addEventListener('click', () => {
-    if (!fullResultData || !fullResultData.actionPlan) return;
+// 현실 조언 버튼: 별도 API 호출로 구체적인 액션 플랜 생성
+actionPlanBtn.addEventListener('click', async () => {
     const t = UI_TEXTS[selectedLanguage];
     resultCardTitle.textContent = t.actionPlan;
     
-    typeWriter(interpretationText, fullResultData.actionPlan);
+    // 로딩 표시
+    interpretationText.textContent = "현실적인 조언을 준비하고 있습니다...";
+    
+    // 카드 이름들 가져오기
+    const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
+    
+    // 현실 조언 API 호출
+    const actionPlan = await getActionPlan(cardNames, userQuestion, cardInterpretations);
+    
+    typeWriter(interpretationText, actionPlan);
     
     actionPlanBtn.style.display = 'none'; // 한번 보면 숨김
     playButtonSound();
