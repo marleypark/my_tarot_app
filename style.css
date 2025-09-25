@@ -16,6 +16,51 @@ body {
     width: 100%;
     max-width: 500px;
     text-align: center;
+    position: relative;
+}
+
+/* 언어 스위처 */
+.lang-switcher {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.lang-button {
+    background-color: #4a4a68;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.lang-button:hover {
+    background-color: #3a3a52;
+}
+.lang-menu {
+    position: absolute;
+    right: 0;
+    margin-top: 6px;
+    background: #2a2a44;
+    border: 1px solid #3a3a52;
+    border-radius: 8px;
+    list-style: none;
+    padding: 6px 0;
+    display: none;
+    min-width: 140px;
+    text-align: left;
+    z-index: 1000;
+}
+.lang-menu.show {
+    display: block;
+}
+.lang-menu li {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.lang-menu li:hover {
+    background: #3a3a52;
 }
 
 /* 메인 화면 카드 크기 조정 (50% 축소) */
@@ -84,8 +129,10 @@ button:hover {
     align-items: center;
     margin: 20px 0;
     cursor: pointer;
-    background-image: url('images/shuffling.gif'); /* 셔플 gif 이미지 경로 */
-    background-size: cover;
+    background-image: url('images/card_back.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 #selected-cards-preview {
     display: flex;
