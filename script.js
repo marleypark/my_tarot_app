@@ -1061,6 +1061,28 @@ const MBTI_QUESTIONS = [
 
 // --- 2. 핵심 함수들 ---
 
+// 전역 언어 메뉴 토글 함수
+function toggleLangMenu() {
+    console.log('toggleLangMenu 함수 호출됨');
+    const langButton = document.getElementById('lang-button');
+    const langMenu = document.getElementById('lang-menu');
+    
+    if (langButton && langMenu) {
+        const willOpen = !langMenu.classList.contains('show');
+        console.log('메뉴 상태 변경:', willOpen ? '열기' : '닫기');
+        
+        if (willOpen) {
+            langMenu.classList.add('show');
+            langButton.setAttribute('aria-expanded', 'true');
+        } else {
+            langMenu.classList.remove('show');
+            langButton.setAttribute('aria-expanded', 'false');
+        }
+    } else {
+        console.error('언어 버튼 또는 메뉴를 찾을 수 없습니다.');
+    }
+}
+
 function applyTranslations() {
     // 언어 스위처 버튼 텍스트 업데이트
     const langButton = document.getElementById('lang-button');
@@ -1554,29 +1576,37 @@ async function getMbtiAdvice(cardNames, question, interpretations) {
 
 window.onload = () => {
     // 언어 스위처 초기화
+    console.log('페이지 로드 완료');
     const langButton = document.getElementById('lang-button');
     const langMenu = document.getElementById('lang-menu');
     console.log('언어 버튼 초기화:', langButton, langMenu);
     
     if (langButton && langMenu) {
+        console.log('언어 버튼과 메뉴를 찾았습니다.');
+        
         const closeLangMenu = () => {
             langMenu.classList.remove('show');
             langButton.setAttribute('aria-expanded', 'false');
         };
 
-        // 언어 버튼 클릭 이벤트
-        langButton.addEventListener('click', (e) => {
-            console.log('언어 버튼 클릭됨');
+        // 언어 버튼 클릭 이벤트 (직접적인 방법)
+        langButton.onclick = (e) => {
+            console.log('언어 버튼 클릭됨!');
             e.preventDefault();
             e.stopPropagation();
             const willOpen = !langMenu.classList.contains('show');
+            console.log('메뉴 열기 여부:', willOpen);
             if (willOpen) {
                 langMenu.classList.add('show');
                 langButton.setAttribute('aria-expanded', 'true');
+                console.log('메뉴 열림');
             } else {
                 closeLangMenu();
+                console.log('메뉴 닫힘');
             }
-        });
+        };
+        
+        console.log('언어 버튼 이벤트 리스너 추가됨');
         
         // 언어 메뉴 항목 클릭 이벤트
         const langOptions = langMenu.querySelectorAll('li[data-lang]');

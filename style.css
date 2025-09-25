@@ -24,6 +24,7 @@ body {
     position: absolute;
     top: 0;
     right: 0;
+    z-index: 1000;
 }
 .lang-button {
     background-color: #4a4a68;
@@ -33,6 +34,8 @@ body {
     border-radius: 16px;
     font-size: 12px;
     cursor: pointer;
+    position: relative;
+    z-index: 1001;
 }
 .lang-button:hover {
     background-color: #3a3a52;
