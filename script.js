@@ -436,10 +436,22 @@ function applyTranslations() {
 }
 
 function showScreen(screenId) {
+    console.log('showScreen 호출됨:', screenId);
+    console.log('screens 개수:', screens.length);
+    
     screens.forEach(screen => {
         screen.classList.remove('active');
     });
-    document.getElementById(screenId).classList.add('active');
+    
+    const targetScreen = document.getElementById(screenId);
+    console.log('대상 화면 요소:', targetScreen);
+    
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+        console.log('화면 전환 완료:', screenId);
+    } else {
+        console.error('화면을 찾을 수 없습니다:', screenId);
+    }
 }
 
 // 초기화 함수
@@ -821,7 +833,11 @@ window.onload = () => {
     });
 
     document.getElementById('mbti-advice-btn').addEventListener('click', async () => {
+        console.log('MBTI 조언 버튼 클릭됨!');
+        console.log('현재 화면:', document.querySelector('.screen.active')?.id);
+        
         showScreen('mbti-advice-screen');
+        console.log('화면 전환 후:', document.querySelector('.screen.active')?.id);
         
         // 저장된 전체 해석 데이터에서 MBTI 조언 부분만 표시
         if (window.fullInterpretationData && window.fullInterpretationData.mbtiAdvice) {
