@@ -589,64 +589,16 @@ button:hover {
 
 /* 질문 선택 옵션 스타일은 제거됨 (새로운 UI로 대체) */
 
-/* 오픈 타로 준비 팝업 스타일 */
-.prepare-popup {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    padding: 40px;
-    max-width: 600px;
-    margin: 0 auto;
-    color: white;
+/* 오픈 타로 준비 화면 스타일 - 질문창과 동일한 느낌 */
+#open-tarot-prepare-screen {
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-.prepare-content {
-    margin: 30px 0;
-}
-
-.prepare-message {
+#open-tarot-prepare-screen h2 {
+    color: #e0e0e0;
     font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #fff;
-}
-
-.prepare-desc {
-    font-size: 16px;
-    margin-bottom: 25px;
-    opacity: 0.9;
-    line-height: 1.6;
-}
-
-.prepare-tips {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px 0;
-    text-align: left;
-}
-
-.prepare-tips h4 {
-    color: #fff;
-    margin-bottom: 15px;
-    font-size: 16px;
-}
-
-.prepare-tips ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.prepare-tips li {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    font-size: 14px;
-}
-
-.prepare-tips li:last-child {
-    border-bottom: none;
+    margin-bottom: 40px;
+    font-weight: 400;
 }
 
 /* 질문 진행 표시 */
