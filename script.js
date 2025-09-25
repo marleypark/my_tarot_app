@@ -859,6 +859,57 @@ window.onload = () => {
         playButtonSound();
     });
 
+    // 질문 선택 옵션 이벤트 리스너
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('question-option')) {
+            const questionType = e.target.dataset.type;
+            const questionText = e.target.dataset.question;
+            
+            if (questionType === 'custom') {
+                // 직접 입력 화면으로
+                showScreen('custom-question-screen');
+            } else if (questionText) {
+                // 프리셋 질문 선택
+                userQuestion = questionText;
+                showScreen('mbti-input-screen');
+            }
+            playButtonSound();
+        }
+    });
+
+    // 직접 질문 입력 화면 이벤트 리스너
+    document.getElementById('submit-question-btn').addEventListener('click', () => {
+        userQuestion = questionInput.value;
+        if (userQuestion.trim() === "") {
+            alert("질문을 입력해주세요.");
+            return;
+        }
+        showScreen('mbti-input-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('back-to-question-options-btn').addEventListener('click', () => {
+        showScreen('focus-tarot-screen');
+        playButtonSound();
+    });
+
+    // 오픈 타로 준비 화면 이벤트 리스너
+    document.getElementById('ready-for-cards-btn').addEventListener('click', () => {
+        showScreen('card-select-screen');
+        playButtonSound();
+    });
+
+    document.getElementById('back-to-question-dialog-from-prepare-btn').addEventListener('click', () => {
+        showScreen('question-dialog');
+        playButtonSound();
+    });
+
+    // 질문 선택 화면 이전 버튼
+    document.getElementById('back-to-question-dialog-btn').addEventListener('click', () => {
+        showScreen('question-dialog');
+        playButtonSound();
+    });
+
     // MBTI 조언 페이지 이벤트 리스너들
     document.getElementById('mbti-advice-prev-btn').addEventListener('click', () => {
         showSummaryScreen();
@@ -889,7 +940,7 @@ writeQuestionBtn.addEventListener('click', () => {
 
 mindQuestionBtn.addEventListener('click', () => {
     userQuestion = ""; // 질문 없음
-    showScreen('mbti-input-screen');
+    showScreen('open-tarot-prepare-screen');
 });
 
 startFocusReadingBtn.addEventListener('click', () => {
@@ -1151,9 +1202,14 @@ function createPDFContent() {
     // 개별 카드 해석
     content += '<h2>🃏 개별 카드 해석</h2>';
     data.cardInterpretations.forEach((card, index) => {
+        const cardIndex = selectedCards[index];
+        const cardImageSrc = tarotData[cardIndex].img;
         content += `
             <div class="card-section">
                 <div class="card-title">${index + 1}번째 카드 - ${card.cardName}</div>
+                <div class="card-image-pdf">
+                    <img src="${cardImageSrc}" alt="${card.cardName}" style="max-width: 200px; height: auto; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                </div>
                 <div class="keywords">
                     <strong>긍정 키워드:</strong> ${card.keywords.positive.join(', ')}<br>
                     <strong>주의 키워드:</strong> ${card.keywords.caution.join(', ')}
@@ -1169,6 +1225,26 @@ function createPDFContent() {
             <div class="summary-section">
                 <h2>📊 종합 리딩</h2>
                 <h3>${data.overallReading.title || '타로 리딩 결과'}</h3>
+                <div class="summary-cards-pdf">
+                    <h4>뽑힌 카드들</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+        `;
+        
+        // 총정리 섹션에 모든 카드 이미지 추가
+        selectedCards.forEach((cardIndex, index) => {
+            const cardImageSrc = tarotData[cardIndex].img;
+            const cardName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
+            content += `
+                <div style="text-align: center; margin: 5px;">
+                    <img src="${cardImageSrc}" alt="${cardName}" style="width: 80px; height: auto; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    <div style="font-size: 10px; margin-top: 5px; color: #666;">${index + 1}번째</div>
+                </div>
+            `;
+        });
+        
+        content += `
+                    </div>
+                </div>
                 <div>${data.overallReading.summary}</div>
             </div>
         `;
@@ -1234,30 +1310,69 @@ function createPDF(htmlContent) {
         tempDiv.style.top = '-9999px';
         document.body.appendChild(tempDiv);
 
-        // HTML을 PDF로 변환
-        doc.html(tempDiv, {
-            callback: function(doc) {
-                // 파일명 생성
-                const fileName = `타로리딩_${new Date().toISOString().split('T')[0]}.pdf`;
-                
-                // PDF 다운로드
-                doc.save(fileName);
-                
-                // 사용자에게 저장 완료 알림
-                showPDFSaveNotification(fileName);
-                
-                // 임시 div 제거
-                document.body.removeChild(tempDiv);
-            },
-            x: 10,
-            y: 10,
-            width: 190,
-            windowWidth: 800
+        // 이미지 로딩 대기
+        const images = tempDiv.querySelectorAll('img');
+        let loadedImages = 0;
+        const totalImages = images.length;
+
+        if (totalImages === 0) {
+            // 이미지가 없으면 바로 PDF 생성
+            generatePDFFromHTML(doc, tempDiv);
+            return;
+        }
+
+        // 이미지 로딩 완료 대기
+        images.forEach(img => {
+            if (img.complete) {
+                loadedImages++;
+            } else {
+                img.onload = () => {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        generatePDFFromHTML(doc, tempDiv);
+                    }
+                };
+                img.onerror = () => {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        generatePDFFromHTML(doc, tempDiv);
+                    }
+                };
+            }
         });
+
+        // 모든 이미지가 이미 로드된 경우
+        if (loadedImages === totalImages) {
+            generatePDFFromHTML(doc, tempDiv);
+        }
+
     } catch (error) {
         console.error('PDF 생성 중 오류:', error);
         alert('PDF 생성 중 오류가 발생했습니다.');
     }
+}
+
+// HTML을 PDF로 변환하는 함수
+function generatePDFFromHTML(doc, tempDiv) {
+    doc.html(tempDiv, {
+        callback: function(doc) {
+            // 파일명 생성
+            const fileName = `타로리딩_${new Date().toISOString().split('T')[0]}.pdf`;
+            
+            // PDF 다운로드
+            doc.save(fileName);
+            
+            // 사용자에게 저장 완료 알림
+            showPDFSaveNotification(fileName);
+            
+            // 임시 div 제거
+            document.body.removeChild(tempDiv);
+        },
+        x: 10,
+        y: 10,
+        width: 190,
+        windowWidth: 800
+    });
 }
 
 // PDF 저장 완료 알림

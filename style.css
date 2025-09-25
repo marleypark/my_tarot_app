@@ -464,6 +464,162 @@ button:hover {
     line-height: 1.4;
 }
 
+/* PDF용 카드 이미지 스타일 */
+.pdf-content .card-image-pdf {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.pdf-content .card-image-pdf img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    margin: 10px 0;
+}
+
+.pdf-content .summary-cards-pdf {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.pdf-content .summary-cards-pdf h4 {
+    color: #e94560;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.pdf-content .summary-cards-pdf > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.pdf-content .summary-cards-pdf > div > div {
+    text-align: center;
+    margin: 5px;
+}
+
+.pdf-content .summary-cards-pdf img {
+    width: 80px;
+    height: auto;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.pdf-content .summary-cards-pdf > div > div > div {
+    font-size: 10px;
+    margin-top: 5px;
+    color: #666;
+}
+
+/* 질문 선택 옵션 스타일 */
+.question-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+    max-width: 900px;
+}
+
+.question-option {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.question-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.question-option .option-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.question-option .option-title {
+    font-size: 18px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.question-option .option-desc {
+    font-size: 14px;
+    opacity: 0.9;
+    display: block;
+}
+
+/* 오픈 타로 준비 팝업 스타일 */
+.prepare-popup {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    margin: 0 auto;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.prepare-content {
+    margin: 30px 0;
+}
+
+.prepare-message {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.prepare-desc {
+    font-size: 16px;
+    margin-bottom: 25px;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.prepare-tips {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.prepare-tips h4 {
+    color: #fff;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.prepare-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.prepare-tips li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    font-size: 14px;
+}
+
+.prepare-tips li:last-child {
+    border-bottom: none;
+}
+
 /* 질문 진행 표시 */
 #mbti-question-title {
     color: #e94560;
