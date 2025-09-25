@@ -992,7 +992,7 @@ shuffleAnimationArea.addEventListener('click', () => {
 async function showResultScreen() {
     showScreen('result-screen');
     const t = UI_TEXTS[selectedLanguage];
-    interpretationText.textContent = "선택된 모든 카드의 해석을 준비 중입니다...";
+    interpretationText.textContent = "카드 해석중... 쫌만 참아요.";
     keywordsArea.style.display = 'none';
     
     // 4장 카드에 대한 해석을 한 번에 받아오기
@@ -1015,26 +1015,21 @@ async function showResultScreen() {
 
 // 저장된 데이터로 화면을 구성하는 함수
 function displayCardResult(index) {
-    console.log('displayCardResult 호출:', { index, cardInterpretations });
-    
     if (!cardInterpretations || !cardInterpretations[index]) {
-        console.error(`cardInterpretations[${index}]가 없습니다:`, cardInterpretations);
+        console.error(`cardInterpretations[${index}]가 없습니다.`, cardInterpretations);
         return;
     }
 
     currentResultIndex = index;
     const cardResult = cardInterpretations[index];
-    const cardIndex = selectedCards[index]; // 원본 카드 인덱스
+    const cardIndex = selectedCards[index];
     const t = UI_TEXTS[selectedLanguage];
-    
-    console.log('카드 결과 표시:', { cardResult, cardIndex });
     
     resultCardTitle.textContent = `${t.nthCardTitle(index + 1)}: ${getLocalizedCardNameByIndex(cardIndex, selectedLanguage)}`;
     resultCardImage.src = tarotData[cardIndex].img;
     resultCardImage.style.display = 'block';
-    
-    // 키워드 표시
-    keywordsArea.innerHTML = ''; // 초기화
+
+    keywordsArea.innerHTML = '';
     if (cardResult.positiveKeywords || cardResult.negativeKeywords) {
         keywordsArea.style.display = 'block';
         if (cardResult.positiveKeywords && cardResult.positiveKeywords.length > 0) {
@@ -1042,21 +1037,22 @@ function displayCardResult(index) {
             keywordsArea.innerHTML += positiveHtml;
         }
         if (cardResult.negativeKeywords && cardResult.negativeKeywords.length > 0) {
-             const negativeHtml = `<div class="keyword-group"><span class="keyword-title">주의:</span>${cardResult.negativeKeywords.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
+            const negativeHtml = `<div class="keyword-group"><span class="keyword-title">주의:</span>${cardResult.negativeKeywords.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
             keywordsArea.innerHTML += negativeHtml;
         }
     } else {
         keywordsArea.style.display = 'none';
     }
 
-    // 해당 카드의 해석만 표시 (전체 해석이 아닌 개별 카드 해석)
-    console.log(`카드 ${index + 1} 해석 표시:`, cardResult.interpretation.substring(0, 100) + '...');
     typeWriter(interpretationText, cardResult.interpretation);
 
-    // 버튼 상태 업데이트
-    if (prevBtn) prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
-    if (nextBtn) nextBtn.style.visibility = index === CARDS_TO_PICK - 1 ? 'hidden' : 'visible';
-    if (summaryBtn) summaryBtn.style.display = index === CARDS_TO_PICK - 1 ? 'inline-block' : 'none';
+    const prevButton = document.getElementById('prev-btn');
+    const nextButton = document.getElementById('next-btn');
+    const summaryButton = document.getElementById('summary-btn');
+
+    if (prevButton) prevButton.style.visibility = index === 0 ? 'hidden' : 'visible';
+    if (nextButton) nextButton.style.visibility = index === CARDS_TO_PICK - 1 ? 'hidden' : 'visible';
+    if (summaryButton) summaryButton.style.display = index === CARDS_TO_PICK - 1 ? 'inline-block' : 'none';
 }
 
 // 이전/다음 버튼
@@ -1167,240 +1163,66 @@ function generatePDF() {
         return;
     }
 
-    // 로딩 상태 표시
     const pdfBtn = document.getElementById('pdf-save-btn');
+    if (!pdfBtn) return;
+
     const originalText = pdfBtn.textContent;
     pdfBtn.textContent = 'PDF 생성 중...';
     pdfBtn.disabled = true;
 
-    // 비동기로 처리하여 UI 블록 방지
-    setTimeout(async () => {
-        try {
-            // PDF용 HTML 콘텐츠 생성
-            const pdfContent = createPDFContent();
-            
-            // jsPDF 라이브러리 로드 및 PDF 생성
-            await loadJSPDF();
-            await createPDF(pdfContent);
-            
-        } catch (error) {
-            console.error('PDF 생성 오류:', error);
-            alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
-        } finally {
-            // 버튼 상태 복원
-            pdfBtn.textContent = originalText;
-            pdfBtn.disabled = false;
-        }
-    }, 100);
-}
-
-// PDF용 HTML 콘텐츠 생성
-function createPDFContent() {
-    const data = window.fullInterpretationData;
-    const cardNames = selectedCards.map(index => getLocalizedCardNameByIndex(index, selectedLanguage));
-    
-    let content = `
-        <div class="pdf-content">
-            <h1>🔮 타로 리딩 결과</h1>
-            
-            <div class="summary-section">
-                <h2>📋 기본 정보</h2>
-                <p><strong>질문:</strong> ${userQuestion || '일반적인 인생 조언'}</p>
-                <p><strong>MBTI 유형:</strong> ${userMBTI || '제공되지 않음'}</p>
-                <p><strong>뽑힌 카드:</strong> ${cardNames.join(', ')}</p>
-                <p><strong>리딩 날짜:</strong> ${new Date().toLocaleDateString('ko-KR')}</p>
-            </div>
-    `;
-
-    // 개별 카드 해석
-    content += '<h2>🃏 개별 카드 해석</h2>';
-    data.cardInterpretations.forEach((card, index) => {
-        const cardIndex = selectedCards[index];
-        const cardImageSrc = tarotData[cardIndex].img;
-        content += `
-            <div class="card-section">
-                <div class="card-title">${index + 1}번째 카드 - ${card.cardName}</div>
-                <div class="card-image-pdf">
-                    <img src="${cardImageSrc}" alt="${card.cardName}" style="max-width: 200px; height: auto; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-                </div>
-                <div class="keywords">
-                    <strong>긍정 키워드:</strong> ${card.keywords.positive.join(', ')}<br>
-                    <strong>주의 키워드:</strong> ${card.keywords.caution.join(', ')}
-                </div>
-                <div>${card.interpretation}</div>
-            </div>
-        `;
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('PDF 생성 시간이 초과되었습니다.')), 30000);
     });
 
-    // 총정리
-    if (data.overallReading) {
-        content += `
-            <div class="summary-section">
-                <h2>📊 종합 리딩</h2>
-                <h3>${data.overallReading.title || '타로 리딩 결과'}</h3>
-                <div class="summary-cards-pdf">
-                    <h4>뽑힌 카드들</h4>
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
-        `;
-        
-        // 총정리 섹션에 모든 카드 이미지 추가
-        selectedCards.forEach((cardIndex, index) => {
-            const cardImageSrc = tarotData[cardIndex].img;
-            const cardName = getLocalizedCardNameByIndex(cardIndex, selectedLanguage);
-            content += `
-                <div style="text-align: center; margin: 5px;">
-                    <img src="${cardImageSrc}" alt="${cardName}" style="width: 80px; height: auto; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                    <div style="font-size: 10px; margin-top: 5px; color: #666;">${index + 1}번째</div>
-                </div>
-            `;
-        });
-        
-        content += `
-                    </div>
-                </div>
-                <div>${data.overallReading.summary}</div>
-            </div>
-        `;
-
-        // MBTI 액션 플랜
-        if (data.overallReading.mbtiActionPlan) {
-            const plan = data.overallReading.mbtiActionPlan;
-            content += `
-                <div class="mbti-section">
-                    <h2>🎯 MBTI 기반 액션 플랜</h2>
-                    <h3>${plan.title}</h3>
-                    <p>${plan.introduction}</p>
-            `;
-
-            if (plan.phases && plan.phases.length > 0) {
-                plan.phases.forEach(phase => {
-                    content += `
-                        <div class="phase">
-                            <div class="phase-title">${phase.phaseTitle}</div>
-                            <ul class="phase-steps">
-                                ${phase.steps.map(step => `<li>${step}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                });
-            }
-
-            content += '</div>';
-        }
-    }
-
-    content += '</div>';
-    return content;
-}
-
-// jsPDF 라이브러리 로드
-function loadJSPDF() {
-    return new Promise((resolve, reject) => {
-        if (window.jsPDF) {
-            resolve();
+    const capturePromise = new Promise((resolve, reject) => {
+        const elementToCapture = document.getElementById('summary-screen');
+        if (!elementToCapture) {
+            reject(new Error('캡처할 요소를 찾을 수 없습니다.'));
             return;
         }
 
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('jsPDF 라이브러리 로드 실패'));
-        document.head.appendChild(script);
+        elementToCapture.scrollIntoView({ behavior: 'instant', block: 'start' });
+
+        setTimeout(() => {
+            html2canvas(elementToCapture, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#1a1a2e',
+                windowHeight: elementToCapture.scrollHeight,
+                windowWidth: elementToCapture.scrollWidth
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+                resolve(pdf);
+            }).catch(reject);
+        }, 500);
     });
-}
 
-// PDF 생성 및 다운로드
-function createPDF(htmlContent) {
-    return new Promise((resolve, reject) => {
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // 임시 div에 HTML 콘텐츠 추가
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlContent;
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '-9999px';
-            document.body.appendChild(tempDiv);
-
-            // 이미지 로딩 대기
-            const images = tempDiv.querySelectorAll('img');
-            let loadedImages = 0;
-            const totalImages = images.length;
-
-            if (totalImages === 0) {
-                // 이미지가 없으면 바로 PDF 생성
-                generatePDFFromHTML(doc, tempDiv);
-                resolve();
-                return;
-            }
-
-            // 이미지 로딩 완료 대기
-            images.forEach(img => {
-                if (img.complete) {
-                    loadedImages++;
-                } else {
-                    img.onload = () => {
-                        loadedImages++;
-                        if (loadedImages === totalImages) {
-                            generatePDFFromHTML(doc, tempDiv);
-                            resolve();
-                        }
-                    };
-                    img.onerror = () => {
-                        loadedImages++;
-                        if (loadedImages === totalImages) {
-                            generatePDFFromHTML(doc, tempDiv);
-                            resolve();
-                        }
-                    };
-                }
-            });
-
-            // 모든 이미지가 이미 로드된 경우
-            if (loadedImages === totalImages) {
-                generatePDFFromHTML(doc, tempDiv);
-                resolve();
-            }
-
-        } catch (error) {
-            console.error('PDF 생성 중 오류:', error);
-            reject(error);
-        }
-    });
-}
-
-// HTML을 PDF로 변환하는 함수
-function generatePDFFromHTML(doc, tempDiv) {
-    doc.html(tempDiv, {
-        callback: function(doc) {
-            // 파일명 생성
+    Promise.race([capturePromise, timeoutPromise])
+        .then(pdf => {
             const fileName = `타로리딩_${new Date().toISOString().split('T')[0]}.pdf`;
-            
-            // PDF 다운로드
-            doc.save(fileName);
-            
-            // 사용자에게 저장 완료 알림
+            pdf.save(fileName);
             showPDFSaveNotification(fileName);
-            
-            // 임시 div 제거
-            document.body.removeChild(tempDiv);
-        },
-        x: 10,
-        y: 10,
-        width: 190,
-        windowWidth: 800
-    });
+        })
+        .catch(error => {
+            console.error('PDF 생성 오류:', error);
+            alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
+        })
+        .finally(() => {
+            pdfBtn.textContent = originalText;
+            pdfBtn.disabled = false;
+        });
 }
+
 
 // PDF 저장 완료 알림
 function showPDFSaveNotification(fileName) {
-    // 버튼 상태 복원
-    document.getElementById('pdf-save-btn').textContent = 'PDF로 저장';
-    document.getElementById('pdf-save-btn').disabled = false;
-    
-    // 알림 메시지 생성
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -1418,11 +1240,10 @@ function showPDFSaveNotification(fileName) {
         text-align: center;
         animation: popIn 0.3s ease;
     `;
-    
-    // 플랫폼별 저장 위치 안내
+
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
+
     let saveLocation = '';
     if (isMobile) {
         if (isIOS) {
@@ -1433,7 +1254,7 @@ function showPDFSaveNotification(fileName) {
     } else {
         saveLocation = '다운로드 폴더';
     }
-    
+
     notification.innerHTML = `
         <div style="font-weight: bold; margin-bottom: 10px; font-size: 18px;">✅ PDF 저장 완료!</div>
         <div style="font-size: 14px; opacity: 0.9; margin-bottom: 15px;">
@@ -1450,8 +1271,7 @@ function showPDFSaveNotification(fileName) {
             font-size: 14px;
         ">확인</button>
     `;
-    
-    // CSS 애니메이션 추가
+
     const style = document.createElement('style');
     style.textContent = `
         @keyframes popIn {
@@ -1460,10 +1280,9 @@ function showPDFSaveNotification(fileName) {
         }
     `;
     document.head.appendChild(style);
-    
+
     document.body.appendChild(notification);
-    
-    // 5초 후 자동 제거
+
     setTimeout(() => {
         if (notification.parentNode) {
             notification.parentNode.removeChild(notification);
