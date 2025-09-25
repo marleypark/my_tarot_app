@@ -1215,7 +1215,6 @@ function updateUITexts() {
     const mbtiAdviceDescription = document.getElementById('mbti-advice-description');
     const summaryPrevBtn = document.getElementById('summary-prev-btn');
     const summaryRestartBtn = document.getElementById('summary-restart-btn');
-    const pdfSaveBtn = document.getElementById('pdf-save-btn');
     
     if (summaryTitle) summaryTitle.textContent = t.summaryTitle;
     if (summarySubtitle) summarySubtitle.textContent = t.summarySubtitle;
@@ -1224,7 +1223,6 @@ function updateUITexts() {
     if (mbtiAdviceDescription) mbtiAdviceDescription.textContent = t.mbtiAdviceDescription;
     if (summaryPrevBtn) summaryPrevBtn.textContent = t.prevButton;
     if (summaryRestartBtn) summaryRestartBtn.textContent = t.restartButton;
-    if (pdfSaveBtn) pdfSaveBtn.textContent = t.pdfSaveButton;
 }
 
 function updateFortuneMenu() {
@@ -2174,5 +2172,4 @@ function showPDFSaveNotification(fileName) {
 }
 
 // initLanguageSwitcher 함수 종료
-}
 
