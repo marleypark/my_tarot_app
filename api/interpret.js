@@ -22,62 +22,113 @@ function parseInterpretationSections(interpretation, cardNames) {
     practicalGuide: ''
   };
 
-  // 각 카드별 해석 추출
+  // 각 카드별 해석 추출 - 더 정확한 패턴 매칭
   cardNames.forEach((cardName, index) => {
-    // 더 유연한 패턴 매칭 (마크다운 형식 고려)
-    const cardPattern = new RegExp(`\\*\\*${index + 1}번째 카드 - ${cardName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*[\\s\\S]*?(?=\\*\\*${index + 2}번째 카드|### 2|$)`);
-    const cardMatch = interpretation.match(cardPattern);
+    // 1. **N번째 카드 - 카드명** 패턴으로 찾기
+    let cardPattern = new RegExp(`\\*\\*${index + 1}번째 카드 - ${cardName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*[\\s\\S]*?(?=\\*\\*${index + 2}번째 카드|### 2|$)`);
+    let cardMatch = interpretation.match(cardPattern);
+    
+    if (!cardMatch) {
+      // 2. ## N번째 카드 - 카드명 패턴으로 찾기
+      cardPattern = new RegExp(`## ${index + 1}번째 카드 - ${cardName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?(?=## ${index + 2}번째 카드|### 2|$)`);
+      cardMatch = interpretation.match(cardPattern);
+    }
+    
+    if (!cardMatch) {
+      // 3. ### N. 각 카드의 개별 해석 섹션에서 찾기
+      const individualSectionMatch = interpretation.match(/### 1\. 각 카드의 개별 해석[\\s\\S]*?(?=### 2|$)/);
+      if (individualSectionMatch) {
+        const individualSection = individualSectionMatch[0];
+        const cardInSectionPattern = new RegExp(`\\*\\*${index + 1}번째 카드 - ${cardName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*[\\s\\S]*?(?=\\*\\*${index + 2}번째 카드|$)`);
+        cardMatch = individualSection.match(cardInSectionPattern);
+      }
+    }
+    
+    if (!cardMatch) {
+      // 4. 더 유연한 패턴 - 카드명만으로 찾기
+      const flexiblePattern = new RegExp(`(${index + 1}번째 카드[\\s\\S]*?${cardName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?)(?=${index + 2}번째 카드|### 2|$)`);
+      cardMatch = interpretation.match(flexiblePattern);
+    }
     
     if (cardMatch) {
+      // MBTI 관련 내용 제거 (각 카드 해석에서는 MBTI 내용 제외)
+      let cleanInterpretation = cardMatch[0].trim();
+      
+      // MBTI 유형 언급 제거
+      cleanInterpretation = cleanInterpretation.replace(/\*\*MBTI 유형:\*\*[^\n]*\n/g, '');
+      
+      // MBTI 관련 문구 제거
+      cleanInterpretation = cleanInterpretation.replace(/ENTP[^\n]*\n/g, '');
+      cleanInterpretation = cleanInterpretation.replace(/성격 유형[^\n]*\n/g, '');
+      
       sections.cardInterpretations.push({
-        interpretation: cardMatch[0].trim(),
-        positiveKeywords: extractKeywords(cardMatch[0], ['희망', '기회', '성장', '성공', '긍정', '좋은', '행운', '진보', '발전', '성취']),
-        negativeKeywords: extractKeywords(cardMatch[0], ['주의', '신중', '경계', '위험', '부정', '어려움', '장애', '문제', '걱정', '불안'])
+        interpretation: cleanInterpretation,
+        positiveKeywords: extractKeywords(cleanInterpretation, ['희망', '기회', '성장', '성공', '긍정', '좋은', '행운', '진보', '발전', '성취']),
+        negativeKeywords: extractKeywords(cleanInterpretation, ['주의', '신중', '경계', '위험', '부정', '어려움', '장애', '문제', '걱정', '불안'])
       });
     } else {
-      // 패턴 매칭이 실패한 경우 전체 해석에서 해당 카드 부분을 찾아서 추출
-      const fallbackPattern = new RegExp(`${cardName}[\\s\\S]*?(?=${index + 2 < cardNames.length ? cardNames[index + 1] : '### 2'}|$)`);
-      const fallbackMatch = interpretation.match(fallbackPattern);
-      
-      if (fallbackMatch) {
-        sections.cardInterpretations.push({
-          interpretation: `## ${index + 1}번째 카드 - ${cardName}\n\n${fallbackMatch[0].trim()}`,
-          positiveKeywords: extractKeywords(fallbackMatch[0], ['희망', '기회', '성장', '성공', '긍정', '좋은', '행운', '진보', '발전', '성취']),
-          negativeKeywords: extractKeywords(fallbackMatch[0], ['주의', '신중', '경계', '위험', '부정', '어려움', '장애', '문제', '걱정', '불안'])
-        });
-      } else {
-        // 최종 백업: 기본 해석 제공
-        sections.cardInterpretations.push({
-          interpretation: `## ${index + 1}번째 카드 - ${cardName}\n\n이 카드는 현재 상황에서 중요한 의미를 담고 있습니다. 각 카드의 상징과 의미를 통해 더 깊이 있는 이해를 얻을 수 있습니다.`,
-          positiveKeywords: ['희망', '기회', '성장'],
-          negativeKeywords: ['주의', '신중함']
-        });
-      }
+      // 최종 백업: 기본 해석 제공
+      sections.cardInterpretations.push({
+        interpretation: `## ${index + 1}번째 카드 - ${cardName}\n\n이 카드는 현재 상황에서 중요한 의미를 담고 있습니다. 각 카드의 상징과 의미를 통해 더 깊이 있는 이해를 얻을 수 있습니다.`,
+        positiveKeywords: ['희망', '기회', '성장'],
+        negativeKeywords: ['주의', '신중함']
+      });
     }
   });
 
-  // 연결성 분석 추출
+  // 연결성 분석 추출 (MBTI 내용 제외)
   const connectionMatch = interpretation.match(/### 2\. 카드들의 연결성과 전체적인 메시지[\\s\\S]*?(?=### 3|$)/);
   if (connectionMatch) {
-    sections.connectionAnalysis = connectionMatch[0].trim();
+    let connectionText = connectionMatch[0].trim();
+    // MBTI 관련 내용 제거
+    connectionText = connectionText.replace(/\*\*MBTI 유형:\*\*[^\n]*\n/g, '');
+    connectionText = connectionText.replace(/ENTP[^\n]*\n/g, '');
+    connectionText = connectionText.replace(/성격 유형[^\n]*\n/g, '');
+    sections.connectionAnalysis = connectionText;
   }
 
-  // 실생활 적용 가이드 추출
+  // 실생활 적용 가이드 추출 (MBTI 내용 제외)
   const practicalMatch = interpretation.match(/### 4\. 실생활 적용 가이드[\\s\\S]*?(?=### 5|$)/);
   if (practicalMatch) {
-    sections.practicalGuide = practicalMatch[0].trim();
+    let practicalText = practicalMatch[0].trim();
+    // MBTI 관련 내용 제거
+    practicalText = practicalText.replace(/\*\*MBTI 유형:\*\*[^\n]*\n/g, '');
+    practicalText = practicalText.replace(/ENTP[^\n]*\n/g, '');
+    practicalText = practicalText.replace(/성격 유형[^\n]*\n/g, '');
+    sections.practicalGuide = practicalText;
   }
 
-  // MBTI 조언 추출 (### 3 섹션)
+  // MBTI 조언 추출 (### 3 섹션) - MBTI 내용만 포함
   const mbtiMatch = interpretation.match(/### 3\. .*?구체적인 조언[\\s\\S]*?(?=### 4|$)/);
   if (mbtiMatch) {
     sections.mbtiAdvice = mbtiMatch[0].trim();
+  } else {
+    // MBTI 조언이 별도로 없는 경우 전체 해석에서 MBTI 관련 부분 추출
+    const mbtiPattern = /ENTP[\\s\\S]*?(?=###|$)/;
+    const mbtiMatch2 = interpretation.match(mbtiPattern);
+    if (mbtiMatch2) {
+      sections.mbtiAdvice = `### MBTI 기반 조언\n\n${mbtiMatch2[0].trim()}`;
+    } else {
+      // 더 넓은 범위로 MBTI 관련 내용 찾기
+      const broadMbtiPattern = /(ENTP|MBTI|성격 유형)[\\s\\S]*?(?=###|$)/;
+      const broadMbtiMatch = interpretation.match(broadMbtiPattern);
+      if (broadMbtiMatch) {
+        sections.mbtiAdvice = `### MBTI 기반 조언\n\n${broadMbtiMatch[0].trim()}`;
+      } else {
+        sections.mbtiAdvice = 'MBTI 기반 조언을 준비하고 있습니다...';
+      }
+    }
   }
 
-  // 요약 (마무리 메시지 부분)
+  // 요약 (마무리 메시지 부분) - MBTI 내용 제외
   const summaryMatch = interpretation.match(/### 5\. 마무리 메시지[\\s\\S]*$/);
   if (summaryMatch) {
-    sections.summary = summaryMatch[0].trim();
+    let summaryText = summaryMatch[0].trim();
+    // MBTI 관련 내용 제거
+    summaryText = summaryText.replace(/\*\*MBTI 유형:\*\*[^\n]*\n/g, '');
+    summaryText = summaryText.replace(/ENTP[^\n]*\n/g, '');
+    summaryText = summaryText.replace(/성격 유형[^\n]*\n/g, '');
+    sections.summary = summaryText;
   } else {
     // 마무리 메시지가 없는 경우 전체 해석의 마지막 부분을 요약으로 사용
     sections.summary = interpretation.split('\n\n').slice(-3).join('\n\n');
