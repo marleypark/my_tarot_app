@@ -34,6 +34,10 @@ const UI_TEXTS = {
         prevButton: "이전",
         pdfSaveButton: "PDF로 저장",
         restartButton: "처음으로",
+        shuffleStatus: {
+            playing: "카드를 섞는 중입니다...",
+            completed: "카드 섞기가 완료되었습니다!"
+        },
         fortuneOptions: {
             general: "전반적 운세",
             love: "연애운",
@@ -68,6 +72,10 @@ const UI_TEXTS = {
         prevButton: "Previous",
         pdfSaveButton: "Save as PDF",
         restartButton: "Start Over",
+        shuffleStatus: {
+            playing: "Shuffling the cards...",
+            completed: "Shuffling complete!"
+        },
         fortuneOptions: {
             general: "General Fortune",
             love: "Love Fortune",
@@ -943,7 +951,7 @@ const MBTI_QUESTIONS_I18N = {
         "question": "📅 Prise de rendez-vous",
         "options": [
           { "text": "Doit prendre rendez-vous spécifiquement comme 'mardi prochain 15h à la sortie 2 de la station Gangnam' pour être rassuré.", "type": "J" },
-          { "text": "Laisse flexible comme 'la semaine prochaine quand il y a du temps, contacte pour se voir' sans pression.", "type": "P" }
+          { "text": "Laisse flexible comme 'la semaine prochaine quand il y a du temps, contactes pour se voir' sans pression.", "type": "P" }
         ]
       },
       {

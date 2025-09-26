@@ -112,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
         deck: [],
         fullResultData: null,
         currentResultIndex: 0,
+        resultStage: 0,
+        shufflePlaying: false,
         mbti: {
             answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 },
             currentQuestionIndex: 0,
@@ -143,17 +145,19 @@ document.addEventListener('DOMContentLoaded', () => {
             cardsLeftText: document.getElementById('cards-left-text'),
             shuffleArea: document.getElementById('shuffle-animation-area'),
             previewArea: document.getElementById('selected-cards-preview'),
+            shuffleStatus: document.getElementById('shuffle-status'),
         },
         resultScreen: {
             loadingSection: document.getElementById('loading-section'),
             resultSections: document.getElementById('result-sections'),
-            errorContainer: document.createElement('div'), // 에러 표시용
+            errorContainer: document.createElement('div'),
+            cardSection: document.getElementById('individual-cards-section'),
+            summarySection: document.getElementById('summary-section'),
+            actionPlanSection: document.getElementById('action-plan-section'),
             cardImage: document.getElementById('result-card-image'),
             cardTitle: document.getElementById('result-card-title'),
             keywordsArea: document.getElementById('keywords-area'),
             interpretationText: document.getElementById('interpretation-text'),
-            prevBtn: document.getElementById('prev-btn'),
-            nextBtn: document.getElementById('next-btn'),
             summaryTitle: document.getElementById('summary-title'),
             summaryCardsDisplay: document.getElementById('summary-cards-display'),
             summaryText: document.getElementById('summary-text'),
@@ -162,13 +166,20 @@ document.addEventListener('DOMContentLoaded', () => {
             actionPlanPhases: document.getElementById('action-plan-phases'),
             pdfSaveBtn: document.getElementById('pdf-save-btn'),
             restartBtn: document.getElementById('restart-btn'),
+            stagePrevBtn: document.getElementById('prev-stage-btn'),
+            stageNextBtn: document.getElementById('next-stage-btn'),
+            stageNav: document.querySelector('.stage-navigation'),
         },
         sounds: {
             select: document.getElementById('select-sound'),
             button: document.getElementById('button-sound'),
+            shuffle: document.getElementById('shuffle-sound'),
         }
     };
     elements.resultScreen.errorContainer.className = 'error-message-container';
+    if (elements.sounds.shuffle) {
+        elements.sounds.shuffle.loop = true;
+    }
 
     // --- 4. 핵심 로직 (Core Logic) ---
 
@@ -206,9 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 앱 초기화
     function resetApp() {
+        stopShuffleSound();
         Object.assign(appState, {
             currentScreen: 'main-screen', userQuestion: '', userMBTI: '',
-            selectedCards: [], deck: [], fullResultData: null, currentResultIndex: 0,
+            selectedCards: [], deck: [], fullResultData: null, resultStage: 0, shufflePlaying: false,
             mbti: { answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 }, currentQuestionIndex: 0 }
         });
         elements.mbtiInput.value = '';
@@ -239,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 운세 메뉴 동적 생성
         initFortuneMenu();
+        if (elements.cardSelectScreen.shuffleStatus) {
+            elements.cardSelectScreen.shuffleStatus.textContent = '';
+        }
     }
 
     function initFortuneMenu() {
@@ -263,9 +278,36 @@ document.addEventListener('DOMContentLoaded', () => {
     function getNestedTranslation(translations, key) {
         return key.split('.').reduce((obj, k) => obj && obj[k], translations);
     }
+
+    function tShuffleStatus(state) {
+        const langStatuses = UI_TEXTS[appState.language]?.shuffleStatus;
+        if (langStatuses && langStatuses[state]) return langStatuses[state];
+        const engStatuses = UI_TEXTS.eng?.shuffleStatus;
+        return engStatuses && engStatuses[state] ? engStatuses[state] : '';
+    }
+
+    function startShuffleSound() {
+        if (!elements.sounds.shuffle) return;
+        elements.sounds.shuffle.currentTime = 0;
+        elements.sounds.shuffle.play().catch(err => console.error('shuffle sound play failed', err));
+        appState.shufflePlaying = true;
+        if (elements.cardSelectScreen.shuffleStatus) {
+            elements.cardSelectScreen.shuffleStatus.textContent = tShuffleStatus('playing');
+        }
+    }
+
+    function stopShuffleSound() {
+        if (!elements.sounds.shuffle) return;
+        elements.sounds.shuffle.pause();
+        elements.sounds.shuffle.currentTime = 0;
+        appState.shufflePlaying = false;
+        if (elements.cardSelectScreen.shuffleStatus) {
+            elements.cardSelectScreen.shuffleStatus.textContent = tShuffleStatus('completed');
+        }
+    }
     
     // 덱 셔플
-    function shuffleDeck() {
+function shuffleDeck() {
         appState.deck = [...Array(78).keys()].sort(() => Math.random() - 0.5);
     }
     
@@ -325,12 +367,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 카드 선택 로직
     function renderCardSelectScreen() {
+        if (!appState.shufflePlaying && appState.selectedCards.length < CONFIG.CARDS_TO_PICK) {
+            startShuffleSound();
+        }
         const cardsLeft = CONFIG.CARDS_TO_PICK - appState.selectedCards.length;
         elements.cardSelectScreen.cardsLeftText.textContent = `${cardsLeft} cards left.`;
+        if (elements.cardSelectScreen.shuffleStatus) {
+            if (appState.shufflePlaying) {
+                elements.cardSelectScreen.shuffleStatus.textContent = tShuffleStatus('playing');
+            } else if (appState.selectedCards.length === CONFIG.CARDS_TO_PICK) {
+                elements.cardSelectScreen.shuffleStatus.textContent = tShuffleStatus('completed');
+            } else {
+                elements.cardSelectScreen.shuffleStatus.textContent = '';
+            }
+        }
     }
     
     function selectCard() {
         if (appState.selectedCards.length >= CONFIG.CARDS_TO_PICK) return;
+        if (!appState.shufflePlaying) {
+            startShuffleSound();
+        }
         playSound('select');
         const cardIndex = appState.deck.pop();
         appState.selectedCards.push(cardIndex);
@@ -342,12 +399,14 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
 
         if (appState.selectedCards.length === CONFIG.CARDS_TO_PICK) {
+            stopShuffleSound();
             setTimeout(fetchFullReading, 1000);
         }
     }
     
     // API 호출 (에러 처리 강화)
     async function fetchFullReading() {
+        stopShuffleSound();
         navigateTo('result-screen');
         elements.resultScreen.loadingSection.style.display = 'flex';
         elements.resultScreen.resultSections.style.display = 'none';
@@ -356,12 +415,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
 
             const response = await fetch('/api/interpret', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cardNames, question: appState.userQuestion, mbti: appState.userMBTI, language: appState.language }),
-            });
+        });
 
-            if (!response.ok) {
+        if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || `HTTP 에러: ${response.status}`);
             }
@@ -372,10 +431,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             appState.fullResultData = result.data;
-            appState.currentResultIndex = 0;
+            appState.resultStage = 0;
             render();
 
-        } catch (error) {
+    } catch (error) {
             console.error("API Error:", error);
             let errorMessage = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.'; // 기본 메시지
 
@@ -405,11 +464,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderResultScreen() {
         elements.resultScreen.loadingSection.style.display = 'none';
         elements.resultScreen.resultSections.style.display = 'block';
+        if (elements.resultScreen.stageNav) {
+            elements.resultScreen.stageNav.style.display = 'flex';
+        }
 
         const { cardInterpretations, overallReading } = appState.fullResultData;
-        
-        // 개별 카드 렌더링
-        displayIndividualCard(appState.currentResultIndex);
 
         // 총정리 렌더링
         elements.resultScreen.summaryTitle.textContent = overallReading.title;
@@ -434,33 +493,64 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             elements.resultScreen.actionPlanPhases.innerHTML += phaseHtml;
         });
+
+        updateResultStageContent();
     }
 
-    function displayIndividualCard(index) {
-        appState.currentResultIndex = index;
-        const cardData = appState.fullResultData.cardInterpretations[index];
-        const cardIndex = appState.selectedCards[index];
-        
-        elements.resultScreen.cardTitle.textContent = cardData.cardName;
-        elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
-        elements.resultScreen.interpretationText.textContent = cardData.interpretation;
-        
-        elements.resultScreen.keywordsArea.innerHTML = '';
-        if (cardData.keywords) {
-            const { positive, caution } = cardData.keywords;
-            let keywordsHtml = '';
-            if (positive?.length) {
-                keywordsHtml += `<div class="keyword-group"><span class="keyword-title">긍정:</span>${positive.map(k => `<span class="keyword positive">${k}</span>`).join('')}</div>`;
+    function updateResultStageContent() {
+        const { cardInterpretations } = appState.fullResultData;
+        const totalStages = cardInterpretations.length + 2;
+        const stage = appState.resultStage;
+
+        elements.resultScreen.cardSection.style.display = 'none';
+        elements.resultScreen.summarySection.style.display = 'none';
+        elements.resultScreen.actionPlanSection.style.display = 'none';
+
+        if (stage < cardInterpretations.length) {
+            const cardData = cardInterpretations[stage];
+            const cardIndex = appState.selectedCards[stage];
+
+            elements.resultScreen.cardSection.style.display = 'block';
+            elements.resultScreen.cardTitle.textContent = cardData.cardName;
+            elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
+            elements.resultScreen.interpretationText.textContent = cardData.interpretation;
+
+            elements.resultScreen.keywordsArea.innerHTML = '';
+            if (cardData.keywords) {
+                const { positive, caution } = cardData.keywords;
+                let keywordsHtml = '';
+                if (positive?.length) {
+                    keywordsHtml += `<div class="keyword-group"><span class="keyword-title">긍정:</span>${positive.map(k => `<span class="keyword positive">${k}</span>`).join('')}</div>`;
+                }
+                if (caution?.length) {
+                    keywordsHtml += `<div class="keyword-group"><span class="keyword-title">주의:</span>${caution.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
+                }
+                elements.resultScreen.keywordsArea.innerHTML = keywordsHtml;
             }
-            if (caution?.length) {
-                keywordsHtml += `<div class="keyword-group"><span class="keyword-title">주의:</span>${caution.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
-            }
-            elements.resultScreen.keywordsArea.innerHTML = keywordsHtml;
+        } else if (stage === cardInterpretations.length) {
+            elements.resultScreen.summarySection.style.display = 'block';
+            elements.resultScreen.keywordsArea.innerHTML = '';
+        } else {
+            elements.resultScreen.actionPlanSection.style.display = 'block';
+            elements.resultScreen.keywordsArea.innerHTML = '';
         }
 
-        const cardInterpretations = appState.fullResultData.cardInterpretations;
-        elements.resultScreen.prevBtn.disabled = index === 0;
-        elements.resultScreen.nextBtn.disabled = index === cardInterpretations.length - 1;
+        if (elements.resultScreen.stagePrevBtn) {
+            elements.resultScreen.stagePrevBtn.style.display = stage === 0 ? 'none' : 'inline-flex';
+        }
+        if (elements.resultScreen.stageNextBtn) {
+            elements.resultScreen.stageNextBtn.style.display = stage === totalStages - 1 ? 'none' : 'inline-flex';
+        }
+    }
+
+    function navigateResultStage(direction) {
+        const { cardInterpretations } = appState.fullResultData;
+        const totalStages = cardInterpretations.length + 2;
+        const nextStage = appState.resultStage + direction;
+        if (nextStage < 0 || nextStage >= totalStages) return;
+        playSound('button');
+        appState.resultStage = nextStage;
+        updateResultStageContent();
     }
     
     // 기타 유틸리티 함수
@@ -575,14 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // 카드 선택
         elements.cardSelectScreen.shuffleArea.addEventListener('click', selectCard);
 
-        // 결과 화면
-        elements.resultScreen.prevBtn.addEventListener('click', () => displayIndividualCard(appState.currentResultIndex - 1));
-        elements.resultScreen.nextBtn.addEventListener('click', () => displayIndividualCard(appState.currentResultIndex + 1));
+        elements.resultScreen.stagePrevBtn.addEventListener('click', () => navigateResultStage(-1));
+        elements.resultScreen.stageNextBtn.addEventListener('click', () => navigateResultStage(1));
         elements.resultScreen.restartBtn.addEventListener('click', resetApp);
         elements.resultScreen.pdfSaveBtn.addEventListener('click', generatePDF);
     }
 
     // --- 앱 시작 ---
     initEventListeners();
-    resetApp();
+    resetApp(); 
 });
