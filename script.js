@@ -547,7 +547,7 @@ function shuffleDeck() {
             elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
         }
         if (elements.resultScreen.keywordsArea) {
-            elements.resultScreen.keywordsArea.innerHTML = '';
+            elements.resultScreen.keywordsArea.style.display = 'block';
             const keywordsHtml = buildKeywordsHtml(cardData.keywords);
             elements.resultScreen.keywordsArea.innerHTML = keywordsHtml;
         }
@@ -585,8 +585,9 @@ function shuffleDeck() {
         if (elements.resultScreen.stagePrevBtn) {
             elements.resultScreen.stagePrevBtn.style.display = stage === 0 ? 'none' : 'inline-flex';
         }
-        if (elements.resultScreen.stageNextBtn && stage < cardInterpretations.length) {
-            elements.resultScreen.stageNextBtn.style.display = 'none';
+        if (elements.resultScreen.stageNextBtn) {
+            const totalStages = cardInterpretations.length + 2; // 카드들 + 총정리 + 액션플랜
+            elements.resultScreen.stageNextBtn.style.display = stage >= totalStages - 1 ? 'none' : 'inline-flex';
         }
     }
 

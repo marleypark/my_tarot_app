@@ -188,6 +188,18 @@ body {
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 20px auto;
+    display: none; /* 스피너를 숨깁니다 */
+}
+
+/* 로딩 섹션 중앙 정렬 */
+#loading-section {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
 }
 
 @keyframes spin {
@@ -208,6 +220,8 @@ body {
     background: rgba(42, 42, 68, 0.5);
     border-radius: 15px;
     border: 1px solid #3a3a52;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #summary-title {
@@ -215,6 +229,11 @@ body {
     white-space: normal;
     line-height: 1.4;
     max-width: 100%;
+}
+
+#summary-text {
+    width: 100%;
+    white-space: pre-wrap;
 }
 
 #action-plan-title {
@@ -303,10 +322,11 @@ body {
     position: absolute;
     top: 20px;
     left: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.8);
+    right: auto;
+    width: calc(100% - 40px);
+    background: transparent;
     color: white;
-    padding: 15px;
+    padding: 0;
     border-radius: 8px;
     font-size: 14px;
     line-height: 1.6;
@@ -314,6 +334,7 @@ body {
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
+    text-align: left;
 }
 
 .card-overlay-text.show {
@@ -324,6 +345,7 @@ body {
 .keywords-area {
     margin-top: 20px;
     text-align: center;
+    display: block !important;
 }
 
 .card-navigation {
