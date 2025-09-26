@@ -559,13 +559,16 @@ function shuffleDeck() {
         const pdfSaveBtn = elements.resultScreen.pdfSaveBtn;
         const restartBtn = elements.resultScreen.restartBtn;
         const bottomNavigation = document.querySelector('.bottom-navigation');
+        const stageNavigation = document.querySelector('.stage-navigation');
         
         if (stage >= totalStages - 1) { // 마지막 단계(액션 플랜)에서만 표시
             if (pdfSaveBtn) pdfSaveBtn.style.display = 'inline-block';
             if (bottomNavigation) bottomNavigation.style.display = 'flex';
+            if (stageNavigation) stageNavigation.style.display = 'none'; // 액션플랜에서는 스테이지 네비게이션 숨김
         } else {
             if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
             if (bottomNavigation) bottomNavigation.style.display = 'none';
+            if (stageNavigation) stageNavigation.style.display = 'none'; // 개별 카드와 총정리에서도 숨김
         }
 
         if (stage < cardInterpretations.length) {
@@ -853,39 +856,13 @@ function shuffleDeck() {
     }
 
     function revealCardButtons(stageIndex) {
-        const prevBtn = document.getElementById('card-prev-btn');
-        const nextBtn = document.getElementById('card-next-btn');
-        
-        if (prevBtn) {
-            prevBtn.style.display = stageIndex === 0 ? 'none' : 'inline-flex';
-            if (stageIndex > 0) {
-                prevBtn.classList.add('show');
-            }
-        }
-        
-        if (nextBtn) {
-            nextBtn.style.display = 'inline-flex';
-            nextBtn.classList.add('show');
-        }
+        // 카드 네비게이션 버튼들도 숨김 (사용자 요청에 따라)
+        return;
     }
 
     function revealStageButtons(context) {
-        if (!elements.resultScreen.stageNextBtn) return;
-        const terms = UI_TEXTS[appState.language] || UI_TEXTS.kor;
-        if (context === 'card') {
-            const label = translationForKey('nextButton', '다음');
-            elements.resultScreen.stageNextBtn.textContent = label;
-        } else if (context === 'summary') {
-            const label = translationForKey('actionPlanButtonLabel', '현실 조언');
-            elements.resultScreen.stageNextBtn.textContent = label;
-            // 총정리 화면에서 이전 버튼도 표시
-            if (elements.resultScreen.stagePrevBtn) {
-                elements.resultScreen.stagePrevBtn.style.display = 'inline-flex';
-                requestAnimationFrame(() => elements.resultScreen.stagePrevBtn.classList.add('show'));
-            }
-        }
-        elements.resultScreen.stageNextBtn.style.display = 'inline-flex';
-        requestAnimationFrame(() => elements.resultScreen.stageNextBtn.classList.add('show'));
+        // 모든 스테이지 버튼을 숨김 (사용자 요청에 따라)
+        return;
     }
 
     function buildKeywordsHtml(keywords) {
@@ -968,29 +945,17 @@ function shuffleDeck() {
             const imgData = canvas.toDataURL('image/png', 1.0);
             const { jsPDF } = window.jspdf;
             
-            // A4 크기로 PDF 생성
+            const imgWidth = 210; // A4 width in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // 단일 페이지로 생성 (높이에 맞춰 PDF 크기 동적 조정)
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: 'a4'
+                format: [210, Math.max(297, imgHeight)] // 높이를 컨텐츠에 맞춰 동적 조정
             });
 
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
             pdf.save(`tarot-reading-${new Date().toISOString().slice(0,10)}.pdf`);
         } catch(e) {
@@ -1005,9 +970,23 @@ function shuffleDeck() {
     function createPDFContent() {
         const { cardInterpretations, overallReading } = appState.fullResultData;
         let content = `
-            <div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; color: #333;">
+            <div style="max-width: 750px; margin: 0 auto; font-family: Arial, sans-serif; color: #333; padding: 20px; box-sizing: border-box;">
                 <style>
-                    p, li { word-wrap: break-word; overflow-wrap: break-word; }
+                    * { 
+                        word-wrap: break-word; 
+                        overflow-wrap: break-word; 
+                        box-sizing: border-box;
+                    }
+                    p, li { 
+                        word-wrap: break-word; 
+                        overflow-wrap: break-word; 
+                        hyphens: auto;
+                        max-width: 100%;
+                    }
+                    div {
+                        box-sizing: border-box;
+                        max-width: 100%;
+                    }
                 </style>
                 <h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px;">타로 리딩 결과</h1>
         `;
@@ -1018,52 +997,52 @@ function shuffleDeck() {
             const cardImage = tarotData[cardIndex].img;
             
             content += `
-                <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                    <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">카드 ${index + 1}: ${cardData.cardName}</h2>
+                <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; max-width: 100%; box-sizing: border-box;">
+                    <h2 style="color: #34495e; margin-bottom: 20px; font-size: 22px; word-wrap: break-word;">카드 ${index + 1}: ${cardData.cardName}</h2>
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <img src="${cardImage}" style="max-width: 200px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+                        <img src="${cardImage}" style="max-width: 180px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
                     </div>
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 15px; max-width: 100%; box-sizing: border-box;">
                         ${cardData.keywords ? `
-                            <div style="margin-bottom: 10px;">
+                            <div style="margin-bottom: 10px; max-width: 100%;">
                                 <strong style="color: #27ae60;">긍정:</strong>
-                                ${cardData.keywords.positive ? cardData.keywords.positive.map(k => `<span style="background: #d5f4e6; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px;">${k}</span>`).join('') : ''}
+                                ${cardData.keywords.positive ? cardData.keywords.positive.map(k => `<span style="background: #d5f4e6; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px; display: inline-block;">${k}</span>`).join('') : ''}
                             </div>
-                            <div style="margin-bottom: 10px;">
+                            <div style="margin-bottom: 10px; max-width: 100%;">
                                 <strong style="color: #e74c3c;">주의:</strong>
-                                ${cardData.keywords.caution ? cardData.keywords.caution.map(k => `<span style="background: #fadbd8; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px;">${k}</span>`).join('') : ''}
+                                ${cardData.keywords.caution ? cardData.keywords.caution.map(k => `<span style="background: #fadbd8; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px; display: inline-block;">${k}</span>`).join('') : ''}
                             </div>
                         ` : ''}
                     </div>
-                    <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word;">${cardData.interpretation}</p>
+                    <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${cardData.interpretation}</p>
                 </div>
             `;
         });
 
         // 총정리
         content += `
-            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa;">
-                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">${overallReading.title}</h2>
-                <div style="text-align: center; margin-bottom: 20px;">
+            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; max-width: 100%; box-sizing: border-box;">
+                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 22px; word-wrap: break-word;">${overallReading.title}</h2>
+                <div style="text-align: center; margin-bottom: 20px; max-width: 100%;">
                     ${appState.selectedCards.map(cardIndex => 
-                        `<img src="${tarotData[cardIndex].img}" style="width: 80px; height: auto; margin: 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />`
+                        `<img src="${tarotData[cardIndex].img}" style="width: 70px; height: auto; margin: 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />`
                     ).join('')}
                 </div>
-                <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word;">${overallReading.summary}</p>
+                <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${overallReading.summary}</p>
             </div>
         `;
 
         // MBTI 액션 플랜
         const plan = overallReading.mbtiActionPlan;
         content += `
-            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #e8f4fd;">
-                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">${plan.title}</h2>
-                <p style="line-height: 1.6; font-size: 14px; margin-bottom: 20px; text-align: justify; word-wrap: break-word;">${plan.introduction}</p>
+            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #e8f4fd; max-width: 100%; box-sizing: border-box;">
+                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 22px; word-wrap: break-word;">${plan.title}</h2>
+                <p style="line-height: 1.6; font-size: 14px; margin-bottom: 20px; text-align: justify; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${plan.introduction}</p>
                 ${plan.phases.map(phase => `
-                    <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #3498db;">
-                        <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 18px;">${phase.phaseTitle}</h3>
-                        <ul style="margin: 0; padding-left: 20px;">
-                            ${phase.steps.map(step => `<li style="margin-bottom: 5px; line-height: 1.5; font-size: 14px; word-wrap: break-word;">${step}</li>`).join('')}
+                    <div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #3498db; max-width: 100%; box-sizing: border-box;">
+                        <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 16px; word-wrap: break-word;">${phase.phaseTitle}</h3>
+                        <ul style="margin: 0; padding-left: 18px; max-width: 100%; box-sizing: border-box;">
+                            ${phase.steps.map(step => `<li style="margin-bottom: 5px; line-height: 1.5; font-size: 13px; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${step}</li>`).join('')}
                         </ul>
                     </div>
                 `).join('')}
