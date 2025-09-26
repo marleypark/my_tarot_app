@@ -570,26 +570,73 @@ function shuffleDeck() {
         btn.disabled = true;
 
         try {
-            const element = document.getElementById('result-sections');
-            const canvas = await html2canvas(element, {
+            // 모든 단계를 포함한 HTML 생성
+            const pdfContent = createPDFContent();
+            
+            // 임시 컨테이너 생성
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '0';
+            tempContainer.style.width = '800px';
+            tempContainer.style.backgroundColor = '#ffffff';
+            tempContainer.style.padding = '40px';
+            tempContainer.style.fontFamily = 'Arial, sans-serif';
+            tempContainer.style.color = '#333333';
+            tempContainer.innerHTML = pdfContent;
+            
+            document.body.appendChild(tempContainer);
+
+            // 모든 이미지 로드 대기
+            const images = tempContainer.querySelectorAll('img');
+            await Promise.all(Array.from(images).map(img => {
+                return new Promise((resolve) => {
+                    if (img.complete) {
+                        resolve();
+                    } else {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    }
+                });
+            }));
+
+            const canvas = await html2canvas(tempContainer, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: '#1a1a2e',
-                onclone: (doc) => {
-                    // PDF용으로 폰트 색상을 밝게 만듦
-                    doc.querySelectorAll('#result-sections *').forEach(el => {
-                        el.style.color = '#333';
-                    });
-                }
+                backgroundColor: '#ffffff',
+                width: 800,
+                height: tempContainer.scrollHeight
             });
-            const imgData = canvas.toDataURL('image/jpeg', 0.9);
+
+            document.body.removeChild(tempContainer);
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
             const { jsPDF } = window.jspdf;
+            
+            // A4 크기로 PDF 생성
             const pdf = new jsPDF({
                 orientation: 'portrait',
-                unit: 'px',
-                format: [canvas.width, canvas.height]
+                unit: 'mm',
+                format: 'a4'
             });
-            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
             pdf.save(`tarot-reading-${new Date().toISOString().slice(0,10)}.pdf`);
         } catch(e) {
             console.error("PDF 생성 오류", e);
@@ -598,6 +645,81 @@ function shuffleDeck() {
             btn.textContent = originalText;
             btn.disabled = false;
         }
+    }
+
+    function createPDFContent() {
+        const { cardInterpretations, overallReading } = appState.fullResultData;
+        let content = `
+            <div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; color: #333;">
+                <h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px;">타로 리딩 결과</h1>
+        `;
+
+        // 개별 카드 해석
+        cardInterpretations.forEach((cardData, index) => {
+            const cardIndex = appState.selectedCards[index];
+            const cardImage = tarotData[cardIndex].img;
+            
+            content += `
+                <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                    <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">카드 ${index + 1}: ${cardData.cardName}</h2>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${cardImage}" style="max-width: 200px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        ${cardData.keywords ? `
+                            <div style="margin-bottom: 10px;">
+                                <strong style="color: #27ae60;">긍정:</strong>
+                                ${cardData.keywords.positive ? cardData.keywords.positive.map(k => `<span style="background: #d5f4e6; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px;">${k}</span>`).join('') : ''}
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <strong style="color: #e74c3c;">주의:</strong>
+                                ${cardData.keywords.caution ? cardData.keywords.caution.map(k => `<span style="background: #fadbd8; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px;">${k}</span>`).join('') : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <p style="line-height: 1.6; font-size: 14px; text-align: justify;">${cardData.interpretation}</p>
+                </div>
+            `;
+        });
+
+        // 총정리
+        content += `
+            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa;">
+                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">${overallReading.title}</h2>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    ${appState.selectedCards.map(cardIndex => 
+                        `<img src="${tarotData[cardIndex].img}" style="width: 80px; height: auto; margin: 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />`
+                    ).join('')}
+                </div>
+                <p style="line-height: 1.6; font-size: 14px; text-align: justify;">${overallReading.summary}</p>
+            </div>
+        `;
+
+        // MBTI 액션 플랜
+        const plan = overallReading.mbtiActionPlan;
+        content += `
+            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #e8f4fd;">
+                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">${plan.title}</h2>
+                <p style="line-height: 1.6; font-size: 14px; margin-bottom: 20px; text-align: justify;">${plan.introduction}</p>
+                ${plan.phases.map(phase => `
+                    <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #3498db;">
+                        <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 18px;">${phase.phaseTitle}</h3>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${phase.steps.map(step => `<li style="margin-bottom: 5px; line-height: 1.5; font-size: 14px;">${step}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        content += `
+                <div style="text-align: center; margin-top: 40px; padding: 20px; color: #7f8c8d; font-size: 12px;">
+                    <p>생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+                </div>
+            </div>
+        `;
+
+        return content;
     }
 
     // --- 6. 이벤트 리스너 등록 ---
