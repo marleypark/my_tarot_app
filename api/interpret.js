@@ -108,7 +108,14 @@ You must adhere strictly to the following JSON structure. Do not add or remove a
     }
 
     const data = await apiResponse.json();
-    const responseJsonText = data.candidates[0].content.parts[0].text;
+    let responseJsonText = data.candidates[0].content.parts[0].text;
+
+    if (responseJsonText.startsWith("```json")) {
+      responseJsonText = responseJsonText.substring(7, responseJsonText.length - 3).trim();
+    } else if (responseJsonText.startsWith("```") && responseJsonText.endsWith("```")) {
+      responseJsonText = responseJsonText.substring(3, responseJsonText.length - 3).trim();
+    }
+
     const responseJson = JSON.parse(responseJsonText);
     
     return response.status(200).json({ success: true, data: responseJson });
