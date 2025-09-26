@@ -85,7 +85,7 @@ You must adhere strictly to the following JSON structure. Do not add or remove a
 5. MBTI INTEGRATION: If an MBTI type is provided, the analysis MUST be personalized.
 `;
 
-   + const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
