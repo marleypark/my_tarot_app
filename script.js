@@ -293,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.dataset.questionKey = key;
             li.textContent = fortuneOptions[key];
             li.onclick = () => {
+                playSound('button');
                 appState.userQuestion = fortuneOptions[key];
                 elements.fortuneMenu.classList.remove('show');
                 navigateTo('mbti-entry-screen');
@@ -356,7 +357,10 @@ function shuffleDeck() {
             const button = document.createElement('button');
             button.className = 'mbti-option';
             button.textContent = opt.text;
-            button.onclick = () => handleMbtiAnswer(opt.type);
+            button.onclick = () => {
+                playSound('button');
+                handleMbtiAnswer(opt.type);
+            };
             elements.mbtiOptionsContainer.appendChild(button);
         });
 
@@ -366,7 +370,6 @@ function shuffleDeck() {
     }
     
     function handleMbtiAnswer(type) {
-        playSound('button');
         appState.mbti.answers[type]++;
         appState.mbti.currentQuestionIndex++;
         
@@ -636,16 +639,36 @@ function shuffleDeck() {
             elements.resultScreen.actionPlanTitle.textContent = title;
         }
         
-        // 액션 플랜 상태 초기화
-        appState.actionPlan.phases = [
-            { phaseTitle: "Introduction", steps: [plan.introduction] }, // 인트로를 0번 단계로 추가
-            ...plan.phases
-        ];
-        appState.actionPlan.currentPhase = 0;
-        appState.actionPlan.initialized = true;
+        // 모든 단계를 한 번에 표시
+        const container = document.getElementById('action-plan-container');
+        const navigation = document.getElementById('action-plan-navigation');
         
-        // 첫 번째 단계(인트로) 표시
-        showActionPlanPhase(0);
+        if (container && navigation) {
+            // 네비게이션 숨기기
+            navigation.style.display = 'none';
+            
+            // 전체 콘텐츠 생성
+            let fullContent = `
+                <div class="action-plan-intro">
+                    <p>${plan.introduction}</p>
+                </div>
+            `;
+            
+            plan.phases.forEach((phase, index) => {
+                fullContent += `
+                    <div class="action-plan-stage">
+                        <h3 class="stage-title">${phase.phaseTitle}</h3>
+                        <ul class="stage-steps">
+                            ${phase.steps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ${index < plan.phases.length - 1 ? '<div class="stage-divider"></div>' : ''}
+                `;
+            });
+            
+            container.innerHTML = fullContent;
+            container.className = 'action-plan-full-scroll';
+        }
     }
     
     function showActionPlanPhase(phaseIndex) {
@@ -1061,12 +1084,14 @@ function shuffleDeck() {
     function initEventListeners() {
         // 언어 변경
         elements.langButton.addEventListener('click', (e) => {
+            playSound('button');
             e.stopPropagation();
             elements.langMenu.classList.toggle('show');
         });
         document.addEventListener('click', () => elements.langMenu.classList.remove('show'));
         elements.langMenu.querySelectorAll('li').forEach(li => {
             li.addEventListener('click', () => {
+                playSound('button');
                 appState.language = li.dataset.lang;
                 elements.langMenu.classList.remove('show');
                 // 언어 선택 후 Language 버튼 숨기기
@@ -1090,19 +1115,28 @@ function shuffleDeck() {
         });
         
         // 질문 방식 선택
-        elements.directInputBtn.addEventListener('click', () => navigateTo('custom-question-screen'));
+        elements.directInputBtn.addEventListener('click', () => {
+            playSound('button');
+            navigateTo('custom-question-screen');
+        });
         elements.fortuneSelectBtn.addEventListener('click', (e) => {
+            playSound('button');
             e.stopPropagation();
             elements.fortuneMenu.classList.toggle('show');
         });
         elements.mindQuestionBtn.addEventListener('click', () => {
+            playSound('button');
             appState.userQuestion = '';
             navigateTo('mbti-entry-screen');
         });
 
         // 직접 질문 입력
-        elements.backToDialogBtn.addEventListener('click', () => navigateTo('question-dialog-screen'));
+        elements.backToDialogBtn.addEventListener('click', () => {
+            playSound('button');
+            navigateTo('question-dialog-screen');
+        });
         elements.submitQuestionBtn.addEventListener('click', () => {
+            playSound('button');
             appState.userQuestion = elements.questionInput.value.trim();
             if (!appState.userQuestion) {
                 alert('질문을 입력해주세요.');
@@ -1113,11 +1147,13 @@ function shuffleDeck() {
         
         // MBTI 입력
         elements.mbtiSkipBtn.addEventListener('click', () => {
-             appState.userMBTI = '';
-             shuffleDeck();
-             navigateTo('card-select-screen');
+            playSound('button');
+            appState.userMBTI = '';
+            shuffleDeck();
+            navigateTo('card-select-screen');
         });
         elements.mbtiSubmitBtn.addEventListener('click', () => {
+            playSound('button');
             const mbti = elements.mbtiInput.value.trim().toUpperCase();
             if (mbti.length !== 4) { // 간단한 검증
                 alert('올바른 MBTI 4글자를 입력해주세요.');
@@ -1127,15 +1163,30 @@ function shuffleDeck() {
             shuffleDeck();
             navigateTo('card-select-screen');
         });
-        elements.startMbtiTestBtn.addEventListener('click', startMbtiTest);
+        elements.startMbtiTestBtn.addEventListener('click', () => {
+            playSound('button');
+            startMbtiTest();
+        });
         
         // 카드 선택
         elements.cardSelectScreen.shuffleArea.addEventListener('click', selectCard);
 
-        elements.resultScreen.stagePrevBtn.addEventListener('click', () => navigateResultStage(-1));
-        elements.resultScreen.stageNextBtn.addEventListener('click', () => navigateResultStage(1));
-        elements.resultScreen.restartBtn.addEventListener('click', resetApp);
-        elements.resultScreen.pdfSaveBtn.addEventListener('click', generatePDF);
+        elements.resultScreen.stagePrevBtn.addEventListener('click', () => {
+            playSound('button');
+            navigateResultStage(-1);
+        });
+        elements.resultScreen.stageNextBtn.addEventListener('click', () => {
+            playSound('button');
+            navigateResultStage(1);
+        });
+        elements.resultScreen.restartBtn.addEventListener('click', () => {
+            playSound('button');
+            resetApp();
+        });
+        elements.resultScreen.pdfSaveBtn.addEventListener('click', () => {
+            playSound('button');
+            generatePDF();
+        });
         
         // 카드 네비게이션
         const cardPrevBtn = document.getElementById('card-prev-btn');
