@@ -210,6 +210,13 @@ body {
     border: 1px solid #3a3a52;
 }
 
+#summary-title {
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+    max-width: 100%;
+}
+
 .section-divider {
     border: none;
     height: 2px;
@@ -258,15 +265,84 @@ body {
 
 .card-image-wrapper img {
     width: 120%;
-    max-width: 320px;
+    max-width: 400px;
     transition: transform 0.4s ease, filter 0.4s ease;
     border-radius: 16px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
 }
 
 .card-image-wrapper img.blur {
     filter: blur(6px) brightness(0.7);
     transform: scale(1.02);
+}
+
+.card-overlay-text {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.card-overlay-text.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.keywords-area {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.card-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding: 0 20px;
+}
+
+.card-nav-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.card-nav-btn.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card-nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.card-nav-btn.left {
+    margin-right: auto;
+}
+
+.card-nav-btn.right {
+    margin-left: auto;
 }
 
 #card-touch-hint {
@@ -338,6 +414,46 @@ body {
 
 .action-phase-container {
     min-height: 280px;
+}
+
+.action-phase-content {
+    display: none;
+}
+
+.action-phase-content.active {
+    display: block;
+}
+
+.phase-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.phase-navigation button {
+    flex: 1;
+    background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+    color: #301f00;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(242, 153, 74, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.phase-navigation button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(242, 153, 74, 0.45);
+}
+
+.phase-navigation button:disabled {
+    opacity: 0.4;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
 }
 
 .bold-highlight {

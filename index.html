@@ -105,13 +105,13 @@
                         <div class="result-content">
                             <div class="card-image-wrapper">
                                 <img id="result-card-image" src="" alt="Selected Card">
+                                <div id="card-overlay-text" class="card-overlay-text"></div>
                             </div>
-                            <div id="interpretation-box">
-                                <h3 id="result-card-title"></h3>
-                                <div id="keywords-area"></div>
-                                <p id="interpretation-text"></p>
-                                <p id="card-touch-hint"></p>
-                            </div>
+                            <div id="keywords-area" class="keywords-area"></div>
+                        </div>
+                        <div class="card-navigation">
+                            <button id="card-prev-btn" class="card-nav-btn left">이전</button>
+                            <button id="card-next-btn" class="card-nav-btn right">다음</button>
                         </div>
                     </section>
                     <section id="summary-section" class="result-stage">
@@ -124,9 +124,9 @@
                     </section>
                     <section id="action-plan-section" class="result-stage">
                         <h2 id="action-plan-title"></h2>
-                        <div id="action-plan-box">
-                            <p id="action-plan-intro"></p>
-                            <div id="action-plan-phases"></div>
+                        <div id="action-plan-container" class="action-phase-container">
+                            <div id="action-plan-intro" class="action-phase-content"></div>
+                            <div id="action-plan-phases" class="action-phase-content"></div>
                         </div>
                         <div id="action-plan-navigation" class="phase-navigation">
                             <button id="action-phase-prev" class="phase-nav-btn">이전</button>

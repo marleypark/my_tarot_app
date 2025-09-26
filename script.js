@@ -578,6 +578,75 @@ function shuffleDeck() {
         }
     }
 
+    function renderActionPlanStages() {
+        const { overallReading } = appState.fullResultData;
+        const plan = overallReading.mbtiActionPlan;
+        
+        // MBTI 기반 타이틀 설정
+        const mbtiType = appState.userMBTI || '당신';
+        const title = `${mbtiType}을 위한 현실 조언`;
+        elements.resultScreen.actionPlanTitle.textContent = title;
+        
+        // 액션 플랜 초기화
+        appState.actionPlan.phases = plan.phases;
+        appState.actionPlan.currentPhase = 0;
+        appState.actionPlan.initialized = true;
+        
+        // 첫 번째 단계 표시
+        showActionPlanPhase(0);
+    }
+    
+    function showActionPlanPhase(phaseIndex) {
+        const introEl = document.getElementById('action-plan-intro');
+        const phasesEl = document.getElementById('action-plan-phases');
+        const prevBtn = document.getElementById('action-phase-prev');
+        const nextBtn = document.getElementById('action-phase-next');
+        
+        // 모든 콘텐츠 숨기기
+        document.querySelectorAll('.action-phase-content').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        if (phaseIndex === 0) {
+            // 인트로 표시
+            introEl.textContent = appState.actionPlan.phases[0].introduction || '';
+            introEl.classList.add('active');
+            
+            // 버튼 설정
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) {
+                nextBtn.style.display = 'inline-flex';
+                nextBtn.textContent = '2단계로';
+            }
+        } else {
+            // 해당 단계 표시
+            const phase = appState.actionPlan.phases[phaseIndex];
+            phasesEl.innerHTML = `
+                <div class="phase">
+                    <h4 class="phase-title">${phase.phaseTitle}</h4>
+                    <ul class="phase-steps">${phase.steps.map(step => `<li>${step}</li>`).join('')}</ul>
+                </div>
+            `;
+            phasesEl.classList.add('active');
+            
+            // 버튼 설정
+            if (prevBtn) {
+                prevBtn.style.display = 'inline-flex';
+                prevBtn.textContent = phaseIndex === 1 ? '이전' : '이전';
+            }
+            if (nextBtn) {
+                if (phaseIndex < appState.actionPlan.phases.length - 1) {
+                    nextBtn.style.display = 'inline-flex';
+                    nextBtn.textContent = '다음 단계';
+                } else {
+                    nextBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        appState.actionPlan.currentPhase = phaseIndex;
+    }
+
     function navigateResultStage(direction) {
         const { cardInterpretations } = appState.fullResultData;
         const totalStages = cardInterpretations.length + 2;
@@ -660,36 +729,55 @@ function shuffleDeck() {
 
     function prepareCardStage(stageIndex, text) {
         const imageEl = elements.resultScreen.cardImage;
-        const titleEl = elements.resultScreen.cardTitle;
-        const hintEl = document.getElementById('card-touch-hint');
-        const cardTitleKey = translationForKey('cardStageTitleTemplate', '{num}번째 카드 해석');
-        const touchHint = translationForKey('cardTouchHint', '카드를 터치하세요');
-
-        const cardHeading = cardTitleKey.replace('{num}', stageIndex + 1);
+        const overlayEl = document.getElementById('card-overlay-text');
+        const cardData = appState.fullResultData.cardInterpretations[stageIndex];
+        const cardIndex = appState.selectedCards[stageIndex];
+        const cardName = getLocalizedCardNameByIndex(cardIndex, appState.language);
+        
+        // 제목 형식 변경: "1번째 카드: 완드 2" 형식
+        const cardHeading = `${stageIndex + 1}번째 카드: ${cardName}`;
         const stageTitleEl = document.getElementById('card-stage-title');
         if (stageTitleEl) stageTitleEl.textContent = cardHeading;
 
-        if (hintEl) {
-            hintEl.textContent = touchHint;
-            hintEl.style.opacity = 1;
+        // 초기 상태 설정
+        imageEl.classList.remove('blur');
+        if (overlayEl) {
+            overlayEl.textContent = '';
+            overlayEl.classList.remove('show');
         }
 
-        imageEl.classList.remove('blur');
-        elements.resultScreen.interpretationText.textContent = '';
-        elements.resultScreen.interpretationText.classList.remove('typing-cursor');
-
+        // 카드 클릭 이벤트
         const reveal = () => {
             imageEl.classList.add('blur');
-            if (hintEl) hintEl.style.opacity = 0;
-            startTypingEffect(elements.resultScreen.interpretationText, text, () => {
-                setTimeout(() => revealStageButtons('card'), 5000);
-            });
+            if (overlayEl) {
+                overlayEl.classList.add('show');
+                startTypingEffect(overlayEl, text, () => {
+                    setTimeout(() => revealCardButtons(stageIndex), 5000);
+                });
+            }
         };
 
         imageEl.onclick = () => {
             imageEl.onclick = null;
             reveal();
         };
+    }
+
+    function revealCardButtons(stageIndex) {
+        const prevBtn = document.getElementById('card-prev-btn');
+        const nextBtn = document.getElementById('card-next-btn');
+        
+        if (prevBtn) {
+            prevBtn.style.display = stageIndex === 0 ? 'none' : 'inline-flex';
+            if (stageIndex > 0) {
+                prevBtn.classList.add('show');
+            }
+        }
+        
+        if (nextBtn) {
+            nextBtn.style.display = 'inline-flex';
+            nextBtn.classList.add('show');
+        }
     }
 
     function revealStageButtons(context) {
@@ -964,6 +1052,40 @@ function shuffleDeck() {
         elements.resultScreen.stageNextBtn.addEventListener('click', () => navigateResultStage(1));
         elements.resultScreen.restartBtn.addEventListener('click', resetApp);
         elements.resultScreen.pdfSaveBtn.addEventListener('click', generatePDF);
+        
+        // 카드 네비게이션
+        const cardPrevBtn = document.getElementById('card-prev-btn');
+        const cardNextBtn = document.getElementById('card-next-btn');
+        if (cardPrevBtn) {
+            cardPrevBtn.addEventListener('click', () => {
+                playSound('button');
+                navigateResultStage(-1);
+            });
+        }
+        if (cardNextBtn) {
+            cardNextBtn.addEventListener('click', () => {
+                playSound('button');
+                navigateResultStage(1);
+            });
+        }
+        
+        // 현실조언 네비게이션
+        const actionPhasePrev = document.getElementById('action-phase-prev');
+        const actionPhaseNext = document.getElementById('action-phase-next');
+        if (actionPhasePrev) {
+            actionPhasePrev.addEventListener('click', () => {
+                playSound('button');
+                const prevPhase = Math.max(0, appState.actionPlan.currentPhase - 1);
+                showActionPlanPhase(prevPhase);
+            });
+        }
+        if (actionPhaseNext) {
+            actionPhaseNext.addEventListener('click', () => {
+                playSound('button');
+                const nextPhase = Math.min(appState.actionPlan.phases.length - 1, appState.actionPlan.currentPhase + 1);
+                showActionPlanPhase(nextPhase);
+            });
+        }
     }
 
     // --- 앱 시작 ---
