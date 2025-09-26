@@ -897,67 +897,54 @@ function shuffleDeck() {
     // PDF 생성 (완성 버전)
     async function generatePDF() {
         const btn = elements.resultScreen.pdfSaveBtn;
+        if (btn.disabled) return;
+
         const originalText = btn.textContent;
-        btn.textContent = '생성 중...';
+        btn.textContent = 'PDF 생성 중...';
         btn.disabled = true;
 
         try {
-            // 모든 단계를 포함한 HTML 생성
-            const pdfContent = createPDFContent();
+            // 1. PDF로 만들 HTML 콘텐츠 생성
+            const pdfContentHtml = createPDFContent();
             
-            // 임시 컨테이너 생성
+            // 2. 보이지 않는 임시 컨테이너에 HTML 주입
             const tempContainer = document.createElement('div');
             tempContainer.style.position = 'absolute';
-            tempContainer.style.left = '-9999px';
-            tempContainer.style.top = '0';
-            tempContainer.style.width = '800px';
+            tempContainer.style.left = '-9999px'; // 화면 밖에 위치
+            tempContainer.style.width = '800px';  // PDF 품질을 위한 고정 너비
             tempContainer.style.backgroundColor = '#ffffff';
-            tempContainer.style.padding = '40px';
-            tempContainer.style.fontFamily = 'Arial, sans-serif';
-            tempContainer.style.color = '#333333';
-            tempContainer.innerHTML = pdfContent;
-            
+            tempContainer.innerHTML = pdfContentHtml;
             document.body.appendChild(tempContainer);
 
-            // 모든 이미지 로드 대기
-            const images = tempContainer.querySelectorAll('img');
-            await Promise.all(Array.from(images).map(img => {
-                return new Promise((resolve) => {
-                    if (img.complete) {
-                        resolve();
-                    } else {
-                        img.onload = resolve;
-                        img.onerror = resolve;
-                    }
-                });
-            }));
-
+            // 3. html2canvas로 컨테이너를 하나의 긴 이미지(캔버스)로 캡처
             const canvas = await html2canvas(tempContainer, {
-                scale: 2,
+                scale: 2, // 고해상도 캡처
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                width: 800,
-                height: tempContainer.scrollHeight
+                windowWidth: 800,
+                windowHeight: tempContainer.scrollHeight
             });
 
+            // 4. 임시 컨테이너 제거
             document.body.removeChild(tempContainer);
 
-            const imgData = canvas.toDataURL('image/png', 1.0);
+            // 5. jsPDF로 PDF 생성
             const { jsPDF } = window.jspdf;
+            const imgData = canvas.toDataURL('image/png', 1.0);
             
-            const imgWidth = 210; // A4 width in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            // 단일 페이지로 생성 (높이에 맞춰 PDF 크기 동적 조정)
+            const pdfWidth = 210; // A4 가로 너비 (mm)
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width; // 캔버스 비율에 맞춘 세로 높이
+
+            // [핵심] 페이지 높이를 전체 캔버스 높이에 맞춰서 한 페이지짜리 PDF 생성
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: [210, Math.max(297, imgHeight)] // 높이를 컨텐츠에 맞춰 동적 조정
+                format: [pdfWidth, pdfHeight]
             });
 
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(`tarot-reading-${new Date().toISOString().slice(0,10)}.pdf`);
+
         } catch(e) {
             console.error("PDF 생성 오류", e);
             alert("PDF 생성 중 오류가 발생했습니다.");
@@ -969,94 +956,83 @@ function shuffleDeck() {
 
     function createPDFContent() {
         const { cardInterpretations, overallReading } = appState.fullResultData;
-        let content = `
-            <div style="max-width: 750px; margin: 0 auto; font-family: Arial, sans-serif; color: #333; padding: 20px; box-sizing: border-box;">
-                <style>
-                    * { 
-                        word-wrap: break-word; 
-                        overflow-wrap: break-word; 
-                        box-sizing: border-box;
-                    }
-                    p, li { 
-                        word-wrap: break-word; 
-                        overflow-wrap: break-word; 
-                        hyphens: auto;
-                        max-width: 100%;
-                    }
-                    div {
-                        box-sizing: border-box;
-                        max-width: 100%;
-                    }
-                </style>
-                <h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px;">타로 리딩 결과</h1>
+        
+        // [핵심] 잘림 방지를 위한 스타일 정의
+        const styles = `
+            <style>
+                body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; }
+                h1 { color: #1a1a2e; text-align: center; margin-bottom: 30px; font-size: 28px; }
+                h2 { color: #34495e; margin: 30px 0 15px 0; font-size: 22px; border-bottom: 2px solid #764ba2; padding-bottom: 5px; }
+                h3 { color: #667eea; font-size: 18px; margin-bottom: 10px; }
+                p, li { line-height: 1.7; font-size: 14px; text-align: justify; word-wrap: break-word; overflow-wrap: break-word; color: #555; }
+                .card-section, .summary-section, .action-plan-section { 
+                    padding: 20px; 
+                    margin-bottom: 25px; 
+                    background-color: #f8f9fa; 
+                    border: 1px solid #e9ecef; 
+                    border-radius: 8px; 
+                }
+                .keyword-group { margin: 15px 0; font-size: 14px; }
+                .keyword-title { font-weight: bold; }
+                .keyword { display: inline-block; padding: 3px 8px; margin: 2px; border-radius: 12px; font-size: 12px; }
+                .positive { background: rgba(102, 126, 234, 0.2); color: #667eea; border: 1px solid #667eea; }
+                .negative { background: rgba(233, 69, 96, 0.2); color: #e94560; border: 1px solid #e94560; }
+                ul { padding-left: 20px; }
+            </style>
         `;
 
-        // 개별 카드 해석
-        cardInterpretations.forEach((cardData, index) => {
+        let cardHtml = cardInterpretations.map((cardData, index) => {
             const cardIndex = appState.selectedCards[index];
-            const cardImage = tarotData[cardIndex].img;
-            
-            content += `
-                <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; max-width: 100%; box-sizing: border-box;">
-                    <h2 style="color: #34495e; margin-bottom: 20px; font-size: 22px; word-wrap: break-word;">카드 ${index + 1}: ${cardData.cardName}</h2>
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <img src="${cardImage}" style="max-width: 180px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+            const cardImageSrc = tarotData[cardIndex].img;
+            return `
+                <div class="card-section">
+                    <h2>카드 ${index + 1}: ${cardData.cardName}</h2>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="${cardImageSrc}" style="max-width: 250px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
                     </div>
-                    <div style="margin-bottom: 15px; max-width: 100%; box-sizing: border-box;">
-                        ${cardData.keywords ? `
-                            <div style="margin-bottom: 10px; max-width: 100%;">
-                                <strong style="color: #27ae60;">긍정:</strong>
-                                ${cardData.keywords.positive ? cardData.keywords.positive.map(k => `<span style="background: #d5f4e6; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px; display: inline-block;">${k}</span>`).join('') : ''}
-                            </div>
-                            <div style="margin-bottom: 10px; max-width: 100%;">
-                                <strong style="color: #e74c3c;">주의:</strong>
-                                ${cardData.keywords.caution ? cardData.keywords.caution.map(k => `<span style="background: #fadbd8; padding: 2px 6px; margin: 2px; border-radius: 4px; font-size: 12px; display: inline-block;">${k}</span>`).join('') : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-                    <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${cardData.interpretation}</p>
+                    ${buildKeywordsHtml(cardData.keywords)}
+                    <p>${cardData.interpretation.replace(/\n/g, '<br>')}</p>
                 </div>
             `;
-        });
+        }).join('');
 
-        // 총정리
-        content += `
-            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; max-width: 100%; box-sizing: border-box;">
-                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 22px; word-wrap: break-word;">${overallReading.title}</h2>
-                <div style="text-align: center; margin-bottom: 20px; max-width: 100%;">
-                    ${appState.selectedCards.map(cardIndex => 
-                        `<img src="${tarotData[cardIndex].img}" style="width: 70px; height: auto; margin: 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />`
-                    ).join('')}
+        const summaryHtml = `
+            <div class="summary-section">
+                <h2>${overallReading.title}</h2>
+                <div style="text-align: center; margin: 20px 0;">
+                    ${appState.selectedCards.map(i => `<img src="${tarotData[i].img}" style="width: 100px; margin: 5px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">`).join('')}
                 </div>
-                <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${overallReading.summary}</p>
+                 ${buildKeywordsHtml(overallReading.keywords)}
+                <p>${overallReading.summary.replace(/\n/g, '<br>')}</p>
             </div>
         `;
 
-        // MBTI 액션 플랜
         const plan = overallReading.mbtiActionPlan;
-        content += `
-            <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #e8f4fd; max-width: 100%; box-sizing: border-box;">
-                <h2 style="color: #34495e; margin-bottom: 20px; font-size: 22px; word-wrap: break-word;">${plan.title}</h2>
-                <p style="line-height: 1.6; font-size: 14px; margin-bottom: 20px; text-align: justify; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${plan.introduction}</p>
+        const actionPlanHtml = `
+            <div class="action-plan-section">
+                <h2>${plan.title}</h2>
+                <p>${plan.introduction.replace(/\n/g, '<br>')}</p>
                 ${plan.phases.map(phase => `
-                    <div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #3498db; max-width: 100%; box-sizing: border-box;">
-                        <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 16px; word-wrap: break-word;">${phase.phaseTitle}</h3>
-                        <ul style="margin: 0; padding-left: 18px; max-width: 100%; box-sizing: border-box;">
-                            ${phase.steps.map(step => `<li style="margin-bottom: 5px; line-height: 1.5; font-size: 13px; word-wrap: break-word; max-width: 100%; box-sizing: border-box;">${step}</li>`).join('')}
-                        </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #fff; border-left: 4px solid #667eea; border-radius: 4px;">
+                        <h3>${phase.phaseTitle}</h3>
+                        <ul>${phase.steps.map(step => `<li>${step}</li>`).join('')}</ul>
                     </div>
                 `).join('')}
             </div>
         `;
-
-        content += `
-                <div style="text-align: center; margin-top: 40px; padding: 20px; color: #7f8c8d; font-size: 12px;">
-                    <p>생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+        
+        return `
+            <div style="padding: 40px;">
+                ${styles}
+                <h1>타로 리딩 결과</h1>
+                ${cardHtml}
+                ${summaryHtml}
+                ${actionPlanHtml}
+                <div style="text-align: center; margin-top: 40px; color: #aaa; font-size: 12px;">
+                    <p>Generated by ASK ANYTHING | ${new Date().toLocaleDateString()}</p>
                 </div>
             </div>
         `;
-
-        return content;
     }
 
     // --- 6. 이벤트 리스너 등록 ---
