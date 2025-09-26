@@ -1,6 +1,6 @@
 // 📁 api/interpret.js (전체 교체)
 
-module.exports = async function handler(request, response) {
+async function handler(request, response) {
   // CORS 헤더 설정
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -116,5 +116,7 @@ You must adhere strictly to the following JSON structure. Do not add or remove a
     return response.status(500).json({ success: false, error: '서버 내부 오류가 발생했습니다.', message: error.message });
   }
 }
+
+module.exports = handler;
 
 // Redeploy Trigger - Force redeploy with correct model name
