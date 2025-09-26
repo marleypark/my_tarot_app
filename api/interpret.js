@@ -116,3 +116,5 @@ You must adhere strictly to the following JSON structure. Do not add or remove a
     return response.status(500).json({ success: false, error: '서버 내부 오류가 발생했습니다.', message: error.message });
   }
 }
+
+// Redeploy Trigger - Force redeploy with correct model name
