@@ -176,9 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             summarySection: document.getElementById('summary-section'),
             actionPlanSection: document.getElementById('action-plan-section'),
             cardImage: document.getElementById('result-card-image'),
-            cardTitle: document.getElementById('result-card-title'),
             keywordsArea: document.getElementById('keywords-area'),
-            interpretationText: document.getElementById('interpretation-text'),
             summaryTitle: document.getElementById('summary-title'),
             summaryCardsDisplay: document.getElementById('summary-cards-display'),
             summaryText: document.getElementById('summary-text'),
@@ -542,18 +540,26 @@ function shuffleDeck() {
             const cardData = cardInterpretations[stage];
             const cardIndex = appState.selectedCards[stage];
 
+        if (elements.resultScreen.cardSection) {
             elements.resultScreen.cardSection.style.display = 'block';
-            elements.resultScreen.cardTitle.textContent = cardData.cardName;
-        elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
+        }
+        if (elements.resultScreen.cardImage) {
+            elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
+        }
+        if (elements.resultScreen.keywordsArea) {
             elements.resultScreen.keywordsArea.innerHTML = '';
-
             const keywordsHtml = buildKeywordsHtml(cardData.keywords);
             elements.resultScreen.keywordsArea.innerHTML = keywordsHtml;
+        }
 
             prepareCardStage(stage, cardData.interpretation);
         } else if (stage === cardInterpretations.length) {
-            elements.resultScreen.summarySection.style.display = 'block';
-            elements.resultScreen.keywordsArea.innerHTML = '';
+            if (elements.resultScreen.summarySection) {
+                elements.resultScreen.summarySection.style.display = 'block';
+            }
+            if (elements.resultScreen.keywordsArea) {
+                elements.resultScreen.keywordsArea.innerHTML = '';
+            }
 
             const summaryKeywords = buildKeywordsHtml(appState.fullResultData.overallReading.keywords);
             const summaryKeywordsContainer = document.getElementById('summary-keywords');
@@ -561,12 +567,18 @@ function shuffleDeck() {
                 summaryKeywordsContainer.innerHTML = summaryKeywords;
             }
 
-            startTypingEffect(elements.resultScreen.summaryText, appState.fullResultData.overallReading.summary, () => {
-                revealStageButtons('summary');
-            });
+            if (elements.resultScreen.summaryText) {
+                startTypingEffect(elements.resultScreen.summaryText, appState.fullResultData.overallReading.summary, () => {
+                    revealStageButtons('summary');
+                });
+            }
         } else {
-            elements.resultScreen.actionPlanSection.style.display = 'block';
-            elements.resultScreen.keywordsArea.innerHTML = '';
+            if (elements.resultScreen.actionPlanSection) {
+                elements.resultScreen.actionPlanSection.style.display = 'block';
+            }
+            if (elements.resultScreen.keywordsArea) {
+                elements.resultScreen.keywordsArea.innerHTML = '';
+            }
             renderActionPlanStages();
         }
 
@@ -585,7 +597,11 @@ function shuffleDeck() {
         // MBTI 기반 타이틀 설정
         const mbtiType = appState.userMBTI || '당신';
         const title = `${mbtiType}을 위한 현실 조언`;
-        elements.resultScreen.actionPlanTitle.textContent = title;
+        if (elements.resultScreen.actionPlanTitle) {
+            elements.resultScreen.actionPlanTitle.textContent = title;
+            elements.resultScreen.actionPlanTitle.style.wordBreak = 'keep-all';
+            elements.resultScreen.actionPlanTitle.style.whiteSpace = 'normal';
+        }
         
         // 액션 플랜 초기화
         appState.actionPlan.phases = plan.phases;
@@ -737,10 +753,16 @@ function shuffleDeck() {
         // 제목 형식 변경: "1번째 카드: 완드 2" 형식
         const cardHeading = `${stageIndex + 1}번째 카드: ${cardName}`;
         const stageTitleEl = document.getElementById('card-stage-title');
-        if (stageTitleEl) stageTitleEl.textContent = cardHeading;
+        if (stageTitleEl) {
+            stageTitleEl.textContent = cardHeading;
+            stageTitleEl.style.wordBreak = 'keep-all';
+            stageTitleEl.style.whiteSpace = 'normal';
+        }
 
         // 초기 상태 설정
-        imageEl.classList.remove('blur');
+        if (imageEl) {
+            imageEl.classList.remove('blur');
+        }
         if (overlayEl) {
             overlayEl.textContent = '';
             overlayEl.classList.remove('show');
@@ -748,7 +770,9 @@ function shuffleDeck() {
 
         // 카드 클릭 이벤트
         const reveal = () => {
-            imageEl.classList.add('blur');
+            if (imageEl) {
+                imageEl.classList.add('blur');
+            }
             if (overlayEl) {
                 overlayEl.classList.add('show');
                 startTypingEffect(overlayEl, text, () => {
@@ -757,10 +781,12 @@ function shuffleDeck() {
             }
         };
 
-        imageEl.onclick = () => {
-            imageEl.onclick = null;
-            reveal();
-        };
+        if (imageEl) {
+            imageEl.onclick = () => {
+                imageEl.onclick = null;
+                reveal();
+            };
+        }
     }
 
     function revealCardButtons(stageIndex) {

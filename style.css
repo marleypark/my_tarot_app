@@ -211,7 +211,29 @@ body {
 }
 
 #summary-title {
-    word-wrap: break-word;
+    word-break: keep-all;
+    white-space: normal;
+    line-height: 1.4;
+    max-width: 100%;
+}
+
+#action-plan-title {
+    font-size: 24px;
+    color: #e94560;
+    margin-bottom: 25px;
+    text-align: center;
+    word-break: keep-all;
+    white-space: normal;
+    line-height: 1.4;
+    max-width: 100%;
+}
+
+#card-stage-title {
+    font-size: 24px;
+    color: #e94560;
+    margin-bottom: 25px;
+    text-align: center;
+    word-break: keep-all;
     white-space: normal;
     line-height: 1.4;
     max-width: 100%;
