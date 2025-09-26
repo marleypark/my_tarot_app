@@ -649,6 +649,9 @@ function shuffleDeck() {
                 startTypingEffect(elements.resultScreen.summaryText, appState.fullResultData.overallReading.summary, () => {
                     revealStageButtons('summary');
                 });
+            } else {
+                // 텍스트가 없는 경우에도 버튼 표시
+                revealStageButtons('summary');
             }
         } else { // 액션 플랜 단계
             if (elements.resultScreen.actionPlanSection) {
@@ -666,12 +669,15 @@ function shuffleDeck() {
             renderActionPlanStages();
         }
 
-        if (elements.resultScreen.stagePrevBtn) {
-            elements.resultScreen.stagePrevBtn.style.display = stage === 0 ? 'none' : 'inline-flex';
-        }
-        if (elements.resultScreen.stageNextBtn) {
-            const totalStages = cardInterpretations.length + 2; // 카드들 + 총정리 + 액션플랜
-            elements.resultScreen.stageNextBtn.style.display = stage >= totalStages - 1 ? 'none' : 'inline-flex';
+        // 총정리 단계가 아닌 경우에만 버튼 표시/숨김 처리
+        if (stage !== cardInterpretations.length) {
+            if (elements.resultScreen.stagePrevBtn) {
+                elements.resultScreen.stagePrevBtn.style.display = stage === 0 ? 'none' : 'inline-flex';
+            }
+            if (elements.resultScreen.stageNextBtn) {
+                const totalStages = cardInterpretations.length + 2; // 카드들 + 총정리 + 액션플랜
+                elements.resultScreen.stageNextBtn.style.display = stage >= totalStages - 1 ? 'none' : 'inline-flex';
+            }
         }
     }
 
