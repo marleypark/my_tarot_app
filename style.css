@@ -433,6 +433,7 @@ body {
 
 .phase-navigation button {
     flex: 1;
+    max-width: 200px; /* 최대 너비를 지정하여 버튼이 너무 커지는 것을 방지 */
     background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
     color: #301f00;
     border: none;
@@ -468,37 +469,6 @@ body {
     display: block;
 }
 
-.phase-navigation {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 24px;
-}
-
-.phase-navigation button {
-    flex: 1;
-    background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
-    color: #301f00;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 24px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 8px 18px rgba(242, 153, 74, 0.35);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.phase-navigation button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(242, 153, 74, 0.45);
-}
-
-.phase-navigation button:disabled {
-    opacity: 0.4;
-    cursor: default;
-    transform: none;
-    box-shadow: none;
-}
 
 .bold-highlight {
     font-weight: 700;

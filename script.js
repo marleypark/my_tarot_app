@@ -572,13 +572,19 @@ function shuffleDeck() {
                     revealStageButtons('summary');
                 });
             }
-        } else {
+        } else { // 액션 플랜 단계
             if (elements.resultScreen.actionPlanSection) {
                 elements.resultScreen.actionPlanSection.style.display = 'block';
             }
             if (elements.resultScreen.keywordsArea) {
                 elements.resultScreen.keywordsArea.innerHTML = '';
             }
+            // ▼▼▼ 이 부분을 추가합니다 ▼▼▼
+            if (elements.resultScreen.stageNav) {
+                // 하단 스테이지 네비게이션 버튼을 숨깁니다.
+                elements.resultScreen.stageNav.style.display = 'none';
+            }
+            // ▲▲▲ 여기까지 추가 ▲▲▲
             renderActionPlanStages();
         }
 
@@ -595,70 +601,65 @@ function shuffleDeck() {
         const { overallReading } = appState.fullResultData;
         const plan = overallReading.mbtiActionPlan;
         
-        // MBTI 기반 타이틀 설정
         const mbtiType = appState.userMBTI || '당신';
         const title = `${mbtiType}을 위한 현실 조언`;
         if (elements.resultScreen.actionPlanTitle) {
             elements.resultScreen.actionPlanTitle.textContent = title;
-            elements.resultScreen.actionPlanTitle.style.wordBreak = 'keep-all';
-            elements.resultScreen.actionPlanTitle.style.whiteSpace = 'normal';
         }
         
-        // 액션 플랜 초기화
-        appState.actionPlan.phases = plan.phases;
+        // 액션 플랜 상태 초기화
+        appState.actionPlan.phases = [
+            { phaseTitle: "Introduction", steps: [plan.introduction] }, // 인트로를 0번 단계로 추가
+            ...plan.phases
+        ];
         appState.actionPlan.currentPhase = 0;
         appState.actionPlan.initialized = true;
         
-        // 첫 번째 단계 표시
+        // 첫 번째 단계(인트로) 표시
         showActionPlanPhase(0);
     }
     
     function showActionPlanPhase(phaseIndex) {
-        const introEl = document.getElementById('action-plan-intro');
-        const phasesEl = document.getElementById('action-plan-phases');
+        stopTypingEffect(); // 이전 타이핑 중지
+
+        const container = document.getElementById('action-plan-container');
         const prevBtn = document.getElementById('action-phase-prev');
         const nextBtn = document.getElementById('action-phase-next');
+        const navigation = document.getElementById('action-plan-navigation');
+
+        if (!container || !navigation) return;
+
+        container.innerHTML = ''; // 컨테이너 초기화
+        navigation.style.display = 'flex'; // 네비게이션 버튼 표시
+
+        const phaseData = appState.actionPlan.phases[phaseIndex];
         
-        // 모든 콘텐츠 숨기기
-        document.querySelectorAll('.action-phase-content').forEach(el => {
-            el.classList.remove('active');
-        });
-        
-        if (phaseIndex === 0) {
-            // 인트로 표시
-            introEl.textContent = appState.actionPlan.phases[0].introduction || '';
-            introEl.classList.add('active');
-            
-            // 버튼 설정
-            if (prevBtn) prevBtn.style.display = 'none';
-            if (nextBtn) {
-                nextBtn.style.display = 'inline-flex';
-                nextBtn.textContent = '2단계로';
-            }
-        } else {
-            // 해당 단계 표시
-            const phase = appState.actionPlan.phases[phaseIndex];
-            phasesEl.innerHTML = `
+        if (phaseIndex === 0) { // 인트로 화면
+            const introEl = document.createElement('p');
+            container.appendChild(introEl);
+            startTypingEffect(introEl, phaseData.steps[0]);
+        } else { // 1, 2, 3단계 화면
+            const phaseHtml = `
                 <div class="phase">
-                    <h4 class="phase-title">${phase.phaseTitle}</h4>
-                    <ul class="phase-steps">${phase.steps.map(step => `<li>${step}</li>`).join('')}</ul>
+                    <h4 class="phase-title">${phaseData.phaseTitle}</h4>
+                    <ul class="phase-steps"></ul>
                 </div>
             `;
-            phasesEl.classList.add('active');
+            container.innerHTML = phaseHtml;
             
-            // 버튼 설정
-            if (prevBtn) {
-                prevBtn.style.display = 'inline-flex';
-                prevBtn.textContent = phaseIndex === 1 ? '이전' : '이전';
-            }
-            if (nextBtn) {
-                if (phaseIndex < appState.actionPlan.phases.length - 1) {
-                    nextBtn.style.display = 'inline-flex';
-                    nextBtn.textContent = '다음 단계';
-                } else {
-                    nextBtn.style.display = 'none';
-                }
-            }
+            const stepsContainer = container.querySelector('.phase-steps');
+            const fullText = phaseData.steps.map(step => `<li>${step}</li>`).join('');
+            
+            // 1/2/3단계는 즉시 표시되도록 수정 (타이핑 효과는 인트로에만 적용)
+            stepsContainer.innerHTML = fullText;
+        }
+
+        // 버튼 상태 업데이트
+        if (prevBtn) {
+            prevBtn.disabled = phaseIndex === 0;
+        }
+        if (nextBtn) {
+            nextBtn.disabled = phaseIndex === appState.actionPlan.phases.length - 1;
         }
         
         appState.actionPlan.currentPhase = phaseIndex;
@@ -939,6 +940,9 @@ function shuffleDeck() {
         const { cardInterpretations, overallReading } = appState.fullResultData;
         let content = `
             <div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; color: #333;">
+                <style>
+                    p, li { word-wrap: break-word; overflow-wrap: break-word; }
+                </style>
                 <h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px;">타로 리딩 결과</h1>
         `;
 
@@ -965,7 +969,7 @@ function shuffleDeck() {
                             </div>
                         ` : ''}
                     </div>
-                    <p style="line-height: 1.6; font-size: 14px; text-align: justify;">${cardData.interpretation}</p>
+                    <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word;">${cardData.interpretation}</p>
                 </div>
             `;
         });
@@ -979,7 +983,7 @@ function shuffleDeck() {
                         `<img src="${tarotData[cardIndex].img}" style="width: 80px; height: auto; margin: 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />`
                     ).join('')}
                 </div>
-                <p style="line-height: 1.6; font-size: 14px; text-align: justify;">${overallReading.summary}</p>
+                <p style="line-height: 1.6; font-size: 14px; text-align: justify; word-wrap: break-word;">${overallReading.summary}</p>
             </div>
         `;
 
@@ -988,12 +992,12 @@ function shuffleDeck() {
         content += `
             <div style="page-break-inside: avoid; margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #e8f4fd;">
                 <h2 style="color: #34495e; margin-bottom: 20px; font-size: 24px;">${plan.title}</h2>
-                <p style="line-height: 1.6; font-size: 14px; margin-bottom: 20px; text-align: justify;">${plan.introduction}</p>
+                <p style="line-height: 1.6; font-size: 14px; margin-bottom: 20px; text-align: justify; word-wrap: break-word;">${plan.introduction}</p>
                 ${plan.phases.map(phase => `
                     <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #3498db;">
                         <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 18px;">${phase.phaseTitle}</h3>
                         <ul style="margin: 0; padding-left: 20px;">
-                            ${phase.steps.map(step => `<li style="margin-bottom: 5px; line-height: 1.5; font-size: 14px;">${step}</li>`).join('')}
+                            ${phase.steps.map(step => `<li style="margin-bottom: 5px; line-height: 1.5; font-size: 14px; word-wrap: break-word;">${step}</li>`).join('')}
                         </ul>
                     </div>
                 `).join('')}
