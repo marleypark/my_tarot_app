@@ -1473,3 +1473,29 @@ button:hover {
         transform: scale(1);
     }
 }
+
+/* MBTI 뒤로 버튼 스타일 */
+.mbti-navigation {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.mbti-back-button {
+    background: linear-gradient(135deg, #e94560 0%, #c44569 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
+}
+
+.mbti-back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(233, 69, 96, 0.4);
+    background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+}

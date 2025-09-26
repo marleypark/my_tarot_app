@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             display: document.getElementById('mbti-result-display'),
             proceedBtn: document.getElementById('proceed-to-cards-btn'),
         },
+        mbtiBackBtn: document.getElementById('mbti-back-btn'),
         cardSelectScreen: {
             cardsLeftText: document.getElementById('cards-left-text'),
             shuffleArea: document.getElementById('shuffle-animation-area'),
@@ -376,6 +377,19 @@ function shuffleDeck() {
         const progress = ((index + 1) / testData.questions.length) * 100;
         elements.mbtiProgressBar.style.width = `${progress}%`;
         elements.mbtiProgressText.textContent = `${index + 1} / ${testData.questions.length}`;
+
+        // 뒤로 버튼 표시/숨김 처리
+        if (elements.mbtiBackBtn) {
+            if (index === 0) {
+                // 1단계: "새로 MBTI 측정하기 귀찮네.. 그냥 skip하자" 의미
+                elements.mbtiBackBtn.textContent = '건너뛰기';
+                elements.mbtiBackBtn.style.display = 'inline-block';
+            } else {
+                // 2-20단계: "이전 단계에서 잘못 클릭했네.. 뒤로 가서 수정해야지" 의미
+                elements.mbtiBackBtn.textContent = '뒤로';
+                elements.mbtiBackBtn.style.display = 'inline-block';
+            }
+        }
     }
     
     function handleMbtiAnswer(score) {
@@ -850,6 +864,10 @@ function shuffleDeck() {
             stageTitleEl.style.whiteSpace = 'normal';
         }
 
+        // 카드 상태 추적 (각 스테이지별로)
+        if (!appState.cardStates) appState.cardStates = {};
+        const cardState = appState.cardStates[stageIndex] || { isRevealed: false, isTypingComplete: false };
+
         // 초기 상태 설정
         if (imageEl) {
             imageEl.classList.remove('blur');
@@ -859,34 +877,86 @@ function shuffleDeck() {
             overlayEl.classList.remove('show');
         }
 
-        // 카드 클릭 이벤트
-        const reveal = () => {
+        // 카드/텍스트 토글 함수
+        const toggleCardText = () => {
+            if (cardState.isRevealed) {
+                // 텍스트에서 카드로 전환
+                if (imageEl) {
+                    imageEl.classList.remove('blur');
+                }
+                if (overlayEl) {
+                    overlayEl.classList.remove('show');
+                }
+                cardState.isRevealed = false;
+            } else {
+                // 카드에서 텍스트로 전환
+                if (imageEl) {
+                    imageEl.classList.add('blur');
+                }
+                if (overlayEl) {
+                    overlayEl.classList.add('show');
+                    if (cardState.isTypingComplete) {
+                        // 이미 타이핑이 완료된 경우 즉시 텍스트 표시
+                        overlayEl.innerHTML = text;
+                        overlayEl.style.overflowY = 'auto';
+                        overlayEl.style.webkitOverflowScrolling = 'touch';
+                    } else {
+                        // 처음 타이핑하는 경우
+                        startTypingEffect(overlayEl, text, () => {
+                            overlayEl.style.overflowY = 'auto';
+                            overlayEl.style.webkitOverflowScrolling = 'touch';
+                            cardState.isTypingComplete = true;
+                            setTimeout(() => revealCardButtons(stageIndex), 2000);
+                        });
+                    }
+                }
+                cardState.isRevealed = true;
+            }
+        };
+
+        // 이미 해석이 완료된 카드인 경우 즉시 텍스트 표시
+        if (cardState.isTypingComplete) {
             if (imageEl) {
                 imageEl.classList.add('blur');
             }
             if (overlayEl) {
                 overlayEl.classList.add('show');
-                startTypingEffect(overlayEl, text, () => {
-                    // 타이핑 완료 후 스크롤 가능하도록 설정
-                    overlayEl.style.overflowY = 'auto';
-                    // 터치 스크롤 지원 추가
-                    overlayEl.style.webkitOverflowScrolling = 'touch';
-                    setTimeout(() => revealCardButtons(stageIndex), 2000);
-                });
+                overlayEl.innerHTML = text;
+                overlayEl.style.overflowY = 'auto';
+                overlayEl.style.webkitOverflowScrolling = 'touch';
             }
-        };
-
-        if (imageEl) {
-            imageEl.onclick = () => {
-                imageEl.onclick = null;
-                reveal();
-            };
+            cardState.isRevealed = true;
+            // 버튼도 즉시 표시
+            setTimeout(() => revealCardButtons(stageIndex), 100);
         }
+
+        // 이벤트 리스너 설정
+        if (imageEl) {
+            imageEl.onclick = toggleCardText;
+        }
+        if (overlayEl) {
+            overlayEl.onclick = toggleCardText;
+        }
+
+        // 상태 저장
+        appState.cardStates[stageIndex] = cardState;
     }
 
     function revealCardButtons(stageIndex) {
-        // 카드 네비게이션 버튼들도 숨김 (사용자 요청에 따라)
-        return;
+        const prevBtn = document.getElementById('card-prev-btn');
+        const nextBtn = document.getElementById('card-next-btn');
+        
+        if (prevBtn) {
+            prevBtn.style.display = stageIndex === 0 ? 'none' : 'inline-flex';
+            if (stageIndex > 0) {
+                prevBtn.classList.add('show');
+            }
+        }
+        
+        if (nextBtn) {
+            nextBtn.style.display = 'inline-flex';
+            nextBtn.classList.add('show');
+        }
     }
 
     function revealStageButtons(context) {
@@ -1155,6 +1225,17 @@ function shuffleDeck() {
             playSound('button');
             shuffleDeck();
             navigateTo('card-select-screen');
+        });
+        elements.mbtiBackBtn.addEventListener('click', () => {
+            playSound('button');
+            if (appState.mbti.currentQuestionIndex === 0) {
+                // 1단계에서 건너뛰기: MBTI 입력 화면으로 돌아가기
+                navigateTo('mbti-input-screen');
+            } else {
+                // 2-20단계에서 뒤로: 이전 질문으로 이동
+                appState.mbti.currentQuestionIndex--;
+                render();
+            }
         });
         
         // 카드 선택
