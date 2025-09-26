@@ -331,16 +331,16 @@ body {
 
 .card-overlay-text {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    bottom: 15px;
-    background: rgba(0, 0, 0, 0.7);
+    top: 5px;
+    left: -50px;
+    right: -50px;
+    bottom: 5px;
+    background: transparent;
     color: white;
-    padding: 15px;
+    padding: 20px;
     border-radius: 8px;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.6;
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -348,13 +348,28 @@ body {
     text-align: left;
     word-break: keep-all;
     white-space: normal;
-    overflow-y: auto;
-    max-height: calc(100% - 30px);
+    overflow-y: hidden;
+    max-height: calc(100% - 10px);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+    z-index: 20;
 }
 
 .card-overlay-text.show {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 스크롤바 숨기기 */
+.card-overlay-text::-webkit-scrollbar {
+    display: none;
+}
+
+.card-overlay-text {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .keywords-area {

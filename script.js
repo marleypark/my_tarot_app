@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timer: null,
             holdTimer: null,
             element: null,
-            speed: 30,
+            speed: 25,
         },
         loading: {
             timer: null,
@@ -496,6 +496,12 @@ function shuffleDeck() {
         if (elements.resultScreen.stageNav) {
             elements.resultScreen.stageNav.style.display = 'flex';
         }
+        
+        // 초기에는 PDF 버튼과 처음으로 버튼 숨기기
+        const pdfSaveBtn = elements.resultScreen.pdfSaveBtn;
+        const bottomNavigation = document.querySelector('.bottom-navigation');
+        if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
+        if (bottomNavigation) bottomNavigation.style.display = 'none';
 
         const { cardInterpretations, overallReading } = appState.fullResultData;
 
@@ -743,6 +749,11 @@ function shuffleDeck() {
             if (index < fullText.length) {
                 element.textContent += fullText[index];
                 index++;
+                
+                // 텍스트가 넘칠 때 자동으로 스크롤
+                if (element.scrollHeight > element.clientHeight) {
+                    element.scrollTop = element.scrollHeight - element.clientHeight;
+                }
             } else {
                 stopTypingEffect();
                 if (onComplete) onComplete();
@@ -801,7 +812,11 @@ function shuffleDeck() {
             if (overlayEl) {
                 overlayEl.classList.add('show');
                 startTypingEffect(overlayEl, text, () => {
-                    setTimeout(() => revealCardButtons(stageIndex), 5000);
+                    // 타이핑 완료 후 스크롤 가능하도록 설정
+                    overlayEl.style.overflowY = 'auto';
+                    // 터치 스크롤 지원 추가
+                    overlayEl.style.webkitOverflowScrolling = 'touch';
+                    setTimeout(() => revealCardButtons(stageIndex), 2000);
                 });
             }
         };
@@ -1066,6 +1081,11 @@ function shuffleDeck() {
         // 메인 화면 -> 질문 선택
         elements.mainShuffleArea.addEventListener('click', () => {
             playSound('select');
+            // 언어 선택 없이 진행 시 언어 메뉴 숨기기
+            const langSwitcher = document.querySelector('.lang-switcher');
+            if (langSwitcher) {
+                langSwitcher.style.display = 'none';
+            }
             navigateTo('question-dialog-screen');
         });
         
