@@ -1,6 +1,6 @@
 // 📁 api/interpret.js (전체 교체)
 
-export default async function handler(request, response) {
+module.exports = async function handler(request, response) {
   // CORS 헤더 설정
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
