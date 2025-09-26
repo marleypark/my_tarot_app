@@ -960,8 +960,28 @@ function shuffleDeck() {
     }
 
     function revealStageButtons(context) {
-        // 모든 스테이지 버튼을 숨김 (사용자 요청에 따라)
-        return;
+        const prevBtn = elements.resultScreen.stagePrevBtn;
+        const nextBtn = elements.resultScreen.stageNextBtn;
+        
+        if (context === 'summary') {
+            // 총정리 화면에서는 이전 버튼과 현실조언 버튼 표시
+            if (prevBtn) {
+                prevBtn.style.display = 'inline-flex';
+                prevBtn.classList.add('show');
+            }
+            if (nextBtn) {
+                nextBtn.style.display = 'inline-flex';
+                nextBtn.classList.add('show');
+            }
+        } else {
+            // 다른 화면에서는 버튼 숨김
+            if (prevBtn) {
+                prevBtn.style.display = 'none';
+            }
+            if (nextBtn) {
+                nextBtn.style.display = 'none';
+            }
+        }
     }
 
     function buildKeywordsHtml(keywords) {
