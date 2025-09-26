@@ -111,7 +111,8 @@ const UI_TEXTS = {
             money: "Money Fortune",
             health: "Health Fortune",
             relationships: "Relationship Fortune"
-        },
+        }
+    },
     hin: {
         mainTitle: "ASK ANYTHING",
         mainSubtitle: "कार्ड पर क्लिक करके शुरू करें",
@@ -157,7 +158,13 @@ const UI_TEXTS = {
             money: "धन भाग्य",
             health: "स्वास्थ्य भाग्य",
             relationships: "रिश्ते का भाग्य"
-        }
+        },
+        loadingLoopText: "आपकी किस्मत ला रहे हैं...",
+        cardStageTitleTemplate: "{num}वां कार्ड व्याख्या",
+        cardTouchHint: "कार्ड को छुएं",
+        keywordPositive: "सकारात्मक",
+        keywordCaution: "सावधानी",
+        actionPlanButtonLabel: "वास्तविक सलाह"
     }
     // अन्य भाषाएं भी आवश्यकतानुसार जोड़ी जा सकती हैं...
 };
