@@ -88,7 +88,6 @@
         <div id="result-screen" class="screen">
             <div class="result-nav">
                 <button id="pdf-save-btn" data-i18n-key="pdfSaveButton">PDF로 저장</button>
-                <button id="restart-btn" data-i18n-key="restartButton">처음으로</button>
             </div>
             
             <div id="result-content-wrapper">
@@ -115,6 +114,7 @@
                         </div>
                     </section>
                     <section id="summary-section" class="result-stage">
+                        <h2 id="summary-stage-title" class="stage-title-red">카드 조합 총정리</h2>
                         <h2 id="summary-title"></h2>
                         <div id="summary-cards-display"></div>
                         <div id="summary-box">
@@ -136,6 +136,10 @@
                     <div class="navigation-buttons stage-navigation">
                         <button id="prev-stage-btn" data-i18n-key="prevButton">이전</button>
                         <button id="next-stage-btn" data-i18n-key="nextButton">다음</button>
+                    </div>
+                    <!-- 하단 처음으로 버튼 -->
+                    <div class="bottom-navigation">
+                        <button id="restart-btn" data-i18n-key="restartButton">처음으로</button>
                     </div>
                 </div>
             </div>

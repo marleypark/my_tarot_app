@@ -504,9 +504,19 @@ function shuffleDeck() {
         elements.resultScreen.summaryText.textContent = '';
         elements.resultScreen.summaryCardsDisplay.innerHTML = '';
         appState.selectedCards.forEach(cardIndex => {
+            const cardContainer = document.createElement('div');
+            cardContainer.className = 'summary-card-container';
+            
             const img = document.createElement('img');
             img.src = tarotData[cardIndex].img;
-            elements.resultScreen.summaryCardsDisplay.appendChild(img);
+            
+            const cardName = document.createElement('div');
+            cardName.className = 'summary-card-name';
+            cardName.textContent = getLocalizedCardNameByIndex(cardIndex, appState.language);
+            
+            cardContainer.appendChild(img);
+            cardContainer.appendChild(cardName);
+            elements.resultScreen.summaryCardsDisplay.appendChild(cardContainer);
         });
 
         // 액션 플랜 렌더링
@@ -535,6 +545,19 @@ function shuffleDeck() {
         elements.resultScreen.cardSection.style.display = 'none';
         elements.resultScreen.summarySection.style.display = 'none';
         elements.resultScreen.actionPlanSection.style.display = 'none';
+
+        // PDF 버튼과 처음으로 버튼 표시/숨김 제어 (마지막 단계에서만 표시)
+        const pdfSaveBtn = elements.resultScreen.pdfSaveBtn;
+        const restartBtn = elements.resultScreen.restartBtn;
+        const bottomNavigation = document.querySelector('.bottom-navigation');
+        
+        if (stage >= totalStages - 1) { // 마지막 단계(액션 플랜)에서만 표시
+            if (pdfSaveBtn) pdfSaveBtn.style.display = 'inline-block';
+            if (bottomNavigation) bottomNavigation.style.display = 'flex';
+        } else {
+            if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
+            if (bottomNavigation) bottomNavigation.style.display = 'none';
+        }
 
         if (stage < cardInterpretations.length) {
             const cardData = cardInterpretations[stage];
@@ -817,6 +840,11 @@ function shuffleDeck() {
         } else if (context === 'summary') {
             const label = translationForKey('actionPlanButtonLabel', '현실 조언');
             elements.resultScreen.stageNextBtn.textContent = label;
+            // 총정리 화면에서 이전 버튼도 표시
+            if (elements.resultScreen.stagePrevBtn) {
+                elements.resultScreen.stagePrevBtn.style.display = 'inline-flex';
+                requestAnimationFrame(() => elements.resultScreen.stagePrevBtn.classList.add('show'));
+            }
         }
         elements.resultScreen.stageNextBtn.style.display = 'inline-flex';
         requestAnimationFrame(() => elements.resultScreen.stageNextBtn.classList.add('show'));
@@ -1026,6 +1054,11 @@ function shuffleDeck() {
             li.addEventListener('click', () => {
                 appState.language = li.dataset.lang;
                 elements.langMenu.classList.remove('show');
+                // 언어 선택 후 Language 버튼 숨기기
+                const langSwitcher = document.querySelector('.lang-switcher');
+                if (langSwitcher) {
+                    langSwitcher.style.display = 'none';
+                }
                 render();
             });
         });

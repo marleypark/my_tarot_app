@@ -258,6 +258,17 @@ body {
     max-width: 100%;
 }
 
+.stage-title-red {
+    font-size: 24px;
+    color: #e94560;
+    margin-bottom: 25px;
+    text-align: center;
+    word-break: keep-all;
+    white-space: normal;
+    line-height: 1.4;
+    max-width: 100%;
+}
+
 .section-divider {
     border: none;
     height: 2px;
@@ -305,8 +316,8 @@ body {
 }
 
 .card-image-wrapper img {
-    width: 120%;
-    max-width: 400px;
+    width: 100%;
+    max-width: 350px;
     transition: transform 0.4s ease, filter 0.4s ease;
     border-radius: 16px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
@@ -320,21 +331,25 @@ body {
 
 .card-overlay-text {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    right: auto;
-    width: calc(100% - 40px);
-    background: transparent;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 0;
+    padding: 15px;
     border-radius: 8px;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.5;
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
     text-align: left;
+    word-break: keep-all;
+    white-space: normal;
+    overflow-y: auto;
+    max-height: calc(100% - 30px);
 }
 
 .card-overlay-text.show {
@@ -343,9 +358,12 @@ body {
 }
 
 .keywords-area {
-    margin-top: 20px;
+    margin-top: 30px;
+    margin-bottom: 20px;
     text-align: center;
     display: block !important;
+    position: relative;
+    z-index: 10;
 }
 
 .card-navigation {
@@ -399,9 +417,15 @@ body {
 .typing-cursor::after {
     content: "|";
     display: inline-block;
-    margin-left: 4px;
-    animation: blink 1s steps(2, start) infinite;
+    margin-left: 2px;
+    animation: cursor-blink 1s steps(2, start) infinite;
     color: #a3b9ff;
+    font-size: 16px;
+    line-height: 1;
+}
+
+@keyframes cursor-blink {
+    to { visibility: hidden; }
 }
 
 @keyframes blink {
@@ -415,13 +439,56 @@ body {
     margin-top: 20px;
 }
 
+/* 하단 처음으로 버튼 스타일 */
+.bottom-navigation {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #3a3a52;
+}
+
+.bottom-navigation button {
+    background: linear-gradient(135deg, #e94560 0%, #f27121 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+}
+
+.bottom-navigation button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(233, 69, 96, 0.6);
+}
+
 .stage-navigation button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: translateY(10px);
 }
 
 .stage-navigation button.show {
     opacity: 1;
+    transform: translateY(0);
+}
+
+.stage-navigation button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .phase-navigation {
@@ -855,17 +922,7 @@ button:hover {
     white-space: pre-wrap; /* 줄바꿈 적용 */
 }
 
-/* 타이핑 효과 커서 */
-.typing-cursor {
-    display: inline-block;
-    width: 8px;
-    height: 1em;
-    background-color: #e0e0e0;
-    animation: blink 0.7s infinite;
-}
-@keyframes blink {
-    50% { opacity: 0; }
-}
+/* 타이핑 효과 커서 - 중복 제거됨 */
 
 /* 네비게이션 버튼 */
 .navigation-buttons button {
@@ -879,7 +936,6 @@ button:hover {
 #keywords-area {
     margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #4a4a68;
     display: none; /* 평소에는 숨김 */
 }
 .keyword-group {
@@ -977,9 +1033,32 @@ button:hover {
 #summary-cards-display {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     margin: 20px 0;
     flex-wrap: wrap;
+}
+
+.summary-card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-card-container img {
+    width: 80px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.summary-card-name {
+    font-size: 12px;
+    color: #e94560;
+    font-weight: bold;
+    text-align: center;
+    word-break: keep-all;
+    white-space: nowrap;
 }
 
 #summary-cards-display img {
