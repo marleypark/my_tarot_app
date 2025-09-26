@@ -1404,3 +1404,72 @@ button:hover {
     gap: 12px;
     margin-top: 20px;
 }
+
+/* --- 음양 MBTI 테스트 및 결과 화면 스타일 --- */
+
+/* 5단계 답변 버튼 그룹 */
+#mbti-options-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.mbti-button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.mbti-option-scale {
+    background: linear-gradient(135deg, #4a4a68 0%, #3a3a52 100%);
+    color: white;
+    border: 1px solid #5a5a72;
+    padding: 15px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mbti-option-scale:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* MBTI 결과 표시 스타일 */
+#mbti-result-display {
+    font-size: 64px;
+    font-weight: bold;
+    color: #e94560;
+    margin: 20px 0;
+    padding: 20px 40px;
+    background-color: rgba(233, 69, 96, 0.1);
+    border-radius: 20px;
+    border: 2px solid #e94560;
+    text-shadow: 0 0 15px rgba(233, 69, 96, 0.7);
+    animation: fadeInScale 0.5s ease-out;
+}
+
+#mbti-result-description {
+    font-size: 16px;
+    margin: 0 0 30px 0;
+    line-height: 1.6;
+    max-width: 350px;
+    text-align: center;
+    color: #c0c0e0;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

@@ -162,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
         mbtiProgressText: document.getElementById('mbti-progress-text'),
         mbtiQuestionText: document.getElementById('mbti-question-text'),
         mbtiOptionsContainer: document.getElementById('mbti-options-container'),
+        mbtiResultScreen: {
+            display: document.getElementById('mbti-result-display'),
+            proceedBtn: document.getElementById('proceed-to-cards-btn'),
+        },
         cardSelectScreen: {
             cardsLeftText: document.getElementById('cards-left-text'),
             shuffleArea: document.getElementById('shuffle-animation-area'),
@@ -216,6 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (appState.currentScreen) {
             case 'mbti-test-screen':
                 renderMbtiQuestion();
+                break;
+            case 'mbti-result-screen':
+                elements.mbtiResultScreen.display.textContent = appState.userMBTI;
                 break;
             case 'card-select-screen':
                 renderCardSelectScreen();
@@ -338,59 +345,81 @@ function shuffleDeck() {
         appState.deck = [...Array(78).keys()].sort(() => Math.random() - 0.5);
     }
     
-    // MBTI 로직
+    // --- [업데이트] MBTI 로직 ---
     function startMbtiTest() {
         appState.mbti.currentQuestionIndex = 0;
-        appState.mbti.answers = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+        appState.mbti.answers = []; // 답변을 점수 배열로 저장
         navigateTo('mbti-test-screen');
     }
 
     function renderMbtiQuestion() {
         const lang = appState.language;
-        const questions = MBTI_QUESTIONS_I18N[lang];
+        const testData = MBTI_TEST_DATA[lang];
         const index = appState.mbti.currentQuestionIndex;
-        const questionData = questions[index];
+        const questionData = testData.questions[index];
+        const scale = UI_TEXTS[lang].answerScale;
+        const container = elements.mbtiOptionsContainer.querySelector('.mbti-button-group');
 
-        elements.mbtiQuestionText.textContent = questionData.question;
-        elements.mbtiOptionsContainer.innerHTML = '';
-        questionData.options.forEach(opt => {
-            const button = document.createElement('button');
-            button.className = 'mbti-option';
-            button.textContent = opt.text;
-            button.onclick = () => {
-                playSound('button');
-                handleMbtiAnswer(opt.type);
-            };
-            elements.mbtiOptionsContainer.appendChild(button);
+        elements.mbtiQuestionText.textContent = questionData.text;
+        container.innerHTML = `
+            <button class="mbti-option-scale" data-score="2">${scale.agree_strong}</button>
+            <button class="mbti-option-scale" data-score="1">${scale.agree}</button>
+            <button class="mbti-option-scale" data-score="0">${scale.neutral}</button>
+            <button class="mbti-option-scale" data-score="-1">${scale.disagree}</button>
+            <button class="mbti-option-scale" data-score="-2">${scale.disagree_strong}</button>
+        `;
+
+        container.querySelectorAll('button').forEach(btn => {
+            btn.onclick = (e) => handleMbtiAnswer(parseInt(e.target.dataset.score));
         });
 
-        const progress = ((index + 1) / questions.length) * 100;
+        const progress = ((index + 1) / testData.questions.length) * 100;
         elements.mbtiProgressBar.style.width = `${progress}%`;
-        elements.mbtiProgressText.textContent = `${index + 1} / ${questions.length}`;
+        elements.mbtiProgressText.textContent = `${index + 1} / ${testData.questions.length}`;
     }
     
-    function handleMbtiAnswer(type) {
-        appState.mbti.answers[type]++;
+    function handleMbtiAnswer(score) {
+        playSound('button');
+        appState.mbti.answers[appState.mbti.currentQuestionIndex] = score;
         appState.mbti.currentQuestionIndex++;
-        
-        const questions = MBTI_QUESTIONS_I18N[appState.language];
-        if (appState.mbti.currentQuestionIndex < questions.length) {
+
+        if (appState.mbti.currentQuestionIndex < MBTI_TEST_DATA.kor.questions.length) {
             render();
         } else {
             const result = calculateMbti();
             appState.userMBTI = result;
-            shuffleDeck();
-            navigateTo('card-select-screen');
+            navigateTo('mbti-result-screen');
         }
     }
     
     function calculateMbti() {
-        const answers = appState.mbti.answers;
+        const scores = { E: 0, N: 0, F: 0, P: 0 };
+        const questions = MBTI_TEST_DATA.kor.questions;
+
+        appState.mbti.answers.forEach((score, index) => {
+            const question = questions[index];
+            const weight = question.killer ? 2 : 1;
+            const finalScore = score * weight;
+
+            switch(question.score_type) {
+                case 'E': scores.E += finalScore; break;
+                case 'I': scores.E -= finalScore; break;
+                case 'N': scores.N += finalScore; break;
+                case 'S': scores.N -= finalScore; break;
+                case 'F': scores.F += finalScore; break;
+                case 'T': scores.F -= finalScore; break;
+                case 'P': scores.P += finalScore; break;
+                case 'J': scores.P -= finalScore; break;
+            }
+        });
+
+        const threshold = 6; // 강/약 구분을 위한 임계값
         let result = "";
-        result += (answers.E >= answers.I) ? "E" : "I";
-        result += (answers.S >= answers.N) ? "S" : "N";
-        result += (answers.T >= answers.F) ? "T" : "F";
-        result += (answers.J >= answers.P) ? "J" : "P";
+        result += scores.E > 0 ? (scores.E > threshold ? 'E' : 'e') : (scores.E < -threshold ? 'I' : 'i');
+        result += scores.N > 0 ? (scores.N > threshold ? 'N' : 'n') : (scores.N < -threshold ? 'S' : 's');
+        result += scores.F > 0 ? (scores.F > threshold ? 'F' : 'f') : (scores.F < -threshold ? 'T' : 't');
+        result += scores.P > 0 ? (scores.P > threshold ? 'P' : 'p') : (scores.P < -threshold ? 'J' : 'j');
+
         return result;
     }
 
@@ -1121,6 +1150,11 @@ function shuffleDeck() {
         elements.startMbtiTestBtn.addEventListener('click', () => {
             playSound('button');
             startMbtiTest();
+        });
+        elements.mbtiResultScreen.proceedBtn.addEventListener('click', () => {
+            playSound('button');
+            shuffleDeck();
+            navigateTo('card-select-screen');
         });
         
         // 카드 선택

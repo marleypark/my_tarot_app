@@ -23,7 +23,7 @@ async function handler(request, response) {
       return response.status(400).json({ message: 'cardNames 배열이 필요합니다.' });
     }
 
-    const languageMap = { kor: 'Korean', eng: 'English', can: 'Cantonese', vi: 'Vietnamese', id: 'Indonesian', chn: 'Simplified Chinese', fr: 'French', es: 'Spanish' };
+    const languageMap = { kor: 'Korean', eng: 'English', can: 'Cantonese', vi: 'Vietnamese', id: 'Indonesian', chn: 'Simplified Chinese', fr: 'French', es: 'Spanish', hin: 'Hindi' };
     const targetLanguage = languageMap[language] || 'Korean';
 
     const prompt = `
@@ -32,7 +32,7 @@ You are a world-class psychological counselor who masterfully combines Tarot rea
 
 ### CONTEXT ###
 - User's Question: "${question || 'A general life reading without a specific question.'}"
-- User's MBTI Type: "${mbti || 'Not provided'}"
+- User's Yin-Yang MBTI Type: "${mbti || 'Not provided'}" (Note: A capital letter indicates a strong preference, a lowercase letter indicates a weak preference. For example, 'eNTp' means a weak Extrovert, strong iNtuitive, strong Thinker, and weak Perceiver. Use this nuanced information for a more personalized analysis.)
 - Drawn Cards: ${cardNames.join(', ')}
 - Target Language: ${targetLanguage}
 
