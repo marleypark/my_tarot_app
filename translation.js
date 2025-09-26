@@ -29,7 +29,7 @@ const UI_TEXTS = {
         skipButton: "건너뛰기",
         mbtiUnknownButton: "MBTI를 모른다면? 검사하기",
         selectCards: "4장의 카드를 선택하세요.",
-        interpreting: "해석을 불러오는 중입니다...",
+        interpreting: "당신의 운명을 불러오는 중...",
         individualCardsTitle: "개별 카드 해석",
         prevButton: "이전",
         pdfSaveButton: "PDF로 저장",

@@ -114,6 +114,27 @@ document.addEventListener('DOMContentLoaded', () => {
         currentResultIndex: 0,
         resultStage: 0,
         shufflePlaying: false,
+        cardRevealed: [],
+        summaryRevealed: false,
+        actionPlan: {
+            phases: [],
+            currentPhase: 0,
+            revealed: false,
+            initialized: false,
+            introRevealed: false,
+            navTimer: null,
+        },
+        typing: {
+            isRunning: false,
+            timer: null,
+            holdTimer: null,
+            element: null,
+            speed: 30,
+        },
+        loading: {
+            timer: null,
+            holdTimer: null,
+        },
         mbti: {
             answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 },
             currentQuestionIndex: 0,
@@ -218,9 +239,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // 앱 초기화
     function resetApp() {
         stopShuffleSound();
+        stopTypingEffect();
+        stopLoadingTyping();
         Object.assign(appState, {
             currentScreen: 'main-screen', userQuestion: '', userMBTI: '',
             selectedCards: [], deck: [], fullResultData: null, resultStage: 0, shufflePlaying: false,
+            cardRevealed: [],
+            summaryRevealed: false,
+            actionPlan: { phases: [], currentPhase: 0, revealed: false, initialized: false, introRevealed: false, navTimer: null },
+            typing: { isRunning: false, timer: null, holdTimer: null, element: null, speed: 30 },
+            loading: { timer: null, holdTimer: null },
             mbti: { answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 }, currentQuestionIndex: 0 }
         });
         elements.mbtiInput.value = '';
@@ -410,6 +438,7 @@ function shuffleDeck() {
         navigateTo('result-screen');
         elements.resultScreen.loadingSection.style.display = 'flex';
         elements.resultScreen.resultSections.style.display = 'none';
+        startLoadingTyping();
 
         try {
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
@@ -450,18 +479,20 @@ function shuffleDeck() {
                 errorMessage = '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.';
             }
             
-            elements.resultScreen.loadingSection.innerHTML = `
-                <div class="error-message">
-                    <h3>오류 발생</h3>
-                    <p>${errorMessage}</p>
-                    <button id="error-restart-btn-2">처음으로 돌아가기</button>
-                </div>
-            `;
-            document.getElementById('error-restart-btn-2').onclick = resetApp;
+        stopLoadingTyping();
+        elements.resultScreen.loadingSection.innerHTML = `
+            <div class="error-message">
+                <h3>오류 발생</h3>
+                <p>${errorMessage}</p>
+                <button id="error-restart-btn-2">처음으로 돌아가기</button>
+            </div>
+        `;
+        document.getElementById('error-restart-btn-2').onclick = resetApp;
         }
     }
 
     function renderResultScreen() {
+        stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
         elements.resultScreen.resultSections.style.display = 'block';
         if (elements.resultScreen.stageNav) {
@@ -472,7 +503,7 @@ function shuffleDeck() {
 
         // 총정리 렌더링
         elements.resultScreen.summaryTitle.textContent = overallReading.title;
-        elements.resultScreen.summaryText.textContent = overallReading.summary;
+        elements.resultScreen.summaryText.textContent = '';
         elements.resultScreen.summaryCardsDisplay.innerHTML = '';
         appState.selectedCards.forEach(cardIndex => {
             const img = document.createElement('img');
@@ -502,6 +533,7 @@ function shuffleDeck() {
         const totalStages = cardInterpretations.length + 2;
         const stage = appState.resultStage;
 
+        stopTypingEffect();
         elements.resultScreen.cardSection.style.display = 'none';
         elements.resultScreen.summarySection.style.display = 'none';
         elements.resultScreen.actionPlanSection.style.display = 'none';
@@ -512,34 +544,37 @@ function shuffleDeck() {
 
             elements.resultScreen.cardSection.style.display = 'block';
             elements.resultScreen.cardTitle.textContent = cardData.cardName;
-            elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
-            elements.resultScreen.interpretationText.textContent = cardData.interpretation;
-
+        elements.resultScreen.cardImage.src = tarotData[cardIndex].img;
             elements.resultScreen.keywordsArea.innerHTML = '';
-            if (cardData.keywords) {
-                const { positive, caution } = cardData.keywords;
-                let keywordsHtml = '';
-                if (positive?.length) {
-                    keywordsHtml += `<div class="keyword-group"><span class="keyword-title">긍정:</span>${positive.map(k => `<span class="keyword positive">${k}</span>`).join('')}</div>`;
-                }
-                if (caution?.length) {
-                    keywordsHtml += `<div class="keyword-group"><span class="keyword-title">주의:</span>${caution.map(k => `<span class="keyword negative">${k}</span>`).join('')}</div>`;
-                }
-                elements.resultScreen.keywordsArea.innerHTML = keywordsHtml;
-            }
+
+            const keywordsHtml = buildKeywordsHtml(cardData.keywords);
+            elements.resultScreen.keywordsArea.innerHTML = keywordsHtml;
+
+            prepareCardStage(stage, cardData.interpretation);
         } else if (stage === cardInterpretations.length) {
             elements.resultScreen.summarySection.style.display = 'block';
             elements.resultScreen.keywordsArea.innerHTML = '';
+
+            const summaryKeywords = buildKeywordsHtml(appState.fullResultData.overallReading.keywords);
+            const summaryKeywordsContainer = document.getElementById('summary-keywords');
+            if (summaryKeywordsContainer) {
+                summaryKeywordsContainer.innerHTML = summaryKeywords;
+            }
+
+            startTypingEffect(elements.resultScreen.summaryText, appState.fullResultData.overallReading.summary, () => {
+                revealStageButtons('summary');
+            });
         } else {
             elements.resultScreen.actionPlanSection.style.display = 'block';
             elements.resultScreen.keywordsArea.innerHTML = '';
+            renderActionPlanStages();
         }
 
         if (elements.resultScreen.stagePrevBtn) {
             elements.resultScreen.stagePrevBtn.style.display = stage === 0 ? 'none' : 'inline-flex';
         }
-        if (elements.resultScreen.stageNextBtn) {
-            elements.resultScreen.stageNextBtn.style.display = stage === totalStages - 1 ? 'none' : 'inline-flex';
+        if (elements.resultScreen.stageNextBtn && stage < cardInterpretations.length) {
+            elements.resultScreen.stageNextBtn.style.display = 'none';
         }
     }
 
@@ -553,6 +588,144 @@ function shuffleDeck() {
         updateResultStageContent();
     }
     
+    function startLoadingTyping() {
+        const textEl = document.getElementById('loading-typing-text');
+        if (!textEl) return;
+        const baseText = translationForKey('loadingLoopText', '당신의 운명을 불러오는 중...');
+        let index = 0;
+        stopLoadingTyping();
+        const typing = () => {
+            const current = baseText.substring(0, index + 1);
+            textEl.textContent = current;
+            index = (index + 1) % baseText.length;
+        };
+        appState.loading.timer = setInterval(typing, 120);
+        appState.loading.holdTimer = setInterval(() => {
+            textEl.textContent = baseText;
+        }, 4000);
+    }
+
+    function stopLoadingTyping() {
+        const textEl = document.getElementById('loading-typing-text');
+        if (appState.loading.timer) {
+            clearInterval(appState.loading.timer);
+            appState.loading.timer = null;
+        }
+        if (appState.loading.holdTimer) {
+            clearInterval(appState.loading.holdTimer);
+            appState.loading.holdTimer = null;
+        }
+        if (textEl) {
+            textEl.textContent = translationForKey('loadingLoopText', '당신의 운명을 불러오는 중...');
+        }
+    }
+
+    function startTypingEffect(element, fullText, onComplete) {
+        stopTypingEffect();
+        if (!element) return;
+        let index = 0;
+        element.textContent = '';
+        element.classList.add('typing-cursor');
+        appState.typing.element = element;
+        appState.typing.isRunning = true;
+
+        const type = () => {
+            if (index < fullText.length) {
+                element.textContent += fullText[index];
+                index++;
+            } else {
+                stopTypingEffect();
+                if (onComplete) onComplete();
+            }
+        };
+
+        appState.typing.timer = setInterval(type, appState.typing.speed);
+    }
+
+    function stopTypingEffect() {
+        if (appState.typing.timer) {
+            clearInterval(appState.typing.timer);
+            appState.typing.timer = null;
+        }
+        if (appState.typing.holdTimer) {
+            clearTimeout(appState.typing.holdTimer);
+            appState.typing.holdTimer = null;
+        }
+        appState.typing.isRunning = false;
+        if (appState.typing.element) {
+            appState.typing.element.classList.remove('typing-cursor');
+            appState.typing.element = null;
+        }
+    }
+
+    function prepareCardStage(stageIndex, text) {
+        const imageEl = elements.resultScreen.cardImage;
+        const titleEl = elements.resultScreen.cardTitle;
+        const hintEl = document.getElementById('card-touch-hint');
+        const cardTitleKey = translationForKey('cardStageTitleTemplate', '{num}번째 카드 해석');
+        const touchHint = translationForKey('cardTouchHint', '카드를 터치하세요');
+
+        const cardHeading = cardTitleKey.replace('{num}', stageIndex + 1);
+        const stageTitleEl = document.getElementById('card-stage-title');
+        if (stageTitleEl) stageTitleEl.textContent = cardHeading;
+
+        if (hintEl) {
+            hintEl.textContent = touchHint;
+            hintEl.style.opacity = 1;
+        }
+
+        imageEl.classList.remove('blur');
+        elements.resultScreen.interpretationText.textContent = '';
+        elements.resultScreen.interpretationText.classList.remove('typing-cursor');
+
+        const reveal = () => {
+            imageEl.classList.add('blur');
+            if (hintEl) hintEl.style.opacity = 0;
+            startTypingEffect(elements.resultScreen.interpretationText, text, () => {
+                setTimeout(() => revealStageButtons('card'), 5000);
+            });
+        };
+
+        imageEl.onclick = () => {
+            imageEl.onclick = null;
+            reveal();
+        };
+    }
+
+    function revealStageButtons(context) {
+        if (!elements.resultScreen.stageNextBtn) return;
+        const terms = UI_TEXTS[appState.language] || UI_TEXTS.kor;
+        if (context === 'card') {
+            const label = translationForKey('nextButton', '다음');
+            elements.resultScreen.stageNextBtn.textContent = label;
+        } else if (context === 'summary') {
+            const label = translationForKey('actionPlanButtonLabel', '현실 조언');
+            elements.resultScreen.stageNextBtn.textContent = label;
+        }
+        elements.resultScreen.stageNextBtn.style.display = 'inline-flex';
+        requestAnimationFrame(() => elements.resultScreen.stageNextBtn.classList.add('show'));
+    }
+
+    function buildKeywordsHtml(keywords) {
+        if (!keywords) return '';
+        let html = '';
+        if (keywords.positive?.length) {
+            html += `<div class="keyword-group"><span class="keyword-title">${translationForKey('keywordPositive', '긍정')}:</span>` +
+                keywords.positive.map(k => `<span class="keyword positive">${k}</span>`).join('') + '</div>';
+        }
+        if (keywords.caution?.length) {
+            html += `<div class="keyword-group"><span class="keyword-title">${translationForKey('keywordCaution', '주의')}:</span>` +
+                keywords.caution.map(k => `<span class="keyword negative">${k}</span>`).join('') + '</div>';
+        }
+        return html;
+    }
+
+    function translationForKey(key, fallback) {
+        const langPack = UI_TEXTS[appState.language];
+        if (!langPack) return fallback;
+        const value = getNestedTranslation(langPack, key);
+        return value || fallback;
+    }
     // 기타 유틸리티 함수
     function playSound(type) {
         const sound = elements.sounds[type];

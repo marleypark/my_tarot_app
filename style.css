@@ -249,6 +249,103 @@ body {
     border: 1px solid #e94560;
 }
 
+.card-image-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.card-image-wrapper img {
+    width: 120%;
+    max-width: 320px;
+    transition: transform 0.4s ease, filter 0.4s ease;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.card-image-wrapper img.blur {
+    filter: blur(6px) brightness(0.7);
+    transform: scale(1.02);
+}
+
+#card-touch-hint {
+    text-align: center;
+    font-size: 14px;
+    color: #9ea7ff;
+    margin-top: 10px;
+}
+
+.typing-cursor::after {
+    content: "|";
+    display: inline-block;
+    margin-left: 4px;
+    animation: blink 1s steps(2, start) infinite;
+    color: #a3b9ff;
+}
+
+@keyframes blink {
+    to { visibility: hidden; }
+}
+
+.stage-navigation {
+    display: none;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.stage-navigation button {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stage-navigation button.show {
+    opacity: 1;
+}
+
+.phase-navigation {
+    display: none;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.phase-navigation button {
+    flex: 1;
+    background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+    color: #301f00;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(242, 153, 74, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.phase-navigation button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(242, 153, 74, 0.45);
+}
+
+.phase-navigation button:disabled {
+    opacity: 0.4;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+.action-phase-container {
+    min-height: 280px;
+}
+
+.bold-highlight {
+    font-weight: 700;
+    color: #f7d794;
+    text-shadow: 0 0 12px rgba(247, 215, 148, 0.6);
+}
+
 /* 액션 플랜 스타일 */
 .phase {
     margin: 20px 0;
