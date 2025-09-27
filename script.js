@@ -198,6 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
             select: document.getElementById('select-sound'),
             button: document.getElementById('button-sound'),
             shuffle: document.getElementById('shuffle-sound'),
+            'card-select': document.getElementById('select-sound'),
+            typing: document.getElementById('typing-sound'),
         }
     };
     elements.resultScreen.errorContainer.className = 'error-message-container';
@@ -738,6 +740,14 @@ function shuffleDeck() {
         appState.typing.element = element;
         appState.typing.isRunning = true;
 
+        // 타이핑 사운드 시작
+        const typingSound = elements.sounds.typing;
+        if (typingSound) {
+            typingSound.currentTime = 0;
+            typingSound.loop = true;
+            typingSound.play().catch(e => console.error('typing sound play failed', e));
+        }
+
         const type = () => {
             if (index < fullText.length) {
                 element.textContent += fullText[index];
@@ -765,6 +775,14 @@ function shuffleDeck() {
             clearTimeout(appState.typing.holdTimer);
             appState.typing.holdTimer = null;
         }
+        
+        // 타이핑 사운드 중지
+        const typingSound = elements.sounds.typing;
+        if (typingSound) {
+            typingSound.pause();
+            typingSound.currentTime = 0;
+        }
+        
         appState.typing.isRunning = false;
         if (appState.typing.element) {
             appState.typing.element.classList.remove('typing-cursor');
@@ -793,21 +811,29 @@ function shuffleDeck() {
         overlayEl.classList.remove('show');
         overlayEl.innerHTML = '';
         
-        // 카드 클릭 이벤트 핸들러
-        const revealText = () => {
-            imageEl.classList.add('blur');
-            overlayEl.classList.add('show');
-            // innerHTML을 사용하여 줄바꿈(\n)을 <br>로 변환
-            const formattedText = text.replace(/\n/g, '<br>');
-            startTypingEffect(overlayEl, formattedText, () => {
-                 // 타이핑 완료 후 2초 뒤 버튼 표시
-                setTimeout(() => revealCardButtons(stageIndex), 2000);
-            });
-            // 한번 클릭하면 이벤트 리스너 제거
-            imageEl.onclick = null; 
+        // 카드/텍스트 토글 함수
+        const toggleCardText = () => {
+            if (overlayEl.classList.contains('show')) {
+                // 텍스트에서 카드로 전환
+                imageEl.classList.remove('blur');
+                overlayEl.classList.remove('show');
+            } else {
+                // 카드에서 텍스트로 전환 - 카드 클릭 사운드 재생
+                playSound('card-select');
+                imageEl.classList.add('blur');
+                overlayEl.classList.add('show');
+                // innerHTML을 사용하여 줄바꿈(\n)을 <br>로 변환
+                const formattedText = text.replace(/\n/g, '<br>');
+                startTypingEffect(overlayEl, formattedText, () => {
+                     // 타이핑 완료 후 2초 뒤 버튼 표시
+                    setTimeout(() => revealCardButtons(stageIndex), 2000);
+                });
+            }
         };
 
-        imageEl.onclick = revealText;
+        // 카드와 텍스트 모두에 클릭 이벤트 추가
+        imageEl.onclick = toggleCardText;
+        overlayEl.onclick = toggleCardText;
     }
 
     function revealCardButtons(stageIndex) {
