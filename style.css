@@ -770,6 +770,15 @@ body {
     right: 0;
     z-index: 1000;
 }
+
+/* 카드 중앙에 위치한 언어 스위처 */
+.lang-switcher-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
 .lang-button {
     background-color: #4a4a68;
     color: white;
@@ -781,8 +790,24 @@ body {
     position: relative;
     z-index: 1001;
 }
+
+/* 카드 중앙의 언어 버튼 스타일 */
+.lang-switcher-center .lang-button {
+    background-color: rgba(74, 74, 104, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    font-weight: bold;
+}
 .lang-button:hover {
     background-color: #3a3a52;
+}
+
+/* 카드 중앙의 언어 버튼 호버 효과 */
+.lang-switcher-center .lang-button:hover {
+    background-color: rgba(58, 58, 82, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 .lang-menu {
     position: absolute;
@@ -797,6 +822,18 @@ body {
     min-width: 140px;
     z-index: 1000;
     text-align: left;
+}
+
+/* 카드 중앙의 언어 메뉴 위치 조정 */
+.lang-switcher-center .lang-menu {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    background: rgba(42, 42, 68, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 .lang-menu.show {
     display: block;
@@ -813,6 +850,7 @@ body {
 /* 메인 화면 카드 크기 조정 (50% 축소) */
 #main-shuffle-area {
     padding: 20px 0;
+    position: relative;
 }
 
 #main-shuffle-area .card-back-static {
@@ -827,11 +865,6 @@ body {
 
 #main-shuffle-area .card-back-static:hover {
     transform: scale(1.05);
-}
-
-#main-shuffle-area p {
-    margin-top: 15px;
-    font-size: 14px;
 }
 
 /* 화면 전환 효과 - 중복 제거됨 */

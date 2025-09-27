@@ -12,22 +12,20 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- 언어 스위처 -->
-        <div class="lang-switcher">
-            <button class="lang-button" id="lang-button">Language</button>
-            <ul class="lang-menu" id="lang-menu">
-                <li data-lang="kor">KOR</li><li data-lang="eng">ENG</li><li data-lang="can">CAN</li>
-                <li data-lang="vi">VI</li><li data-lang="id">ID</li><li data-lang="chn">CHN</li>
-                <li data-lang="fr">FR</li><li data-lang="es">ES</li><li data-lang="hin">HIN</li>
-            </ul>
-        </div>
-
         <!-- 1. 메인 시작 화면 -->
         <div id="main-screen" class="screen">
             <h1 data-i18n-key="mainTitle">ASK ANYTHING</h1>
             <div id="main-shuffle-area">
                 <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">
-                <p data-i18n-key="mainSubtitle">카드를 클릭하여 시작하세요</p>
+                <!-- 언어 스위처를 카드 중앙으로 이동 -->
+                <div class="lang-switcher lang-switcher-center">
+                    <button class="lang-button" id="lang-button">Language</button>
+                    <ul class="lang-menu" id="lang-menu">
+                        <li data-lang="kor">KOR</li><li data-lang="eng">ENG</li><li data-lang="can">CAN</li>
+                        <li data-lang="vi">VI</li><li data-lang="id">ID</li><li data-lang="chn">CHN</li>
+                        <li data-lang="fr">FR</li><li data-lang="es">ES</li><li data-lang="hin">HIN</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
