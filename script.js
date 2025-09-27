@@ -1116,6 +1116,12 @@ function shuffleDeck() {
             e.stopPropagation();
             elements.fortuneMenu.classList.toggle('show');
         });
+        // 운세 선택 메뉴 바탕화면 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            if (!elements.fortuneSelectBtn.contains(e.target) && !elements.fortuneMenu.contains(e.target)) {
+                elements.fortuneMenu.classList.remove('show');
+            }
+        });
         elements.mindQuestionBtn.addEventListener('click', () => {
             playSound('button');
             appState.userQuestion = '';
