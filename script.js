@@ -705,6 +705,22 @@ function shuffleDeck() {
         const baseText = translationForKey('loadingLoopText', '당신의 운명을 불러오는 중...');
         let index = 0;
         stopLoadingTyping();
+        
+        // 타이핑 사운드 시작
+        const typingSound = elements.sounds.typing;
+        if (typingSound) {
+            console.log('Loading typing sound element found:', typingSound);
+            typingSound.currentTime = 0;
+            typingSound.loop = true;
+            typingSound.play().then(() => {
+                console.log('Loading typing sound started successfully');
+            }).catch(e => {
+                console.error('Loading typing sound play failed:', e);
+            });
+        } else {
+            console.error('Loading typing sound element not found');
+        }
+        
         const typing = () => {
             const current = baseText.substring(0, index + 1);
             textEl.textContent = current;
@@ -726,6 +742,14 @@ function shuffleDeck() {
             clearInterval(appState.loading.holdTimer);
             appState.loading.holdTimer = null;
         }
+        
+        // 타이핑 사운드 중지
+        const typingSound = elements.sounds.typing;
+        if (typingSound) {
+            typingSound.pause();
+            typingSound.currentTime = 0;
+        }
+        
         if (textEl) {
             textEl.textContent = translationForKey('loadingLoopText', '당신의 운명을 불러오는 중...');
         }
@@ -743,9 +767,16 @@ function shuffleDeck() {
         // 타이핑 사운드 시작
         const typingSound = elements.sounds.typing;
         if (typingSound) {
+            console.log('Typing sound element found:', typingSound);
             typingSound.currentTime = 0;
             typingSound.loop = true;
-            typingSound.play().catch(e => console.error('typing sound play failed', e));
+            typingSound.play().then(() => {
+                console.log('Typing sound started successfully');
+            }).catch(e => {
+                console.error('Typing sound play failed:', e);
+            });
+        } else {
+            console.error('Typing sound element not found');
         }
 
         const type = () => {
