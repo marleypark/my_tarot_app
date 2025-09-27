@@ -440,6 +440,19 @@ body {
     line-height: 1;
 }
 
+/* 타이핑 중 스킵 기능을 위한 스타일 */
+.typing-cursor {
+    cursor: pointer !important;
+    transition: all 0.2s ease;
+}
+
+.typing-cursor:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+}
+
 @keyframes cursor-blink {
     to { visibility: hidden; }
 }

@@ -779,6 +779,25 @@ function shuffleDeck() {
             console.error('Typing sound element not found');
         }
 
+        // 스킵 기능을 위한 클릭 이벤트 리스너
+        const skipTyping = () => {
+            if (appState.typing.isRunning) {
+                stopTypingEffect();
+                // 전체 텍스트를 즉시 표시
+                element.textContent = fullText;
+                element.classList.remove('typing-cursor');
+                if (onComplete) onComplete();
+            }
+        };
+
+        // 스킵 핸들러를 appState에 저장하여 나중에 제거할 수 있도록 함
+        appState.typing.skipHandler = skipTyping;
+
+        // 요소에 클릭 이벤트 추가
+        element.addEventListener('click', skipTyping);
+        element.style.cursor = 'pointer';
+        element.title = '클릭하여 전체 내용 보기';
+
         const type = () => {
             if (index < fullText.length) {
                 element.textContent += fullText[index];
@@ -817,6 +836,10 @@ function shuffleDeck() {
         appState.typing.isRunning = false;
         if (appState.typing.element) {
             appState.typing.element.classList.remove('typing-cursor');
+            appState.typing.element.style.cursor = 'default';
+            appState.typing.element.title = '';
+            // 클릭 이벤트 리스너 제거
+            appState.typing.element.removeEventListener('click', appState.typing.skipHandler);
             appState.typing.element = null;
         }
     }
