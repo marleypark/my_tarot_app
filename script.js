@@ -786,6 +786,10 @@ function shuffleDeck() {
                 // 전체 텍스트를 즉시 표시
                 element.textContent = fullText;
                 element.classList.remove('typing-cursor');
+                // 스킵 후 텍스트 영역 클릭 이벤트 제거 (토글 방지)
+                element.onclick = null;
+                element.style.cursor = 'default';
+                element.title = '';
                 if (onComplete) onComplete();
             }
         };
@@ -871,6 +875,8 @@ function shuffleDeck() {
                 // 텍스트에서 카드로 전환
                 imageEl.classList.remove('blur');
                 overlayEl.classList.remove('show');
+                // 텍스트 영역 클릭 이벤트 제거 (토글 방지)
+                overlayEl.onclick = null;
             } else {
                 // 카드에서 텍스트로 전환 - 카드 클릭 사운드 재생
                 playSound('card-select');
@@ -881,13 +887,14 @@ function shuffleDeck() {
                 startTypingEffect(overlayEl, formattedText, () => {
                      // 타이핑 완료 후 2초 뒤 버튼 표시
                     setTimeout(() => revealCardButtons(stageIndex), 2000);
+                    // 타이핑 완료 후 텍스트 영역 클릭 이벤트 제거 (토글 방지)
+                    overlayEl.onclick = null;
                 });
             }
         };
 
-        // 카드와 텍스트 모두에 클릭 이벤트 추가
+        // 카드에만 클릭 이벤트 추가 (텍스트 영역은 타이핑 중에만 클릭 가능)
         imageEl.onclick = toggleCardText;
-        overlayEl.onclick = toggleCardText;
     }
 
     function revealCardButtons(stageIndex) {
