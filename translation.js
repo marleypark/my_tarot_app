@@ -59,7 +59,7 @@ const UI_TEXTS = {
             health: "건강운",
             relationships: "인간관계운"
         },
-        loadingLoopText: "당신의 운명을 불러오는 중...",
+        loadingLoopText: "별의 흐름을 읽는 중",
         cardStageTitleTemplate: "{num}번째 카드 해석",
         cardTouchHint: "카드를 터치하세요",
         keywordPositive: "긍정",

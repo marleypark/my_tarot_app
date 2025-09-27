@@ -702,7 +702,7 @@ function shuffleDeck() {
     function startLoadingTyping() {
         const textEl = document.getElementById('loading-typing-text');
         if (!textEl) return;
-        const baseText = translationForKey('loadingLoopText', '당신의 운명을 불러오는 중...');
+        const baseText = translationForKey('loadingLoopText', '별의 흐름을 읽는 중');
         let index = 0;
         stopLoadingTyping();
         
@@ -723,12 +723,15 @@ function shuffleDeck() {
         
         const typing = () => {
             const current = baseText.substring(0, index + 1);
-            textEl.textContent = current;
+            // 점 세 개를 깜빡이는 효과로 추가
+            const dots = '<span class="loading-dots">...</span>';
+            textEl.innerHTML = current + dots;
             index = (index + 1) % baseText.length;
         };
-        appState.loading.timer = setInterval(typing, 120);
+        appState.loading.timer = setInterval(typing, 150);
         appState.loading.holdTimer = setInterval(() => {
-            textEl.textContent = baseText;
+            const dots = '<span class="loading-dots">...</span>';
+            textEl.innerHTML = baseText + dots;
         }, 4000);
     }
 
@@ -751,7 +754,8 @@ function shuffleDeck() {
         }
         
         if (textEl) {
-            textEl.textContent = translationForKey('loadingLoopText', '당신의 운명을 불러오는 중...');
+            const dots = '<span class="loading-dots">...</span>';
+            textEl.innerHTML = translationForKey('loadingLoopText', '별의 흐름을 읽는 중') + dots;
         }
     }
 
