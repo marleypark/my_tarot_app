@@ -539,21 +539,11 @@ function shuffleDeck() {
         stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
         elements.resultScreen.resultSections.style.display = 'block';
-        if (elements.resultScreen.stageNav) {
-            elements.resultScreen.stageNav.style.display = 'flex';
-        }
-        
-        // 초기에는 PDF 버튼과 처음으로 버튼 숨기기
-        const pdfSaveBtn = elements.resultScreen.pdfSaveBtn;
-        const bottomNavigation = document.querySelector('.bottom-navigation');
-        if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
-        if (bottomNavigation) bottomNavigation.style.display = 'none';
 
-        const { cardInterpretations, overallReading } = appState.fullResultData;
+        const { overallReading } = appState.fullResultData;
 
-        // 총정리 렌더링
+        // 총정리 데이터 미리 채우기
         elements.resultScreen.summaryTitle.textContent = overallReading.title;
-        elements.resultScreen.summaryText.textContent = '';
         elements.resultScreen.summaryCardsDisplay.innerHTML = '';
         appState.selectedCards.forEach(cardIndex => {
             const cardContainer = document.createElement('div');
@@ -571,20 +561,7 @@ function shuffleDeck() {
             elements.resultScreen.summaryCardsDisplay.appendChild(cardContainer);
         });
 
-        // 액션 플랜 렌더링
-        const plan = overallReading.mbtiActionPlan;
-        elements.resultScreen.actionPlanTitle.textContent = plan.title;
-        elements.resultScreen.actionPlanIntro.textContent = plan.introduction;
-        elements.resultScreen.actionPlanPhases.innerHTML = '';
-        plan.phases.forEach(phase => {
-            const phaseHtml = `
-                <div class="phase">
-                    <h4 class="phase-title">${phase.phaseTitle}</h4>
-                    <ul class="phase-steps">${phase.steps.map(step => `<li>${step}</li>`).join('')}</ul>
-                </div>`;
-            elements.resultScreen.actionPlanPhases.innerHTML += phaseHtml;
-        });
-
+        // 첫 번째 스테이지(개별 카드 1)부터 시작
         updateResultStageContent();
     }
 
@@ -592,39 +569,33 @@ function shuffleDeck() {
         const { cardInterpretations, overallReading } = appState.fullResultData;
         const stage = appState.resultStage;
 
-        // 타이핑 효과 중지 및 모든 섹션/네비게이션 기본 숨김 처리
         stopTypingEffect();
+        // 모든 섹션과 네비게이션 버튼을 초기에 숨김
         elements.resultScreen.cardSection.style.display = 'none';
         elements.resultScreen.summarySection.style.display = 'none';
         elements.resultScreen.actionPlanSection.style.display = 'none';
-        elements.resultScreen.stageNav.style.display = 'none'; // 하단 '이전/다음' 버튼 그룹 숨김
+        elements.resultScreen.stageNav.style.display = 'none';
+        document.querySelector('.bottom-navigation').style.display = 'none';
 
         if (stage < cardInterpretations.length) {
             // --- 1. 개별 카드 해석 단계 ---
             elements.resultScreen.cardSection.style.display = 'block';
             prepareCardStage(stage, cardInterpretations[stage].interpretation);
-
         } else if (stage === cardInterpretations.length) {
             // --- 2. 총정리 단계 ---
             elements.resultScreen.summarySection.style.display = 'block';
-
-            const summaryKeywords = buildKeywordsHtml(overallReading.keywords);
             const summaryKeywordsContainer = document.getElementById('summary-keywords');
             if (summaryKeywordsContainer) {
-                summaryKeywordsContainer.innerHTML = summaryKeywords;
+                summaryKeywordsContainer.innerHTML = buildKeywordsHtml(overallReading.keywords);
             }
-
             startTypingEffect(elements.resultScreen.summaryText, overallReading.summary, () => {
-                // ▼▼▼ 수정된 부분 ▼▼▼
-                // 타이핑이 끝나면 '이전', '현실 조언' 버튼을 표시합니다.
-                revealStageButtons('summary');
-                // ▲▲▲ 여기까지 ▲▲▲
+                revealStageButtons('summary'); // 타이핑 완료 후 버튼 표시
             });
-
         } else {
             // --- 3. 액션 플랜 단계 ---
             elements.resultScreen.actionPlanSection.style.display = 'block';
             renderActionPlanStages();
+            document.querySelector('.bottom-navigation').style.display = 'flex'; // PDF/처음으로 버튼 표시
         }
     }
 
@@ -808,91 +779,35 @@ function shuffleDeck() {
         const cardIndex = appState.selectedCards[stageIndex];
         const cardName = getLocalizedCardNameByIndex(cardIndex, appState.language);
         
-        // 제목 형식 변경: "1번째 카드: 완드 2" 형식
-        const cardHeading = `${stageIndex + 1}번째 카드: ${cardName}`;
+        // 제목 설정
         const stageTitleEl = document.getElementById('card-stage-title');
-        if (stageTitleEl) {
-            stageTitleEl.textContent = cardHeading;
-            stageTitleEl.style.wordBreak = 'keep-all';
-            stageTitleEl.style.whiteSpace = 'normal';
-        }
+        stageTitleEl.textContent = `${stageIndex + 1}번째 카드: ${cardName}`;
 
-        // 카드 상태 추적 (각 스테이지별로)
-        if (!appState.cardStates) appState.cardStates = {};
-        const cardState = appState.cardStates[stageIndex] || { isRevealed: false, isTypingComplete: false };
+        // 키워드 설정
+        elements.resultScreen.keywordsArea.innerHTML = buildKeywordsHtml(cardData.keywords);
 
-        // 초기 상태 설정
-        if (imageEl) {
-            imageEl.classList.remove('blur');
-        }
-        if (overlayEl) {
-            overlayEl.textContent = '';
-            overlayEl.classList.remove('show');
-        }
-
-        // 카드/텍스트 토글 함수
-        const toggleCardText = () => {
-            if (cardState.isRevealed) {
-                // 텍스트에서 카드로 전환
-                if (imageEl) {
-                    imageEl.classList.remove('blur');
-                }
-                if (overlayEl) {
-                    overlayEl.classList.remove('show');
-                }
-                cardState.isRevealed = false;
-            } else {
-                // 카드에서 텍스트로 전환
-                if (imageEl) {
-                    imageEl.classList.add('blur');
-                }
-                if (overlayEl) {
-                    overlayEl.classList.add('show');
-                    if (cardState.isTypingComplete) {
-                        // 이미 타이핑이 완료된 경우 즉시 텍스트 표시
-                        overlayEl.innerHTML = text;
-                        overlayEl.style.overflowY = 'auto';
-                        overlayEl.style.webkitOverflowScrolling = 'touch';
-                    } else {
-                        // 처음 타이핑하는 경우
-                        startTypingEffect(overlayEl, text, () => {
-                            overlayEl.style.overflowY = 'auto';
-                            overlayEl.style.webkitOverflowScrolling = 'touch';
-                            cardState.isTypingComplete = true;
-                            setTimeout(() => revealCardButtons(stageIndex), 2000);
-                        });
-                    }
-                }
-                cardState.isRevealed = true;
-            }
+        // 카드 상태 초기화 및 표시
+        imageEl.src = tarotData[cardIndex].img; // 이미지 소스 설정
+        imageEl.style.display = 'block'; // 이미지가 보이도록 함
+        imageEl.classList.remove('blur');
+        overlayEl.classList.remove('show');
+        overlayEl.innerHTML = '';
+        
+        // 카드 클릭 이벤트 핸들러
+        const revealText = () => {
+            imageEl.classList.add('blur');
+            overlayEl.classList.add('show');
+            // innerHTML을 사용하여 줄바꿈(\n)을 <br>로 변환
+            const formattedText = text.replace(/\n/g, '<br>');
+            startTypingEffect(overlayEl, formattedText, () => {
+                 // 타이핑 완료 후 2초 뒤 버튼 표시
+                setTimeout(() => revealCardButtons(stageIndex), 2000);
+            });
+            // 한번 클릭하면 이벤트 리스너 제거
+            imageEl.onclick = null; 
         };
 
-        // 이미 해석이 완료된 카드인 경우 즉시 텍스트 표시
-        if (cardState.isTypingComplete) {
-            if (imageEl) {
-                imageEl.classList.add('blur');
-            }
-            if (overlayEl) {
-                overlayEl.classList.add('show');
-                overlayEl.innerHTML = text;
-                overlayEl.style.overflowY = 'auto';
-                overlayEl.style.webkitOverflowScrolling = 'touch';
-            }
-            cardState.isRevealed = true;
-            // 버튼도 즉시 표시
-            setTimeout(() => revealCardButtons(stageIndex), 100);
-        }
-
-        // 이벤트 리스너 설정
-        if (imageEl) {
-            imageEl.onclick = toggleCardText;
-        }
-        if (overlayEl) {
-            overlayEl.onclick = toggleCardText;
-        }
-
-        // 상태 저장
-        appState.cardStates[stageIndex] = cardState;
+        imageEl.onclick = revealText;
     }
 
     function revealCardButtons(stageIndex) {
@@ -913,29 +828,20 @@ function shuffleDeck() {
     }
 
     function revealStageButtons(context) {
+        const stageNav = elements.resultScreen.stageNav;
         const prevBtn = elements.resultScreen.stagePrevBtn;
         const nextBtn = elements.resultScreen.stageNextBtn;
-        
+
         if (context === 'summary') {
-            // 총정리 화면에서는 이전 버튼과 현실조언 버튼 표시
-            if (prevBtn) {
-                prevBtn.style.display = 'inline-flex';
-                prevBtn.classList.add('show');
-            }
-            if (nextBtn) {
-                nextBtn.style.display = 'inline-flex';
-                nextBtn.classList.add('show');
-                // '다음' 버튼의 텍스트를 '현실 조언'으로 변경
-                nextBtn.textContent = translationForKey('actionPlanButtonLabel', '현실 조언');
-            }
-        } else {
-            // 다른 화면에서는 버튼 숨김
-            if (prevBtn) {
-                prevBtn.style.display = 'none';
-            }
-            if (nextBtn) {
-                nextBtn.style.display = 'none';
-            }
+            stageNav.style.display = 'flex'; // 버튼 그룹을 보이게 함
+            
+            prevBtn.style.display = 'inline-flex';
+            prevBtn.classList.add('show');
+            prevBtn.textContent = translationForKey('backButton', '이전');
+
+            nextBtn.style.display = 'inline-flex';
+            nextBtn.classList.add('show');
+            nextBtn.textContent = translationForKey('actionPlanButtonLabel', '현실 조언');
         }
     }
 
