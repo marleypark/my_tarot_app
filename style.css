@@ -192,48 +192,133 @@ body {
     display: none; /* 스피너를 숨깁니다 */
 }
 
-/* 로딩 섹션 - 만다라 로딩 */
+/* 로딩 섹션 - 블랙홀 로딩 */
 #loading-section {
     width: 100%;
     height: 100vh;
     position: relative;
     overflow: hidden;
-    background: radial-gradient(circle at center, #0d0d0f, #1a1a1f);
+    background: #1a1a2e; /* 기존 dark blue 배경과 동일 */
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
-/* 만다라 SVG */
-#mandala-svg {
-    width: 300px;
-    height: 300px;
-    stroke: #f8f8f2;
-    fill: none;
-    stroke-width: 2;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: draw 8s linear forwards;
-    filter: drop-shadow(0 0 10px #fff);
+/* 안으로 빨려들어가는 파동 */
+.ripple-inward {
+    position: absolute;
+    border: 2px solid rgba(180,100,255,0.2);
+    border-radius: 50%;
+    animation: shrink 3s infinite linear;
 }
 
-@keyframes draw {
-    to {
-        stroke-dashoffset: 0;
+@keyframes shrink {
+    0% { 
+        width: 800px; 
+        height: 800px; 
+        opacity: 0;
+        transform: scale(1);
+    }
+    10% {
+        opacity: 0.3;
+    }
+    90% {
+        opacity: 0.8;
+    }
+    100% { 
+        width: 0; 
+        height: 0; 
+        opacity: 0;
+        transform: scale(0);
     }
 }
 
-/* 만다라 글로우 효과 */
-#mandala-svg.glow {
-    animation: glowPulse 2s ease-in-out infinite;
+/* 여러 레이어로 깊이감 표현 */
+.ripple-inward:nth-child(1) {
+    border-color: rgba(180,100,255,0.3);
+    animation-delay: 0s;
 }
 
-@keyframes glowPulse {
-    0%, 100% { 
-        filter: drop-shadow(0 0 5px #fff); 
+.ripple-inward:nth-child(2) {
+    border-color: rgba(100,200,255,0.3);
+    animation-delay: 0.5s;
+}
+
+.ripple-inward:nth-child(3) {
+    border-color: rgba(255,100,200,0.3);
+    animation-delay: 1s;
+}
+
+.ripple-inward:nth-child(4) {
+    border-color: rgba(180,255,100,0.3);
+    animation-delay: 1.5s;
+}
+
+.ripple-inward:nth-child(5) {
+    border-color: rgba(255,180,100,0.3);
+    animation-delay: 2s;
+}
+
+.ripple-inward:nth-child(6) {
+    border-color: rgba(180,100,255,0.3);
+    animation-delay: 2.5s;
+}
+
+/* 중앙 블랙홀 효과 */
+.center-void {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle at center, 
+        rgba(0,0,0,0.9) 0%, 
+        rgba(10,10,31,0.8) 40%,
+        transparent 70%);
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 0 30px rgba(0,0,0,0.9),
+        0 0 50px rgba(180,100,255,0.5);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* 회전하는 나선 효과 */
+.spiral-container {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    animation: rotate 10s infinite linear;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spiral-line {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 1px solid transparent;
+    border-top-color: rgba(180,100,255,0.2);
+    border-radius: 50%;
+    animation: shrink-spiral 3s infinite linear;
+}
+
+@keyframes shrink-spiral {
+    0% { 
+        transform: scale(1.5);
+        opacity: 0;
     }
-    50% { 
-        filter: drop-shadow(0 0 20px #ffdd88); 
+    10% {
+        opacity: 0.5;
+    }
+    100% { 
+        transform: scale(0);
+        opacity: 0;
     }
 }
 

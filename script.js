@@ -705,12 +705,70 @@ function shuffleDeck() {
     }
 
     function startMandalaAnimation() {
-        const mandalaSvg = document.getElementById('mandala-svg');
-        if (!mandalaSvg) return;
+        startBlackholeAnimation();
+    }
 
-        // 8초 후 글로우 효과 추가
+    function startBlackholeAnimation() {
+        // 파티클 효과 시작
+        startParticleEffect();
+    }
+
+    function startParticleEffect() {
+        // 파티클 효과 추가
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.position = 'absolute';
+            particle.style.width = '3px';
+            particle.style.height = '3px';
+            particle.style.background = 'rgba(180,100,255,0.8)';
+            particle.style.borderRadius = '50%';
+            particle.style.pointerEvents = 'none';
+            
+            // 화면 가장자리에서 시작
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 400;
+            const startX = Math.cos(angle) * distance;
+            const startY = Math.sin(angle) * distance;
+            
+            particle.style.left = `calc(50% + ${startX}px)`;
+            particle.style.top = `calc(50% + ${startY}px)`;
+            particle.style.transform = 'translate(-50%, -50%)';
+            
+            const loadingSection = document.getElementById('loading-section');
+            if (loadingSection) {
+                loadingSection.appendChild(particle);
+                
+                // 중앙으로 빨려들어가는 애니메이션
+                particle.animate([
+                    { 
+                        transform: `translate(${startX}px, ${startY}px) scale(1)`,
+                        opacity: 0
+                    },
+                    {
+                        transform: `translate(${startX * 0.5}px, ${startY * 0.5}px) scale(0.8)`,
+                        opacity: 1
+                    },
+                    { 
+                        transform: 'translate(0, 0) scale(0)',
+                        opacity: 0
+                    }
+                ], {
+                    duration: 2000,
+                    easing: 'ease-in'
+                }).onfinish = () => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                };
+            }
+        }
+        
+        // 지속적으로 파티클 생성
+        const particleInterval = setInterval(createParticle, 100);
+        
+        // 8초 후 파티클 효과 중지
         setTimeout(() => {
-            mandalaSvg.classList.add('glow');
+            clearInterval(particleInterval);
         }, 8000);
     }
 
