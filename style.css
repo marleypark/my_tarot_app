@@ -1256,7 +1256,7 @@ button:hover {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 40px; /* 20px에서 40px로 증가 (약 2cm) */
+    margin-top: 80px; /* 40px에서 80px로 증가 (약 3cm 추가) */
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     position: relative;
