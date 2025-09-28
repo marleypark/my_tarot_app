@@ -701,145 +701,17 @@ function shuffleDeck() {
     
     function startLoadingTyping() {
         stopLoadingTyping();
-        startCometAnimation();
+        startMandalaAnimation();
     }
 
-    function startCometAnimation() {
-        const canvas = document.getElementById('comet-canvas');
-        if (!canvas) return;
-        
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+    function startMandalaAnimation() {
+        const mandalaSvg = document.getElementById('mandala-svg');
+        if (!mandalaSvg) return;
 
-        const w = canvas.width;
-        const h = canvas.height;
-
-        // ⭐ 별자리 배경
-        const stars = [];
-        for (let i = 0; i < 200; i++) {
-            stars.push({
-                x: Math.random() * w,
-                y: Math.random() * h,
-                r: Math.random() * 1.5,
-                opacity: Math.random()
-            });
-        }
-
-        // ☄️ 혜성
-        const comet = {
-            x: Math.random() < 0.5 ? -100 : w + 100, // 왼쪽/오른쪽 랜덤 시작
-            y: Math.random() * h,
-            targetX: w / 2,
-            targetY: h / 2,
-            size: 6,
-            progress: 0 // 0 ~ 1
-        };
-
-        const duration = 8000; // 8초간 이동
-        const startTime = Date.now();
-
-        // 사운드 효과 시작
-        playCometSounds();
-
-        function drawStars() {
-            for (let star of stars) {
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255,255,255,${star.opacity})`;
-                ctx.fill();
-                star.opacity += (Math.random() - 0.5) * 0.05;
-                if (star.opacity < 0) star.opacity = 0;
-                if (star.opacity > 1) star.opacity = 1;
-            }
-        }
-
-        function drawComet() {
-            const elapsed = Date.now() - startTime;
-            comet.progress = Math.min(elapsed / duration, 1);
-
-            comet.x = (1 - comet.progress) * comet.x + comet.progress * comet.targetX;
-            comet.y = (1 - comet.progress) * comet.y + comet.progress * comet.targetY;
-
-            // 꼬리 그리기
-            const gradient = ctx.createRadialGradient(
-                comet.x, comet.y, 0,
-                comet.x, comet.y, 100
-            );
-            gradient.addColorStop(0, "rgba(255,255,255,0.8)");
-            gradient.addColorStop(1, "rgba(255,255,255,0)");
-
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(comet.x, comet.y, 100, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 혜성 본체
-            ctx.beginPath();
-            ctx.arc(comet.x, comet.y, comet.size + comet.progress * 10, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.shadowBlur = 30;
-            ctx.shadowColor = "white";
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // 도착하면 화면 플래시 효과
-            if (comet.progress === 1) {
-                setTimeout(() => {
-                    showArrivalFlash();
-                }, 500);
-            }
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, w, h);
-            drawStars();
-            drawComet();
-            requestAnimationFrame(animate);
-        }
-
-        animate();
-    }
-
-    function playCometSounds() {
-        // 배경 앰비언트 사운드 (cosmic.mp3)
-        const cosmicSound = new Audio('sounds/cosmic.mp3');
-        cosmicSound.volume = 0.15; // 15% 볼륨
-        cosmicSound.loop = true;
-        cosmicSound.play().catch(e => console.error('Cosmic sound play failed:', e));
-
-        // 혜성 이동 사운드 (whoosh.mp3) - 중간에 재생
+        // 8초 후 글로우 효과 추가
         setTimeout(() => {
-            const whooshSound = new Audio('sounds/whoosh.mp3');
-            whooshSound.volume = 0.3;
-            whooshSound.play().catch(e => console.error('Whoosh sound play failed:', e));
-        }, 3000);
-
-        // 도착 임팩트 사운드 (singingbowl.mp3) - 7.5초 후
-        setTimeout(() => {
-            const impactSound = new Audio('sounds/singingbowl.mp3');
-            impactSound.volume = 0.6;
-            impactSound.play().catch(e => console.error('Impact sound play failed:', e));
-        }, 7500);
-    }
-
-    function showArrivalFlash() {
-        // 화면 플래시 효과
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.background = 'rgba(255, 255, 255, 0.8)';
-        flash.style.zIndex = '9999';
-        flash.style.animation = 'flashEffect 0.5s ease-out';
-        
-        document.body.appendChild(flash);
-        
-        setTimeout(() => {
-            document.body.removeChild(flash);
-        }, 500);
+            mandalaSvg.classList.add('glow');
+        }, 8000);
     }
 
     function stopLoadingTyping() {
@@ -858,13 +730,6 @@ function shuffleDeck() {
         if (typingSound) {
             typingSound.pause();
             typingSound.currentTime = 0;
-        }
-        
-        // 혜성 애니메이션 정리
-        const canvas = document.getElementById('comet-canvas');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
     }
 
@@ -1380,7 +1245,29 @@ function shuffleDeck() {
         }
     }
 
+    // 배경음악 초기화
+    function initBackgroundMusic() {
+        // handpan 배경음악 설정
+        const handpanSound = new Audio('sounds/handpan.mp3');
+        handpanSound.volume = 0.5; // 50% 볼륨
+        handpanSound.loop = true;
+        
+        // 사용자 상호작용 후 배경음악 시작 (브라우저 정책)
+        const startBackgroundMusic = () => {
+            handpanSound.play().catch(e => console.error('Handpan background music play failed:', e));
+        };
+        
+        // 첫 번째 사용자 상호작용 시 배경음악 시작
+        document.addEventListener('click', startBackgroundMusic, { once: true });
+        document.addEventListener('touchstart', startBackgroundMusic, { once: true });
+        document.addEventListener('keydown', startBackgroundMusic, { once: true });
+        
+        // 앱 상태에 배경음악 저장
+        appState.backgroundMusic = handpanSound;
+    }
+
     // --- 앱 시작 ---
     initEventListeners();
+    initBackgroundMusic();
     resetApp(); 
 });

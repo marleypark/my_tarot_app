@@ -192,74 +192,48 @@ body {
     display: none; /* 스피너를 숨깁니다 */
 }
 
-/* 로딩 섹션 - 혜성 로딩 */
+/* 로딩 섹션 - 만다라 로딩 */
 #loading-section {
     width: 100%;
     height: 100vh;
     position: relative;
     overflow: hidden;
-    background: #000;
+    background: radial-gradient(circle at center, #0d0d0f, #1a1a1f);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* 혜성 캔버스 */
-#comet-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+/* 만다라 SVG */
+#mandala-svg {
+    width: 300px;
+    height: 300px;
+    stroke: #f8f8f2;
+    fill: none;
+    stroke-width: 2;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw 8s linear forwards;
+    filter: drop-shadow(0 0 10px #fff);
 }
 
-/* 로딩 콘텐츠 */
-.loading-content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-/* 혜성 로딩 텍스트 */
-.comet-loading-text {
-    font-size: 24px;
-    color: #fff;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-    font-weight: 300;
-    letter-spacing: 2px;
-    animation: cometTextGlow 2s ease-in-out infinite alternate;
-    text-align: center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-}
-
-@keyframes cometTextGlow {
-    0% {
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-        transform: scale(1);
-    }
-    100% {
-        text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 40px rgba(100, 200, 255, 0.6);
-        transform: scale(1.02);
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
     }
 }
 
-/* 플래시 효과 */
-@keyframes flashEffect {
-    0% {
-        opacity: 0;
+/* 만다라 글로우 효과 */
+#mandala-svg.glow {
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 5px #fff); 
     }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
+    50% { 
+        filter: drop-shadow(0 0 20px #ffdd88); 
     }
 }
 
