@@ -714,46 +714,46 @@ function shuffleDeck() {
     }
 
     function startParticleEffect() {
-        // 파티클 효과 추가
-        function createParticle() {
+        // 나선형 파티클 효과
+        function createSpiralParticle() {
             const particle = document.createElement('div');
             particle.style.position = 'absolute';
-            particle.style.width = '3px';
-            particle.style.height = '3px';
-            particle.style.background = 'rgba(180,100,255,0.8)';
+            particle.style.width = '4px';
+            particle.style.height = '4px';
+            particle.style.background = 'rgba(180,100,255,0.6)';
             particle.style.borderRadius = '50%';
-            particle.style.pointerEvents = 'none';
+            particle.style.boxShadow = '0 0 6px rgba(180,100,255,0.8)';
             
             // 화면 가장자리에서 시작
             const angle = Math.random() * Math.PI * 2;
-            const distance = 400;
-            const startX = Math.cos(angle) * distance;
-            const startY = Math.sin(angle) * distance;
+            const distance = 350;
             
-            particle.style.left = `calc(50% + ${startX}px)`;
-            particle.style.top = `calc(50% + ${startY}px)`;
-            particle.style.transform = 'translate(-50%, -50%)';
+            particle.style.left = '50%';
+            particle.style.top = '50%';
             
             const loadingSection = document.getElementById('loading-section');
             if (loadingSection) {
                 loadingSection.appendChild(particle);
                 
-                // 중앙으로 빨려들어가는 애니메이션
-                particle.animate([
-                    { 
-                        transform: `translate(${startX}px, ${startY}px) scale(1)`,
-                        opacity: 0
-                    },
-                    {
-                        transform: `translate(${startX * 0.5}px, ${startY * 0.5}px) scale(0.8)`,
-                        opacity: 1
-                    },
-                    { 
-                        transform: 'translate(0, 0) scale(0)',
-                        opacity: 0
-                    }
-                ], {
-                    duration: 2000,
+                // 나선형으로 중앙으로 빨려들어가는 애니메이션
+                const keyframes = [];
+                const steps = 50;
+                
+                for(let i = 0; i <= steps; i++) {
+                    const progress = i / steps;
+                    const currentRadius = distance * (1 - progress);
+                    const currentAngle = angle + (progress * Math.PI * 0.4); // 0.2바퀴 회전
+                    const x = Math.cos(currentAngle) * currentRadius;
+                    const y = Math.sin(currentAngle) * currentRadius;
+                    
+                    keyframes.push({
+                        transform: `translate(${x}px, ${y}px) scale(${1 - progress * 0.8})`,
+                        opacity: i === 0 ? 0 : (i === steps ? 0 : 0.8)
+                    });
+                }
+                
+                particle.animate(keyframes, {
+                    duration: 2500,
                     easing: 'ease-in'
                 }).onfinish = () => {
                     if (particle.parentNode) {
@@ -764,7 +764,7 @@ function shuffleDeck() {
         }
         
         // 지속적으로 파티클 생성
-        const particleInterval = setInterval(createParticle, 100);
+        const particleInterval = setInterval(createSpiralParticle, 150);
         
         // 8초 후 파티클 효과 중지
         setTimeout(() => {
@@ -1307,8 +1307,31 @@ function shuffleDeck() {
     function initBackgroundMusic() {
         // handpan 배경음악 설정
         const handpanSound = new Audio('sounds/handpan.mp3');
+        const handpan2Sound = new Audio('sounds/handpan2.mp3');
+        
         handpanSound.volume = 0.5; // 50% 볼륨
-        handpanSound.loop = true;
+        handpan2Sound.volume = 0.5; // 50% 볼륨
+        
+        let currentTrack = 1; // 1: handpan, 2: handpan2
+        
+        // 트랙이 끝나면 다음 트랙 재생
+        const playNextTrack = () => {
+            if (currentTrack === 1) {
+                // handpan이 끝나면 handpan2 재생
+                handpan2Sound.play().catch(e => console.error('Handpan2 play failed:', e));
+                currentTrack = 2;
+            } else {
+                // handpan2가 끝나면 handpan 재생
+                handpanSound.play().catch(e => console.error('Handpan play failed:', e));
+                currentTrack = 1;
+            }
+        };
+        
+        // handpan이 끝나면 다음 트랙 재생
+        handpanSound.addEventListener('ended', playNextTrack);
+        
+        // handpan2가 끝나면 다음 트랙 재생
+        handpan2Sound.addEventListener('ended', playNextTrack);
         
         // 사용자 상호작용 후 배경음악 시작 (브라우저 정책)
         const startBackgroundMusic = () => {
@@ -1321,7 +1344,7 @@ function shuffleDeck() {
         document.addEventListener('keydown', startBackgroundMusic, { once: true });
         
         // 앱 상태에 배경음악 저장
-        appState.backgroundMusic = handpanSound;
+        appState.backgroundMusic = { handpan: handpanSound, handpan2: handpan2Sound };
     }
 
     // --- 앱 시작 ---

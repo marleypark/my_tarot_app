@@ -285,41 +285,37 @@ body {
     50% { transform: scale(1.1); }
 }
 
-/* 회전하는 나선 효과 */
-.spiral-container {
+/* 나선형 궤적 효과 */
+.spiral-trail {
     position: absolute;
     width: 600px;
     height: 600px;
-    animation: rotate 10s infinite linear;
+    animation: spiral-in 3s infinite linear;
 }
 
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes spiral-in {
+    0% { 
+        transform: scale(1.2) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.3;
+    }
+    100% { 
+        transform: scale(0) rotate(72deg);
+        opacity: 0;
+    }
 }
 
-.spiral-line {
+.spiral-trail::before {
+    content: '';
     position: absolute;
     width: 100%;
     height: 100%;
     border: 1px solid transparent;
-    border-top-color: rgba(180,100,255,0.2);
+    border-right-color: rgba(180,100,255,0.2);
+    border-bottom-color: rgba(180,100,255,0.1);
     border-radius: 50%;
-    animation: shrink-spiral 3s infinite linear;
-}
-
-@keyframes shrink-spiral {
-    0% { 
-        transform: scale(1.5);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.5;
-    }
-    100% { 
-        transform: scale(0);
-        opacity: 0;
-    }
 }
 
 @keyframes spin {
