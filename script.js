@@ -439,44 +439,105 @@ function shuffleDeck() {
         return result;
     }
 
-    // 카드 선택 로직
+    // 카드 선택 로직 - 새로운 디자인
     function renderCardSelectScreen() {
-        if (!appState.shufflePlaying && appState.selectedCards.length < CONFIG.CARDS_TO_PICK) {
-            startShuffleSound();
-        }
-        const cardsLeft = CONFIG.CARDS_TO_PICK - appState.selectedCards.length;
-        elements.cardSelectScreen.cardsLeftText.textContent = `${cardsLeft} cards left.`;
-        if (elements.cardSelectScreen.shuffleStatus) {
-            if (appState.shufflePlaying) {
-                elements.cardSelectScreen.shuffleStatus.textContent = tShuffleStatus('playing');
-            } else if (appState.selectedCards.length === CONFIG.CARDS_TO_PICK) {
-                elements.cardSelectScreen.shuffleStatus.textContent = tShuffleStatus('completed');
-            } else {
-                elements.cardSelectScreen.shuffleStatus.textContent = '';
+        const cardContainer = document.getElementById('card-container');
+        const counterElement = document.getElementById('counter');
+        const shuffleStatus = document.getElementById('shuffle-status');
+        const mainTitle = document.getElementById('main-title');
+        
+        // 기존 카드들 제거
+        cardContainer.innerHTML = '';
+        
+        // 슬롯 초기화
+        const slots = [
+            document.getElementById('slot1'),
+            document.getElementById('slot2'),
+            document.getElementById('slot3'),
+            document.getElementById('slot4')
+        ];
+        slots.forEach(slot => {
+            slot.classList.remove('filled');
+            slot.innerHTML = '';
+        });
+        
+        const cardCount = 15;
+        let selectedCards = 0;
+        const maxSelection = 4;
+        
+        // 카운터 업데이트
+        function updateCounter() {
+            const left = maxSelection - selectedCards;
+            counterElement.textContent = `${left} cards left.`;
+            if (left === 0) {
+                mainTitle.textContent = '선택이 완료되었습니다.';
+                // 2초 후 다음 단계로 진행
+                setTimeout(() => {
+                    fetchFullReading();
+                }, 2000);
             }
         }
+        
+        // 카드 선택 처리
+        function handleCardClick(card, cardIndex) {
+            if (selectedCards < maxSelection && !card.classList.contains("chosen")) {
+                const slot = slots[selectedCards];
+                selectedCards++;
+                updateCounter();
+                
+                // 슬롯에 카드 이동 애니메이션
+                const rectSlot = slot.getBoundingClientRect();
+                const rectContainer = cardContainer.getBoundingClientRect();
+                
+                const targetLeft = rectSlot.left - rectContainer.left;
+                const targetTop = rectSlot.top - rectContainer.top;
+                
+                card.style.left = targetLeft + "px";
+                card.style.top = targetTop + "px";
+                card.style.transform = "rotate(0deg)";
+                card.classList.add("chosen");
+                card.style.zIndex = 300;
+                
+                // 슬롯 상태 업데이트
+                slot.classList.add('filled');
+                slot.appendChild(card);
+                
+                // 선택된 카드 정보 저장
+                appState.selectedCards.push(cardIndex);
+                
+                // 사운드 재생
+                playSound('card-select');
+            }
+        }
+        
+        // 셔플 상태 표시 후 카드 생성
+        setTimeout(() => {
+            if (shuffleStatus) {
+                shuffleStatus.style.opacity = '0';
+            }
+            
+            // 카드들 생성 및 배치
+            for (let i = 0; i < cardCount; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                cardContainer.appendChild(card);
+                
+                const angle = (i - (cardCount - 1) / 2) * 8;
+                const yOffset = -50;
+                
+                setTimeout(() => {
+                    card.style.transform = `rotate(${angle}deg) translateY(${yOffset}px)`;
+                }, i * 60);
+                
+                card.addEventListener('click', () => handleCardClick(card, i));
+            }
+        }, 1500);
+        
+        // 초기 카운터 설정
+        updateCounter();
     }
     
-    function selectCard() {
-        if (appState.selectedCards.length >= CONFIG.CARDS_TO_PICK) return;
-        if (!appState.shufflePlaying) {
-            startShuffleSound();
-        }
-        playSound('select');
-        const cardIndex = appState.deck.pop();
-        appState.selectedCards.push(cardIndex);
-
-        const img = document.createElement('img');
-        img.src = tarotData[cardIndex].img;
-        elements.cardSelectScreen.previewArea.appendChild(img);
-        
-        render();
-
-        if (appState.selectedCards.length === CONFIG.CARDS_TO_PICK) {
-            stopShuffleSound();
-            setTimeout(fetchFullReading, 1000);
-        }
-    }
+    // 기존 selectCard 함수는 새로운 renderCardSelectScreen에서 처리됨
     
     // API 호출 (에러 처리 강화)
     async function fetchFullReading() {
@@ -1248,8 +1309,7 @@ function shuffleDeck() {
             }
         });
         
-        // 카드 선택
-        elements.cardSelectScreen.shuffleArea.addEventListener('click', selectCard);
+        // 카드 선택은 새로운 renderCardSelectScreen에서 처리됨
 
         elements.resultScreen.stagePrevBtn.addEventListener('click', () => {
             playSound('button');
