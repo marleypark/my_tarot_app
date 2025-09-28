@@ -64,7 +64,8 @@ const UI_TEXTS = {
         cardTouchHint: "카드를 터치하세요",
         keywordPositive: "긍정",
         keywordCaution: "주의",
-        actionPlanButtonLabel: "현실 조언"
+        actionPlanButtonLabel: "현실 조언",
+        reshuffleButton: "다시 셔플"
     },
     eng: {
         mainTitle: "ASK ANYTHING",
@@ -111,7 +112,8 @@ const UI_TEXTS = {
             money: "Money Fortune",
             health: "Health Fortune",
             relationships: "Relationship Fortune"
-        }
+        },
+        reshuffleButton: "Reshuffle"
     },
     can: {
         mainTitle: "ASK ANYTHING",

@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             shuffleArea: document.getElementById('shuffle-animation-area'),
             previewArea: document.getElementById('selected-cards-preview'),
             shuffleStatus: document.getElementById('shuffle-status'),
+            reshuffleBtn: document.getElementById('reshuffle-btn'),
         },
         resultScreen: {
             loadingSection: document.getElementById('loading-section'),
@@ -541,6 +542,45 @@ function shuffleDeck() {
         updateCounter();
     }
     
+    // 다시 셔플 기능
+    function reshuffleCards() {
+        playSound('button');
+        
+        // 선택된 카드 초기화
+        appState.selectedCards = [];
+        
+        // 카드 컨테이너 초기화
+        const cardContainer = document.getElementById('card-container');
+        if (cardContainer) {
+            cardContainer.innerHTML = '';
+        }
+        
+        // 카운터 업데이트
+        const counterElement = document.getElementById('counter');
+        if (counterElement) {
+            counterElement.textContent = '4 cards left.';
+        }
+        
+        // 셔플 상태 표시
+        const shuffleStatus = document.getElementById('shuffle-status');
+        if (shuffleStatus) {
+            shuffleStatus.textContent = '카드를 다시 섞는 중...';
+            shuffleStatus.style.display = 'block';
+        }
+        
+        // 셔플 사운드 재생
+        playSound('shuffle');
+        
+        // 셔플 애니메이션 시작
+        startShuffleAnimation();
+        
+        // 2초 후 카드 재배치
+        setTimeout(() => {
+            stopShuffleAnimation();
+            initializeCardSelect();
+        }, 2000);
+    }
+
     // 기존 selectCard 함수는 새로운 renderCardSelectScreen에서 처리됨
     
     // API 호출 (에러 처리 강화)
@@ -1409,6 +1449,11 @@ function shuffleDeck() {
         
         // 앱 상태에 배경음악 저장
         appState.backgroundMusic = { handpan: handpanSound, handpan2: handpan2Sound };
+        
+        // 다시 셔플 버튼
+        if (elements.cardSelectScreen.reshuffleBtn) {
+            elements.cardSelectScreen.reshuffleBtn.addEventListener('click', reshuffleCards);
+        }
     }
 
     // --- 앱 시작 ---
