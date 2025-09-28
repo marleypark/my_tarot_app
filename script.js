@@ -700,43 +700,150 @@ function shuffleDeck() {
     }
     
     function startLoadingTyping() {
-        const textEl = document.getElementById('loading-typing-text');
-        if (!textEl) return;
-        const baseText = translationForKey('loadingLoopText', '별의 흐름을 읽는 중');
-        let index = 0;
         stopLoadingTyping();
+        startCometAnimation();
+    }
+
+    function startCometAnimation() {
+        const canvas = document.getElementById('comet-canvas');
+        if (!canvas) return;
         
-        // 타이핑 사운드 시작
-        const typingSound = elements.sounds.typing;
-        if (typingSound) {
-            console.log('Loading typing sound element found:', typingSound);
-            typingSound.currentTime = 0;
-            typingSound.loop = true;
-            typingSound.play().then(() => {
-                console.log('Loading typing sound started successfully');
-            }).catch(e => {
-                console.error('Loading typing sound play failed:', e);
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // ⭐ 별자리 배경
+        const stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: Math.random() * 1.5,
+                opacity: Math.random()
             });
-        } else {
-            console.error('Loading typing sound element not found');
         }
-        
-        const typing = () => {
-            const current = baseText.substring(0, index + 1);
-            // 점 세 개를 깜빡이는 효과로 추가
-            const dots = '<span class="loading-dots">...</span>';
-            textEl.innerHTML = current + dots;
-            index = (index + 1) % baseText.length;
+
+        // ☄️ 혜성
+        const comet = {
+            x: Math.random() < 0.5 ? -100 : w + 100, // 왼쪽/오른쪽 랜덤 시작
+            y: Math.random() * h,
+            targetX: w / 2,
+            targetY: h / 2,
+            size: 6,
+            progress: 0 // 0 ~ 1
         };
-        appState.loading.timer = setInterval(typing, 150);
-        appState.loading.holdTimer = setInterval(() => {
-            const dots = '<span class="loading-dots">...</span>';
-            textEl.innerHTML = baseText + dots;
-        }, 4000);
+
+        const duration = 8000; // 8초간 이동
+        const startTime = Date.now();
+
+        // 사운드 효과 시작
+        playCometSounds();
+
+        function drawStars() {
+            for (let star of stars) {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${star.opacity})`;
+                ctx.fill();
+                star.opacity += (Math.random() - 0.5) * 0.05;
+                if (star.opacity < 0) star.opacity = 0;
+                if (star.opacity > 1) star.opacity = 1;
+            }
+        }
+
+        function drawComet() {
+            const elapsed = Date.now() - startTime;
+            comet.progress = Math.min(elapsed / duration, 1);
+
+            comet.x = (1 - comet.progress) * comet.x + comet.progress * comet.targetX;
+            comet.y = (1 - comet.progress) * comet.y + comet.progress * comet.targetY;
+
+            // 꼬리 그리기
+            const gradient = ctx.createRadialGradient(
+                comet.x, comet.y, 0,
+                comet.x, comet.y, 100
+            );
+            gradient.addColorStop(0, "rgba(255,255,255,0.8)");
+            gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(comet.x, comet.y, 100, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 혜성 본체
+            ctx.beginPath();
+            ctx.arc(comet.x, comet.y, comet.size + comet.progress * 10, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = "white";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // 도착하면 화면 플래시 효과
+            if (comet.progress === 1) {
+                setTimeout(() => {
+                    showArrivalFlash();
+                }, 500);
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, w, h);
+            drawStars();
+            drawComet();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    }
+
+    function playCometSounds() {
+        // 배경 앰비언트 사운드 (cosmic.mp3)
+        const cosmicSound = new Audio('sounds/cosmic.mp3');
+        cosmicSound.volume = 0.15; // 15% 볼륨
+        cosmicSound.loop = true;
+        cosmicSound.play().catch(e => console.error('Cosmic sound play failed:', e));
+
+        // 혜성 이동 사운드 (whoosh.mp3) - 중간에 재생
+        setTimeout(() => {
+            const whooshSound = new Audio('sounds/whoosh.mp3');
+            whooshSound.volume = 0.3;
+            whooshSound.play().catch(e => console.error('Whoosh sound play failed:', e));
+        }, 3000);
+
+        // 도착 임팩트 사운드 (singingbowl.mp3) - 7.5초 후
+        setTimeout(() => {
+            const impactSound = new Audio('sounds/singingbowl.mp3');
+            impactSound.volume = 0.6;
+            impactSound.play().catch(e => console.error('Impact sound play failed:', e));
+        }, 7500);
+    }
+
+    function showArrivalFlash() {
+        // 화면 플래시 효과
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.top = '0';
+        flash.style.left = '0';
+        flash.style.width = '100%';
+        flash.style.height = '100%';
+        flash.style.background = 'rgba(255, 255, 255, 0.8)';
+        flash.style.zIndex = '9999';
+        flash.style.animation = 'flashEffect 0.5s ease-out';
+        
+        document.body.appendChild(flash);
+        
+        setTimeout(() => {
+            document.body.removeChild(flash);
+        }, 500);
     }
 
     function stopLoadingTyping() {
-        const textEl = document.getElementById('loading-typing-text');
+        // 기존 타이핑 관련 타이머 정리
         if (appState.loading.timer) {
             clearInterval(appState.loading.timer);
             appState.loading.timer = null;
@@ -746,16 +853,18 @@ function shuffleDeck() {
             appState.loading.holdTimer = null;
         }
         
-        // 타이핑 사운드 중지
+        // 기존 타이핑 사운드 중지
         const typingSound = elements.sounds.typing;
         if (typingSound) {
             typingSound.pause();
             typingSound.currentTime = 0;
         }
         
-        if (textEl) {
-            const dots = '<span class="loading-dots">...</span>';
-            textEl.innerHTML = translationForKey('loadingLoopText', '별의 흐름을 읽는 중') + dots;
+        // 혜성 애니메이션 정리
+        const canvas = document.getElementById('comet-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
     }
 

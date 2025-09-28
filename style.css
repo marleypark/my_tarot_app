@@ -192,126 +192,26 @@ body {
     display: none; /* 스피너를 숨깁니다 */
 }
 
-/* 로딩 섹션 중앙 정렬 */
+/* 로딩 섹션 - 혜성 로딩 */
 #loading-section {
     width: 100%;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 50vh;
+    height: 100vh;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 별이 흐르는 배경 */
-.stars-background {
+/* 혜성 캔버스 */
+#comet-canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
     z-index: 1;
-}
-
-.star {
-    position: absolute;
-    background: white;
-    border-radius: 50%;
-    animation: starFlow 8s linear infinite;
-    opacity: 0.8;
-}
-
-.star-1 {
-    width: 2px;
-    height: 2px;
-    top: 20%;
-    left: 10%;
-    animation-delay: 0s;
-    animation-duration: 12s;
-}
-
-.star-2 {
-    width: 1px;
-    height: 1px;
-    top: 30%;
-    left: 20%;
-    animation-delay: 2s;
-    animation-duration: 10s;
-}
-
-.star-3 {
-    width: 3px;
-    height: 3px;
-    top: 40%;
-    left: 30%;
-    animation-delay: 4s;
-    animation-duration: 14s;
-}
-
-.star-4 {
-    width: 1.5px;
-    height: 1.5px;
-    top: 50%;
-    left: 40%;
-    animation-delay: 1s;
-    animation-duration: 11s;
-}
-
-.star-5 {
-    width: 2.5px;
-    height: 2.5px;
-    top: 60%;
-    left: 50%;
-    animation-delay: 3s;
-    animation-duration: 13s;
-}
-
-.star-6 {
-    width: 1px;
-    height: 1px;
-    top: 70%;
-    left: 60%;
-    animation-delay: 5s;
-    animation-duration: 9s;
-}
-
-.star-7 {
-    width: 2px;
-    height: 2px;
-    top: 80%;
-    left: 70%;
-    animation-delay: 2.5s;
-    animation-duration: 12s;
-}
-
-.star-8 {
-    width: 1.5px;
-    height: 1.5px;
-    top: 90%;
-    left: 80%;
-    animation-delay: 4.5s;
-    animation-duration: 10s;
-}
-
-@keyframes starFlow {
-    0% {
-        transform: translateX(-100px) translateY(0px);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.8;
-    }
-    90% {
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateX(calc(100vw + 100px)) translateY(-50px);
-        opacity: 0;
-    }
 }
 
 /* 로딩 콘텐츠 */
@@ -324,34 +224,35 @@ body {
     justify-content: center;
 }
 
-/* 로딩 텍스트 스타일 */
-#loading-typing-text {
+/* 혜성 로딩 텍스트 */
+.comet-loading-text {
     font-size: 24px;
-    color: #e0e0e0;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    margin-top: 20px;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
     font-weight: 300;
     letter-spacing: 2px;
-    animation: textGlow 2s ease-in-out infinite alternate;
+    animation: cometTextGlow 2s ease-in-out infinite alternate;
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
 }
 
-@keyframes textGlow {
+@keyframes cometTextGlow {
     0% {
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        transform: scale(1);
     }
     100% {
-        text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(102, 126, 234, 0.4);
+        text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 40px rgba(100, 200, 255, 0.6);
+        transform: scale(1.02);
     }
 }
 
-/* 점 세 개 깜빡이는 효과 */
-.loading-dots {
-    display: inline-block;
-    animation: dotsBlink 1.5s infinite;
-}
-
-@keyframes dotsBlink {
-    0%, 20% {
+/* 플래시 효과 */
+@keyframes flashEffect {
+    0% {
         opacity: 0;
     }
     50% {
