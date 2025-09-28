@@ -1248,6 +1248,13 @@ button:hover {
 }
 
 .reshuffle-button {
+    /* 핵심 수정 사항 */
+    position: absolute; /* Flexbox 정렬에서 벗어나 자유롭게 위치 지정 */
+    bottom: 25%;      /* 화면 하단에서 25% 위치 (이 값을 조절해 높이 변경) */
+    left: 50%;        /* 왼쪽에서 50% 위치 */
+    transform: translateX(-50%); /* 정확한 중앙 정렬을 위한 트릭 */
+
+    /* 기존 스타일은 유지 */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
@@ -1256,20 +1263,18 @@ button:hover {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 80px; /* 40px에서 80px로 증가 (약 3cm 추가) */
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    position: relative;
-    z-index: 10; /* 카드들보다 위에 표시되도록 z-index 추가 */
+    z-index: 10; /* z-index는 그대로 유지하는 것이 좋습니다 */
 }
 
 .reshuffle-button:hover {
-    transform: translateY(-2px);
+    transform: translateX(-50%) translateY(-2px); /* transform을 합쳐서 관리 */
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .reshuffle-button:active {
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
 }
 
 /* 선택된 카드 미리보기 (기존 기능 유지) */
