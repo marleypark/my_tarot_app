@@ -477,69 +477,105 @@ function shuffleDeck() {
         let selectedCards = 0;
         const maxSelection = 4;
         
-        // 카운터 업데이트
-        function updateCounter() {
-            const left = maxSelection - selectedCards;
-            counterElement.textContent = `${left} cards left.`;
-            if (left === 0) {
-                mainTitle.textContent = '선택이 완료되었습니다.';
-                // 2초 후 다음 단계로 진행
-                setTimeout(() => {
-                    fetchFullReading();
-                }, 2000);
-            }
-        }
+        // 카운터 업데이트는 별도 함수로 이동됨
         
-        // 카드 선택 처리
-        function handleCardClick(card, cardIndex) {
-            if (selectedCards < maxSelection && !card.classList.contains("chosen")) {
-                selectedCards++;
-                updateCounter();
-                
-                // 카드 선택 애니메이션 (페이드 아웃)
-                card.style.transition = "all 0.5s ease";
-                card.style.opacity = "0";
-                card.style.transform = "scale(0.8)";
-                card.classList.add("chosen");
-                
-                // 선택된 카드 정보 저장
-                appState.selectedCards.push(cardIndex);
-                
-                // 사운드 재생
-                playSound('card-select');
-                
-                // 카드 완전히 숨기기
-                setTimeout(() => {
-                    card.style.display = "none";
-                }, 500);
-            }
-        }
+        // 카드 선택 처리는 별도 함수로 이동됨
         
         // 셔플 상태 표시 후 카드 생성
         setTimeout(() => {
             if (shuffleStatus) {
                 shuffleStatus.style.opacity = '0';
             }
-            
-            // 카드들 생성 및 배치
-            for (let i = 0; i < cardCount; i++) {
-                const card = document.createElement('div');
-                card.className = 'card';
-                cardContainer.appendChild(card);
-                
-                const angle = (i - (cardCount - 1) / 2) * 8;
-                const yOffset = -50;
-                
-                setTimeout(() => {
-                    card.style.transform = `rotate(${angle}deg) translateY(${yOffset}px)`;
-                }, i * 60);
-                
-                card.addEventListener('click', () => handleCardClick(card, i));
-            }
+            createCards();
         }, 1500);
         
         // 초기 카운터 설정
-        updateCounter();
+        updateCardCounter();
+    }
+    
+    // 카드 생성 함수 (재사용 가능)
+    function createCards() {
+        const cardContainer = document.getElementById('card-container');
+        const shuffleStatus = document.getElementById('shuffle-status');
+        
+        if (!cardContainer) return;
+        
+        // 기존 카드들 제거
+        cardContainer.innerHTML = '';
+        
+        const cardCount = 15;
+        
+        // 카드들 생성 및 배치
+        for (let i = 0; i < cardCount; i++) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            cardContainer.appendChild(card);
+            
+            const angle = (i - (cardCount - 1) / 2) * 8;
+            const yOffset = -50;
+            
+            setTimeout(() => {
+                card.style.transform = `rotate(${angle}deg) translateY(${yOffset}px)`;
+            }, i * 60);
+            
+            card.addEventListener('click', () => handleCardClick(card, i));
+        }
+        
+        // 셔플 상태 숨기기
+        if (shuffleStatus) {
+            shuffleStatus.style.opacity = '0';
+        }
+    }
+    
+    // 카드 클릭 처리 함수 (재사용 가능)
+    function handleCardClick(card, cardIndex) {
+        const maxSelection = 4;
+        const selectedCards = appState.selectedCards.length;
+        
+        if (selectedCards < maxSelection && !card.classList.contains("chosen")) {
+            // 카드 선택 애니메이션 (페이드 아웃)
+            card.style.transition = "all 0.5s ease";
+            card.style.opacity = "0";
+            card.style.transform = "scale(0.8)";
+            card.classList.add("chosen");
+            
+            // 선택된 카드 정보 저장
+            appState.selectedCards.push(cardIndex);
+            
+            // 사운드 재생
+            playSound('select');
+            
+            // 카드 완전히 숨기기
+            setTimeout(() => {
+                card.style.display = "none";
+            }, 500);
+            
+            // 카운터 업데이트
+            updateCardCounter();
+            
+            // 4장 모두 선택되면 자동으로 다음 단계로
+            if (appState.selectedCards.length === maxSelection) {
+                setTimeout(() => {
+                    fetchFullReading();
+                }, 2000);
+            }
+        }
+    }
+    
+    // 카운터 업데이트 함수 (재사용 가능)
+    function updateCardCounter() {
+        const counterElement = document.getElementById('counter');
+        const mainTitle = document.getElementById('main-title');
+        const maxSelection = 4;
+        const left = maxSelection - appState.selectedCards.length;
+        
+        if (counterElement) {
+            counterElement.textContent = `${left} cards left.`;
+        }
+        
+        if (left === 0 && mainTitle) {
+            mainTitle.textContent = '선택이 완료되었습니다.';
+        }
     }
     
     // 다시 셔플 기능
@@ -577,7 +613,8 @@ function shuffleDeck() {
         // 2초 후 카드 재배치
         setTimeout(() => {
             stopShuffleAnimation();
-            initializeCardSelect();
+            // 카드 생성 로직 직접 실행
+            createCards();
         }, 2000);
     }
 
