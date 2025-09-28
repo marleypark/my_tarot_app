@@ -14,12 +14,19 @@ body {
 
 /* 새로운 리팩토링된 스타일 */
 .screen {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 80vh;
-    padding: 20px;
+    
+    /* 핵심 수정 사항 */
+    min-height: 100vh; /* 화면 전체 높이를 사용하도록 변경 */
+    box-sizing: border-box; /* 패딩이 높이에 포함되도록 설정 */
+    padding-bottom: 15vh; /* 화면 하단에 15%의 여백을 추가하여 콘텐츠를 위로 밀어냄 */
+    
+    /* 기존 속성은 유지 */
+    padding-left: 20px;
+    padding-right: 20px;
     animation: fadeIn 0.5s;
 }
 
