@@ -441,10 +441,27 @@ function shuffleDeck() {
 
     // 카드 선택 로직 - 새로운 디자인
     function renderCardSelectScreen() {
+        // DOM이 완전히 로드된 후 실행되도록 보장
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeCardSelect();
+            });
+        } else {
+            initializeCardSelect();
+        }
+    }
+    
+    function initializeCardSelect() {
         const cardContainer = document.getElementById('card-container');
         const counterElement = document.getElementById('counter');
         const shuffleStatus = document.getElementById('shuffle-status');
         const mainTitle = document.getElementById('main-title');
+        
+        // 요소들이 존재하는지 확인
+        if (!cardContainer || !counterElement || !shuffleStatus || !mainTitle) {
+            console.error('Required elements not found');
+            return;
+        }
         
         // 기존 카드들 제거
         cardContainer.innerHTML = '';
@@ -456,6 +473,13 @@ function shuffleDeck() {
             document.getElementById('slot3'),
             document.getElementById('slot4')
         ];
+        
+        // 슬롯들이 모두 존재하는지 확인
+        if (slots.some(slot => !slot)) {
+            console.error('Some slots not found');
+            return;
+        }
+        
         slots.forEach(slot => {
             slot.classList.remove('filled');
             slot.innerHTML = '';
