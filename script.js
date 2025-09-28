@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         elements.mbtiInput.value = '';
         elements.questionInput.value = '';
-        elements.cardSelectScreen.previewArea.innerHTML = '';
+        // cardSelectScreen의 previewArea는 존재하지 않으므로 제거
         render();
     }
 
