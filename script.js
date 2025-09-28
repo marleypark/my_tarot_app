@@ -458,38 +458,37 @@ function shuffleDeck() {
     
     function initializeCardSelect() {
         const cardContainer = document.getElementById('card-container');
-        const counterElement = document.getElementById('counter');
         const shuffleStatus = document.getElementById('shuffle-status');
-        const mainTitle = document.getElementById('main-title');
         
-        // 요소들이 존재하는지 확인
-        if (!cardContainer || !counterElement || !shuffleStatus || !mainTitle) {
-            console.error('Required elements not found');
+        if (!cardContainer || !shuffleStatus) {
+            console.error('카드 선택 화면의 필수 요소가 없습니다.');
             return;
         }
         
-        // 기존 카드들 제거
+        // 이전에 있던 카드들을 모두 지웁니다.
         cardContainer.innerHTML = '';
         
-        // 슬롯 관련 코드 제거 (더 이상 사용하지 않음)
-        
-        const cardCount = 15;
-        let selectedCards = 0;
-        const maxSelection = 4;
-        
-        // 카운터 업데이트는 별도 함수로 이동됨
-        
-        // 카드 선택 처리는 별도 함수로 이동됨
-        
-        // 셔플 상태 표시 후 카드 생성
+        // 상태 텍스트를 "카드를 섞는 중..."으로 설정하고 보이게 합니다.
+        shuffleStatus.textContent = UI_TEXTS[appState.language]?.shuffleStatus?.playing || '카드를 섞는 중...';
+        shuffleStatus.style.opacity = '1';
+
+        // 셔플 사운드를 재생합니다.
+        playSound('shuffle');
+
+        // 1.5초 동안 셔플 애니메이션을 보여준 후 카드를 펼칩니다.
         setTimeout(() => {
+            // 셔플 사운드를 멈춥니다.
+            stopShuffleSound(); // 셔플 사운드를 멈추는 함수를 호출합니다 (아래에 추가됨).
+
+            // 상태 텍스트를 숨깁니다.
             if (shuffleStatus) {
                 shuffleStatus.style.opacity = '0';
             }
+            // 새로운 카드를 부채꼴 모양으로 생성합니다.
             createCards();
         }, 1500);
         
-        // 초기 카운터 설정
+        // 현재 선택된 카드 수에 맞춰 카운터를 업데이트합니다.
         updateCardCounter();
     }
     
@@ -578,44 +577,53 @@ function shuffleDeck() {
         }
     }
     
-    // 다시 셔플 기능
     function reshuffleCards() {
         playSound('button');
-        
-        // 선택된 카드 초기화
-        appState.selectedCards = [];
-        
-        // 카드 컨테이너 초기화
+        playSound('shuffle');
+
+        // [핵심 UX 개선] 이전에 선택한 카드는 그대로 유지합니다.
+        // appState.selectedCards = []; // 이 라인을 제거하거나 주석 처리합니다.
+
         const cardContainer = document.getElementById('card-container');
+        const shuffleStatus = document.getElementById('shuffle-status');
+        const mainTitle = document.getElementById('main-title');
+
+        // 현재 펼쳐져 있는 부채꼴 카드들만 시각적으로 제거합니다.
         if (cardContainer) {
             cardContainer.innerHTML = '';
         }
+
+        // "다시 셔플" 후에도 남은 카드 수를 정확히 표시하도록 카운터를 업데이트합니다.
+        updateCardCounter();
         
-        // 카운터 업데이트
-        const counterElement = document.getElementById('counter');
-        if (counterElement) {
-            counterElement.textContent = '4 cards left.';
+        // 제목을 기본 상태로 되돌립니다.
+        if (mainTitle) {
+            mainTitle.textContent = UI_TEXTS[appState.language]?.selectCards || '4장의 카드를 선택하세요.';
         }
         
-        // 셔플 상태 표시
-        const shuffleStatus = document.getElementById('shuffle-status');
+        // 상태 텍스트를 "카드를 다시 섞는 중..."으로 설정하고 보이게 합니다.
         if (shuffleStatus) {
-            shuffleStatus.textContent = '카드를 다시 섞는 중...';
-            shuffleStatus.style.display = 'block';
+            shuffleStatus.textContent = UI_TEXTS[appState.language]?.shuffleStatus?.playing || '카드를 다시 섞는 중...';
+            shuffleStatus.style.opacity = '1';
         }
-        
-        // 셔플 사운드 재생
-        playSound('shuffle');
-        
-        // 셔플 애니메이션 시작
-        startShuffleAnimation();
-        
-        // 2초 후 카드 재배치
+
+        // 1.5초 동안 '섞는 중' 메시지를 보여준 후, 새로운 카드를 생성합니다.
         setTimeout(() => {
-            stopShuffleAnimation();
-            // 카드 생성 로직 직접 실행
-            createCards();
-        }, 2000);
+            stopShuffleSound(); // 셔플 사운드를 멈춥니다.
+            if (shuffleStatus) {
+                shuffleStatus.style.opacity = '0';
+            }
+            createCards(); // 새로운 카드들을 부채꼴로 펼치는 함수 호출
+        }, 1500);
+    }
+
+    // 셔플 사운드를 멈추기 위한 stopShuffleSound 함수가 필요합니다.
+    function stopShuffleSound() {
+        const shuffleSound = elements.sounds.shuffle;
+        if (shuffleSound) {
+            shuffleSound.pause();
+            shuffleSound.currentTime = 0;
+        }
     }
 
     // 기존 selectCard 함수는 새로운 renderCardSelectScreen에서 처리됨
