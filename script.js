@@ -470,24 +470,7 @@ function shuffleDeck() {
         // 기존 카드들 제거
         cardContainer.innerHTML = '';
         
-        // 슬롯 초기화
-        const slots = [
-            document.getElementById('slot1'),
-            document.getElementById('slot2'),
-            document.getElementById('slot3'),
-            document.getElementById('slot4')
-        ];
-        
-        // 슬롯들이 모두 존재하는지 확인
-        if (slots.some(slot => !slot)) {
-            console.error('Some slots not found');
-            return;
-        }
-        
-        slots.forEach(slot => {
-            slot.classList.remove('filled');
-            slot.innerHTML = '';
-        });
+        // 슬롯 관련 코드 제거 (더 이상 사용하지 않음)
         
         const cardCount = 15;
         let selectedCards = 0;
@@ -509,32 +492,25 @@ function shuffleDeck() {
         // 카드 선택 처리
         function handleCardClick(card, cardIndex) {
             if (selectedCards < maxSelection && !card.classList.contains("chosen")) {
-                const slot = slots[selectedCards];
                 selectedCards++;
                 updateCounter();
                 
-                // 슬롯에 카드 이동 애니메이션
-                const rectSlot = slot.getBoundingClientRect();
-                const rectContainer = cardContainer.getBoundingClientRect();
-                
-                const targetLeft = rectSlot.left - rectContainer.left;
-                const targetTop = rectSlot.top - rectContainer.top;
-                
-                card.style.left = targetLeft + "px";
-                card.style.top = targetTop + "px";
-                card.style.transform = "rotate(0deg)";
+                // 카드 선택 애니메이션 (페이드 아웃)
+                card.style.transition = "all 0.5s ease";
+                card.style.opacity = "0";
+                card.style.transform = "scale(0.8)";
                 card.classList.add("chosen");
-                card.style.zIndex = 300;
-                
-                // 슬롯 상태 업데이트
-                slot.classList.add('filled');
-                slot.appendChild(card);
                 
                 // 선택된 카드 정보 저장
                 appState.selectedCards.push(cardIndex);
                 
                 // 사운드 재생
                 playSound('card-select');
+                
+                // 카드 완전히 숨기기
+                setTimeout(() => {
+                    card.style.display = "none";
+                }, 500);
             }
         }
         
