@@ -1209,10 +1209,12 @@ button:hover {
 }
 
 .card-container {
-    position: relative;
+    position: absolute;
     width: 800px;
     height: 400px;
-    margin: 0 auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .card {
