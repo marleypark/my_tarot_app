@@ -1,5 +1,45 @@
 // 📁 script.js (전체 교체 - 최종 완성 버전)
 
+// 앱 상태 관리 (전역으로 이동)
+const appState = {
+    currentScreen: 'main-screen',
+    language: 'kor',
+    userQuestion: '',
+    userMBTI: '',
+    selectedCards: [],
+    deck: [],
+    fullResultData: null,
+    currentResultIndex: 0,
+    resultStage: 0,
+    shufflePlaying: false,
+    cardRevealed: [],
+    summaryRevealed: false,
+    actionPlan: {
+        phases: [],
+        currentPhase: 0,
+        revealed: false,
+        initialized: false,
+        introRevealed: false,
+        navTimer: null,
+    },
+    typing: {
+        isRunning: false,
+        timer: null,
+        holdTimer: null,
+        element: null,
+        speed: 25,
+    },
+    loading: {
+        timer: null,
+        holdTimer: null,
+    },
+    mbti: {
+        answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 },
+        currentQuestionIndex: 0,
+    },
+    backgroundMusic: null
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. 데이터 및 설정 (Data & Config) ---
@@ -103,43 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 2. 상태 관리 (State Management) ---
-    const appState = {
-        currentScreen: 'main-screen',
-        language: 'kor',
-        userQuestion: '',
-        userMBTI: '',
-        selectedCards: [],
-        deck: [],
-        fullResultData: null,
-        currentResultIndex: 0,
-        resultStage: 0,
-        shufflePlaying: false,
-        cardRevealed: [],
-        summaryRevealed: false,
-        actionPlan: {
-            phases: [],
-            currentPhase: 0,
-            revealed: false,
-            initialized: false,
-            introRevealed: false,
-            navTimer: null,
-        },
-        typing: {
-            isRunning: false,
-            timer: null,
-            holdTimer: null,
-            element: null,
-            speed: 25,
-        },
-        loading: {
-            timer: null,
-            holdTimer: null,
-        },
-        mbti: {
-            answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 },
-            currentQuestionIndex: 0,
-        }
-    };
+    // appState는 전역으로 이동됨
 
     // --- 3. 요소 가져오기 (DOM Elements) ---
     const elements = {
