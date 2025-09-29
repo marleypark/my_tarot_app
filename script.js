@@ -218,7 +218,8 @@ const tarotData = [
     function render() {
         // 화면 전환
         elements.screens.forEach(screen => {
-            screen.style.display = screen.id === appState.currentScreen ? 'flex' : 'none';
+            // [수정] classList.toggle을 사용하여 코드를 간결하게 만듭니다.
+            screen.classList.toggle('active', screen.id === appState.currentScreen);
         });
 
         // 다국어 텍스트 적용
@@ -463,24 +464,28 @@ function shuffleDeck() {
     }
 
     
-    // 2. initializeCardSelect 함수를 setupCardSelectScreen으로 이름 변경 및 단순화
-    // (기존 renderCardSelectScreen과 initializeCardSelect 함수는 이 함수로 통합됩니다)
+    // 2. 카드 선택 화면을 설정하는 유일한 함수 (기존 여러 함수를 통합)
     function setupCardSelectScreen() {
         const cardContainer = document.getElementById('card-container');
         const shuffleStatus = document.getElementById('shuffle-status');
+        const reshuffleBtn = document.getElementById('reshuffle-btn'); // reshuffleBtn 가져오기
         
-        if (!cardContainer || !shuffleStatus) {
+        if (!cardContainer || !shuffleStatus || !reshuffleBtn) {
             console.error('카드 선택 화면의 필수 요소가 없습니다.');
             return;
         }
 
         // 화면을 항상 깨끗한 상태에서 시작
         cardContainer.innerHTML = ''; 
+        appState.selectedCards = []; // 선택된 카드 초기화
         
         // UI 텍스트 및 카운터 초기화
         updateCardCounter(); 
         shuffleStatus.textContent = UI_TEXTS[appState.language]?.shuffleStatus?.playing || '카드를 섞는 중...';
         shuffleStatus.style.opacity = '1';
+
+        // 셔플 중에는 '다시 셔플' 버튼을 숨깁니다.
+        reshuffleBtn.style.display = 'none';
 
         playSound('shuffle');
 
@@ -488,7 +493,10 @@ function shuffleDeck() {
         setTimeout(() => {
             stopShuffleSound();
             shuffleStatus.style.opacity = '0';
-            createCards();
+            createCards(); // 부채꼴 카드 생성 함수 호출
+            
+            // 카드 생성이 끝나면 '다시 셔플' 버튼을 다시 보여줍니다.
+            reshuffleBtn.style.display = 'block';
         }, 1500);
     }
     
@@ -577,12 +585,10 @@ function shuffleDeck() {
         }
     }
     
-    // 3. reshuffleCards 함수도 새로운 구조에 맞게 수정
+    // 3. 다시 셔플 함수는 이제 매우 간단해집니다.
     function reshuffleCards() {
         playSound('button');
-        
-        // [핵심] 이 함수는 이제 단순히 화면 설정 함수를 다시 호출하기만 하면 됩니다.
-        // '이어서 선택하기' 기능을 위해 appState.selectedCards는 초기화하지 않습니다.
+        // 단순히 카드 선택 화면 설정 함수를 다시 호출하기만 하면 됩니다.
         setupCardSelectScreen(); 
     }
 
