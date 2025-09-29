@@ -14,16 +14,20 @@
     <div class="app-container">
         <!-- 1. 메인 시작 화면 -->
         <div id="main-screen" class="screen">
-            <h1 data-i18n-key="mainTitle">ASK ANYTHING</h1>
-            <div id="main-shuffle-area">
-                <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">
-                <!-- 언어 선택기를 카드 영역 내부로 이동 -->
+            <!-- 제목과 버튼을 감싸는 새로운 컨테이너를 만듭니다. -->
+            <div class="title-container">
+                <h1 data-i18n-key="mainTitle">ASK ANYTHING</h1>
+                
                 <div class="lang-switcher-main">
                     <button class="lang-button-small" id="lang-button">KO</button>
                     <ul class="lang-menu-small" id="lang-menu">
                         <!-- JavaScript가 동적으로 채울 예정 -->
                     </ul>
                 </div>
+            </div>
+            
+            <div id="main-shuffle-area">
+                <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">
             </div>
         </div>
 

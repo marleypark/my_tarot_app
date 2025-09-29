@@ -592,7 +592,7 @@ body {
     
     /* 모바일에서 언어 버튼 위치 조정 */
     .lang-switcher-main {
-        right: -50px; /* 모바일에서는 더 가깝게 */
+        margin-left: 10px; /* 모바일에서는 더 가깝게 */
     }
     
     .lang-button-small {
@@ -956,18 +956,36 @@ body {
 }
 
 /* 언어 스위처 */
-/* 메인 화면 카드 영역 내 언어 선택기 컨테이너 */
+/* 1. 새로운 부모 컨테이너 스타일 (이것이 기준점이 됩니다) */
+.title-container {
+    position: relative; /* 자식 요소의 absolute 위치 기준이 됨 */
+    display: inline-block; /* 내용물(h1)의 크기에 맞게 너비가 조절됨 */
+    margin-bottom: 20px; /* 아래 카드와의 간격 */
+}
+
+/* 2. 제목(h1) 스타일 */
+#main-screen h1 {
+    margin: 0; 
+    padding: 0;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+/* 3. 언어 선택기 컨테이너의 새로운 위치 지정 방식 */
 .lang-switcher-main {
-    position: absolute; /* main-shuffle-area를 기준으로 위치 지정 */
-    top: 50%; /* 카드 중앙 높이 */
-    right: -60px; /* 카드 우측 끝에서 1cm (약 40px) + 여유공간 20px */
-    transform: translateY(-50%); /* 수직 중앙 정렬 */
+    position: absolute; /* .title-container를 기준으로 위치 지정 */
+    top: 50%; /* 부모(h1)의 수직 중앙에서 시작 */
+    left: 100%; /* 부모(h1)의 오른쪽 끝에서 시작 */
+    
+    /* G 글자 오른쪽으로 이동 */
+    transform: translateY(-50%); /* 수직 중앙을 정확히 맞춤 */
+    margin-left: 15px; /* 제목 오른쪽 끝에서 15px만큼의 간격을 줌 */
+
     z-index: 1000;
 }
-/* 작아진 언어 버튼 스타일 */
+/* 4. 언어 버튼 및 메뉴 스타일 */
 .lang-button-small {
     background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #e0e0e0;
     padding: 8px 12px;
@@ -975,33 +993,24 @@ body {
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 50px; /* 최소 너비 설정 */
-    text-align: center;
-}
-.lang-button-small:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* 작아진 언어 메뉴 스타일 */
 .lang-menu-small {
     position: absolute;
-    top: 100%; /* 버튼 바로 아래에 위치 */
-    right: 0; /* 오른쪽에 정렬 */
+    top: 100%;
+    right: 0;
     margin-top: 8px;
-    background: rgba(42, 42, 68, 0.9);
-    backdrop-filter: blur(10px);
+    background: rgba(42, 42, 68, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     list-style: none;
     padding: 5px;
-    display: none; /* 평소에는 숨김 */
-    min-width: 80px; /* 메뉴의 최소 너비 */
+    display: none;
+    min-width: 80px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 .lang-menu-small.show {
-    display: block; /* JavaScript로 이 클래스를 추가하여 보이게 함 */
+    display: block;
 }
 .lang-menu-small li {
     padding: 10px 15px;
@@ -1009,7 +1018,6 @@ body {
     font-size: 14px;
     color: #e0e0e0;
     border-radius: 5px;
-    transition: background-color 0.2s ease;
 }
 .lang-menu-small li:hover {
     background-color: rgba(255, 255, 255, 0.1);
