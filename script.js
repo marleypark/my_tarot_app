@@ -373,9 +373,13 @@ function shuffleDeck() {
             card.dataset.cardIndex = cardIndex;
             
             const img = document.createElement('img');
-            img.src = tarotData[cardIndex].img;
-            img.alt = getLocalizedCardNameByIndex(cardIndex, appState.language);
+            // 👇 [핵심 수정] 카드 뒷면 이미지 사용
+            img.src = 'images/card_back.png';
+            img.alt = '카드 뒷면';
             img.draggable = false;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
             
             card.appendChild(img);
             cardContainer.appendChild(card);
