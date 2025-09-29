@@ -464,21 +464,23 @@ function shuffleDeck() {
     // 카드 선택 로직 - 새로운 디자인
     function renderCardSelectScreen() {
         // DOM이 완전히 로드된 후 실행되도록 보장
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                initializeCardSelect();
-            });
-        } else {
+        setTimeout(() => {
             initializeCardSelect();
-        }
+        }, 100);
     }
     
     function initializeCardSelect() {
         const cardContainer = document.getElementById('card-container');
         const shuffleStatus = document.getElementById('shuffle-status');
         
+        console.log('initializeCardSelect 호출됨');
+        console.log('cardContainer:', cardContainer);
+        console.log('shuffleStatus:', shuffleStatus);
+        
         if (!cardContainer || !shuffleStatus) {
             console.error('카드 선택 화면의 필수 요소가 없습니다.');
+            console.error('cardContainer:', cardContainer);
+            console.error('shuffleStatus:', shuffleStatus);
             return;
         }
         
@@ -1414,10 +1416,13 @@ function shuffleDeck() {
         
         // MBTI 입력
         elements.mbtiSkipBtn.addEventListener('click', () => {
+            console.log('MBTI 건너뛰기 버튼 클릭됨');
             playSound('button');
             appState.userMBTI = '';
             shuffleDeck();
+            console.log('현재 화면:', appState.currentScreen);
             navigateTo('card-select-screen');
+            console.log('카드 선택 화면으로 이동 후:', appState.currentScreen);
         });
         elements.mbtiSubmitBtn.addEventListener('click', () => {
             playSound('button');
