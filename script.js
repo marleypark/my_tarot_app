@@ -470,43 +470,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMbtiQuestion() {
         const lang = appState.language;
-        const testData = MBTI_TEST_DATA[lang];
+        // MBTI_TEST_DATA는 translation.js에 있다고 가정합니다.
+        const testData = MBTI_TEST_DATA[lang]; 
         const index = appState.mbti.currentQuestionIndex;
-        const questionData = testData.questions[index];
 
-        if (!questionData) return;
+        if (!testData || !testData.questions[index]) {
+            console.error(`MBTI 질문을 찾을 수 없습니다: lang=${lang}, index=${index}`);
+            return;
+        }
+
+        const questionData = testData.questions[index];
+        const scale = UI_TEXTS[lang].answerScale;
 
         // 진행률 표시
         const progress = ((index + 1) / testData.questions.length) * 100;
         elements.mbtiProgressBar.style.width = `${progress}%`;
-        elements.mbtiProgressText.textContent = `${index + 1}/${testData.questions.length}`;
+        elements.mbtiProgressText.textContent = `${index + 1} / ${testData.questions.length}`;
 
         // 질문 표시
-        elements.mbtiQuestionText.textContent = questionData.question;
+        elements.mbtiQuestionText.textContent = questionData.text;
 
-        // 선택지 생성
-        elements.mbtiOptionsContainer.innerHTML = '';
-        questionData.options.forEach((option, i) => {
-            const button = document.createElement('button');
-            button.className = 'mbti-option';
-            button.textContent = option.text;
-            button.onclick = () => handleMbtiAnswer(option.scores);
-            elements.mbtiOptionsContainer.appendChild(button);
+        // 👇 [핵심 수정] 5단계 답변 버튼을 직접 생성합니다.
+        elements.mbtiOptionsContainer.innerHTML = `
+            <div class="mbti-button-group">
+                <button class="mbti-option-scale" data-score="2">${scale.agree_strong}</button>
+                <button class="mbti-option-scale" data-score="1">${scale.agree}</button>
+                <button class="mbti-option-scale" data-score="0">${scale.neutral}</button>
+                <button class="mbti-option-scale" data-score="-1">${scale.disagree}</button>
+                <button class="mbti-option-scale" data-score="-2">${scale.disagree_strong}</button>
+            </div>
+        `;
+
+        elements.mbtiOptionsContainer.querySelectorAll('button').forEach(btn => {
+            btn.onclick = (e) => handleMbtiAnswer(parseInt(e.target.dataset.score));
         });
     }
 
-    function handleMbtiAnswer(scores) {
+    function handleMbtiAnswer(score) {
         playSound('button');
         
-        // 점수 누적
-        Object.keys(scores).forEach(key => {
-            appState.mbti.answers[key] = (appState.mbti.answers[key] || 0) + scores[key];
-        });
+        const lang = appState.language;
+        const testData = MBTI_TEST_DATA[lang];
+        const index = appState.mbti.currentQuestionIndex;
+        const questionData = testData.questions[index];
+        
+        // score_type에 따라 점수 누적
+        const scoreType = questionData.score_type;
+        if (scoreType && appState.mbti.answers[scoreType] !== undefined) {
+            appState.mbti.answers[scoreType] += score;
+        }
 
         appState.mbti.currentQuestionIndex++;
 
         // 모든 질문 완료 시 결과 계산
-        if (appState.mbti.currentQuestionIndex >= MBTI_TEST_DATA[appState.language].questions.length) {
+        if (appState.mbti.currentQuestionIndex >= testData.questions.length) {
             const mbtiResult = calculateMBTIResult(appState.mbti.answers);
             appState.userMBTI = mbtiResult;
             navigateTo('mbti-result-screen');
