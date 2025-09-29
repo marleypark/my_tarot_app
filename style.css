@@ -592,7 +592,7 @@ body {
     
     /* 모바일에서 언어 버튼 위치 조정 */
     .lang-switcher-main {
-        margin-left: 10px; /* 모바일에서는 더 가깝게 */
+        margin-left: 1cm; /* 모바일에서도 1cm 간격 유지 */
     }
     
     .lang-button-small {
@@ -977,9 +977,9 @@ body {
     top: 50%; /* 부모(h1)의 수직 중앙에서 시작 */
     left: 100%; /* 부모(h1)의 오른쪽 끝에서 시작 */
     
-    /* G 글자 오른쪽으로 이동 */
+    /* G 글자 오른쪽 1cm 옆으로 이동 */
     transform: translateY(-50%); /* 수직 중앙을 정확히 맞춤 */
-    margin-left: 15px; /* 제목 오른쪽 끝에서 15px만큼의 간격을 줌 */
+    margin-left: 1cm; /* G 글자 오른쪽 끝에서 1cm만큼의 간격을 줌 */
 
     z-index: 1000;
 }
