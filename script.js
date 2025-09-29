@@ -164,6 +164,7 @@ function getLocalizedCardNameByIndex(index, lang) {
         mbtiQuestionText: document.getElementById('mbti-question-text'),
         mbtiOptionsContainer: document.getElementById('mbti-options-container'),
         mbtiResultDisplay: document.getElementById('mbti-result-display'),
+        mbtiNextBtn: document.getElementById('proceed-to-cards-btn'),
         cardSelectScreen: {
             mainTitle: document.getElementById('main-title'),
             counter: document.getElementById('counter'),
@@ -790,13 +791,15 @@ function shuffleDeck() {
         });
         
         // MBTI 결과 화면 "다음" 버튼
-        const mbtiNextBtn = document.getElementById('mbti-next-btn');
-        if (mbtiNextBtn) {
-            mbtiNextBtn.addEventListener('click', () => {
+        if (elements.mbtiNextBtn) {
+            elements.mbtiNextBtn.addEventListener('click', () => {
+                console.log('MBTI 결과 화면 "다음" 버튼 클릭됨');
                 playSound('button');
                 shuffleDeck();
                 navigateTo('card-select-screen');
             });
+        } else {
+            console.error('MBTI 결과 화면 "다음" 버튼을 찾을 수 없습니다.');
         }
     }
 
