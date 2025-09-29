@@ -111,34 +111,34 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: { kor: "펜타클 킹", eng: "King of Pentacles" }, img: "images/펜타클/펜타클 킹.jpg" }
     ];
 
-    const MAJOR_NAMES = {
+const MAJOR_NAMES = {
         kor: ["바보", "마법사", "여사제", "여황제", "황제", "교황", "연인", "전차", "힘", "은둔자", "운명의 수레바퀴", "정의", "행맨", "죽음", "절제", "악마", "타워", "별", "달", "태양", "심판", "세계"],
         eng: ["The Fool", "The Magician", "The High Priestess", "The Empress", "The Emperor", "The Hierophant", "The Lovers", "The Chariot", "Strength", "The Hermit", "Wheel of Fortune", "Justice", "The Hanged Man", "Death", "Temperance", "The Devil", "The Tower", "The Star", "The Moon", "The Sun", "Judgement", "The World"]
-    };
+};
 
-    const SUITS = ['wands','cups','swords','pentacles'];
-    const MINOR_LOCALIZATION = {
+const SUITS = ['wands','cups','swords','pentacles'];
+const MINOR_LOCALIZATION = {
         kor: { wands: '완드', cups: '컵', swords: '소드', pentacles: '펜타클' },
         eng: { wands: 'Wands', cups: 'Cups', swords: 'Swords', pentacles: 'Pentacles' }
-    };
+};
 
-    function getMinorName(lang, suitIndex, rankIndex) {
-        const suit = SUITS[suitIndex];
+function getMinorName(lang, suitIndex, rankIndex) {
+    const suit = SUITS[suitIndex];
         const suitName = MINOR_LOCALIZATION[lang][suit];
         const rank = rankIndex === 0 ? '에이스' : (rankIndex + 1).toString();
         return `${suitName} ${rank}`;
-    }
+}
 
-    function getLocalizedCardNameByIndex(index, lang) {
-        if (index < 22) {
+function getLocalizedCardNameByIndex(index, lang) {
+    if (index < 22) {
             return MAJOR_NAMES[lang][index];
-        } else {
-            const minorIndex = index - 22;
-            const suitIndex = Math.floor(minorIndex / 14);
-            const rankIndex = minorIndex % 14;
-            return getMinorName(lang, suitIndex, rankIndex);
-        }
+    } else {
+        const minorIndex = index - 22;
+        const suitIndex = Math.floor(minorIndex / 14);
+        const rankIndex = minorIndex % 14;
+        return getMinorName(lang, suitIndex, rankIndex);
     }
+}
 
     const CONFIG = { CARDS_TO_PICK: 4 };
 
@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mbtiProgressText: document.getElementById('mbti-progress-text'),
         mbtiQuestionText: document.getElementById('mbti-question-text'),
         mbtiOptionsContainer: document.getElementById('mbti-options-container'),
+        mbtiResultDisplay: document.getElementById('mbti-result-display'),
         cardSelectScreen: {
             mainTitle: document.getElementById('main-title'),
             counter: document.getElementById('counter'),
@@ -219,9 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderMbtiQuestion();
                 break;
             case 'mbti-result-screen':
-                if (elements.mbtiResultScreen && elements.mbtiResultScreen.display) {
-                    elements.mbtiResultScreen.display.textContent = appState.userMBTI;
-                }
+                renderMbtiResult();
                 break;
             case 'card-select-screen':
                 setupCardSelectScreen();
@@ -259,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 5. 기능별 함수들 ---
-    
-    function applyTranslations() {
+
+function applyTranslations() {
         const lang = appState.language;
         const t = UI_TEXTS[lang];
         if (!t) return;
@@ -279,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 언어 버튼의 텍스트를 현재 선택된 언어 코드로 변경
         const langButton = document.getElementById('lang-button');
-        if (langButton) {
+    if (langButton) {
             const langCodeMap = {
                 'kor': 'KO', 'eng': 'EN', 'can': 'CAN', 'vi': 'VI',
                 'id': 'ID', 'chn': 'CHN', 'fr': 'FR', 'es': 'ES', 'hin': 'HIN'
@@ -320,9 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
             sound.currentTime = 0;
             sound.play().catch(e => console.log('Sound play failed:', e));
         }
-    }
+}
 
-    function shuffleDeck() {
+function shuffleDeck() {
         appState.deck = [...Array(78).keys()].sort(() => Math.random() - 0.5);
     }
 
@@ -536,16 +535,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateMBTIResult(answers) {
+        console.log('calculateMBTIResult 호출됨, answers:', answers);
+        
         const scores = answers;
         const threshold = 0;
         
         let result = '';
-        result += scores.E > 0 ? (scores.E > threshold ? 'E' : 'e') : (scores.E < -threshold ? 'I' : 'i');
-        result += scores.S > 0 ? (scores.S > threshold ? 'S' : 's') : (scores.S < -threshold ? 'N' : 'n');
-        result += scores.T > 0 ? (scores.T > threshold ? 'T' : 't') : (scores.T < -threshold ? 'F' : 'f');
-        result += scores.P > 0 ? (scores.P > threshold ? 'P' : 'p') : (scores.P < -threshold ? 'J' : 'j');
-
+        
+        // E/I 차원
+        if (scores.E > threshold) {
+            result += 'E';
+        } else if (scores.E < -threshold) {
+            result += 'I';
+        } else {
+            result += 'e';
+        }
+        
+        // S/N 차원
+        if (scores.S > threshold) {
+            result += 'S';
+        } else if (scores.S < -threshold) {
+            result += 'N';
+        } else {
+            result += 's';
+        }
+        
+        // T/F 차원
+        if (scores.T > threshold) {
+            result += 'T';
+        } else if (scores.T < -threshold) {
+            result += 'F';
+        } else {
+            result += 't';
+        }
+        
+        // P/J 차원
+        if (scores.P > threshold) {
+            result += 'P';
+        } else if (scores.P < -threshold) {
+            result += 'J';
+        } else {
+            result += 'p';
+        }
+        
+        console.log('계산된 MBTI 결과:', result);
         return result;
+    }
+
+    function renderMbtiResult() {
+        console.log('renderMbtiResult 호출됨, userMBTI:', appState.userMBTI);
+        
+        if (elements.mbtiResultDisplay) {
+            elements.mbtiResultDisplay.textContent = appState.userMBTI || '0000';
+            console.log('MBTI 결과 표시됨:', appState.userMBTI);
+        } else {
+            console.error('MBTI 결과를 표시할 요소를 찾을 수 없습니다.');
+        }
     }
 
     // API 호출 및 결과 렌더링 함수들
@@ -557,17 +602,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             const response = await fetch('/api/interpret', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cardNames,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                cardNames, 
                     question: appState.userQuestion,
                     mbti: appState.userMBTI,
                     language: appState.language
-                }),
-            });
+            }),
+        });
 
-            if (!response.ok) {
+        if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || `HTTP 에러: ${response.status}`);
             }
@@ -709,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('MBTI 건너뛰기 버튼 클릭됨');
             playSound('button');
             appState.userMBTI = '';
-            shuffleDeck();
+    shuffleDeck();
             navigateTo('card-select-screen');
         });
         
@@ -718,10 +763,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const mbti = elements.mbtiInput.value.trim().toUpperCase();
             if (mbti.length !== 4) {
                 alert('올바른 MBTI 4글자를 입력해주세요.');
-                return;
-            }
+        return;
+    }
             appState.userMBTI = mbti;
-            shuffleDeck();
+    shuffleDeck();
             navigateTo('card-select-screen');
         });
         
@@ -743,6 +788,16 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('button');
             generatePDF();
         });
+        
+        // MBTI 결과 화면 "다음" 버튼
+        const mbtiNextBtn = document.getElementById('mbti-next-btn');
+        if (mbtiNextBtn) {
+            mbtiNextBtn.addEventListener('click', () => {
+                playSound('button');
+                shuffleDeck();
+                navigateTo('card-select-screen');
+            });
+        }
     }
 
     function initBackgroundMusic() {
