@@ -1,46 +1,46 @@
-// 📁 script.js (전체 교체 - 최종 완성 버전)
-
-// 앱 상태 관리 (전역으로 이동)
-const appState = {
-    currentScreen: 'main-screen',
-    language: 'kor',
-    userQuestion: '',
-    userMBTI: '',
-    selectedCards: [],
-    deck: [],
-    fullResultData: null,
-    currentResultIndex: 0,
-    resultStage: 0,
-    shufflePlaying: false,
-    cardRevealed: [],
-    summaryRevealed: false,
-    actionPlan: {
-        phases: [],
-        currentPhase: 0,
-        revealed: false,
-        initialized: false,
-        introRevealed: false,
-        navTimer: null,
-    },
-    typing: {
-        isRunning: false,
-        timer: null,
-        holdTimer: null,
-        element: null,
-        speed: 25,
-    },
-    loading: {
-        timer: null,
-        holdTimer: null,
-    },
-    mbti: {
-        answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 },
-        currentQuestionIndex: 0,
-    },
-    backgroundMusic: null
-};
+// 📁 script.js (이 코드로 전체 교체 - 최종 안정화 버전)
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // --- 1. 앱의 모든 상태를 관리하는 중앙 저장소 ---
+    const appState = {
+        currentScreen: 'main-screen',
+        language: 'kor',
+        userQuestion: '',
+        userMBTI: '',
+        selectedCards: [],
+        deck: [],
+        fullResultData: null,
+        currentResultIndex: 0,
+        resultStage: 0,
+        shufflePlaying: false,
+        cardRevealed: [],
+        summaryRevealed: false,
+        actionPlan: {
+            phases: [],
+            currentPhase: 0,
+            revealed: false,
+            initialized: false,
+            introRevealed: false,
+            navTimer: null,
+        },
+        typing: {
+            isRunning: false,
+            timer: null,
+            holdTimer: null,
+            element: null,
+            speed: 25,
+        },
+        loading: {
+            timer: null,
+            holdTimer: null,
+        },
+        mbti: {
+            answers: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 },
+            currentQuestionIndex: 0,
+        },
+        backgroundMusic: null
+    };
 
     // --- 1. 데이터 및 설정 (Data & Config) ---
 const tarotData = [
@@ -1512,8 +1512,14 @@ function shuffleDeck() {
         }
     }
 
-    // --- 앱 시작 ---
-    initEventListeners();
-    initBackgroundMusic();
-    resetApp(); 
+    // --- 9. 앱 초기화 및 이벤트 리스너 등록 ---
+    
+    function initializeApp() {
+        initEventListeners();
+        initBackgroundMusic();
+        resetApp();
+    }
+
+    // 앱 시작!
+    initializeApp();
 });
