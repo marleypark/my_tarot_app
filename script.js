@@ -748,6 +748,11 @@ function shuffleDeck() {
             elements.resultScreen.actionPlanSection.style.display = 'block';
             renderActionPlanStages();
             document.querySelector('.bottom-navigation').style.display = 'flex'; // PDF/처음으로 버튼 표시
+            
+            // 현실조언 페이지로 넘어갈 때 화면 상단으로 스크롤 이동
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
         }
     }
 
