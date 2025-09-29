@@ -43,7 +43,7 @@ const appState = {
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. 데이터 및 설정 (Data & Config) ---
-    const tarotData = [
+const tarotData = [
         // 메이저 아르카나
         { name: { kor: "바보", eng: "The Fool" }, img: "images/메이저_아르카나/0. 바보 카드.jpg" },
         { name: { kor: "마법사", eng: "The Magician" }, img: "images/메이저_아르카나/1. 마법사 카드.jpg" },
@@ -289,6 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const value = getNestedTranslation(t, key);
             if (value) el.placeholder = value;
         });
+        
+        // 언어 버튼의 텍스트를 현재 선택된 언어 코드로 변경
+        const langButton = document.getElementById('lang-button');
+        if (langButton) {
+            const langCodeMap = {
+                'kor': 'KO', 'eng': 'EN', 'can': 'CAN', 'vi': 'VI',
+                'id': 'ID', 'chn': 'CHN', 'fr': 'FR', 'es': 'ES', 'hin': 'HIN'
+            };
+            langButton.textContent = langCodeMap[lang] || 'KO';
+        }
         
         // 운세 메뉴 동적 생성
         initFortuneMenu();
@@ -922,7 +932,7 @@ function shuffleDeck() {
         const particleInterval = setInterval(createSpiralParticle, 150);
         
         // 8초 후 파티클 효과 중지
-        setTimeout(() => {
+            setTimeout(() => {
             clearInterval(particleInterval);
         }, 8000);
     }
@@ -1107,7 +1117,7 @@ function shuffleDeck() {
             if (stageIndex < totalCardStages - 1) {
                 nextBtn.textContent = UI_TEXTS[appState.language].nextButton || '다음';
                 nextBtn.classList.remove('hidden');
-            } else {
+    } else {
                 nextBtn.textContent = UI_TEXTS[appState.language].summaryButtonLabel || '총정리 보기';
                 nextBtn.classList.remove('hidden');
             }
@@ -1305,35 +1315,46 @@ function shuffleDeck() {
 
     // --- 6. 이벤트 리스너 등록 ---
     function initEventListeners() {
-        // 언어 변경
+        // 언어 메뉴 동적 생성
+        const languages = [
+            { code: 'kor', name: 'KOR' }, { code: 'eng', name: 'ENG' },
+            { code: 'can', name: 'CAN' }, { code: 'vi', name: 'VI' },
+            { code: 'id', name: 'ID' }, { code: 'chn', name: 'CHN' },
+            { code: 'fr', name: 'FR' }, { code: 'es', name: 'ES' },
+            { code: 'hin', name: 'HIN' }
+        ];
+        
+        elements.langMenu.innerHTML = ''; // 메뉴 초기화
+        languages.forEach(lang => {
+            const li = document.createElement('li');
+            li.textContent = lang.name;
+            li.dataset.lang = lang.code;
+            li.addEventListener('click', () => {
+                playSound('button');
+                appState.language = lang.code;
+                elements.langMenu.classList.remove('show');
+                render(); // 언어 변경 후 화면 다시 그리기
+            });
+            elements.langMenu.appendChild(li);
+        });
+
+        // 언어 버튼 클릭 이벤트
         elements.langButton.addEventListener('click', (e) => {
             playSound('button');
             e.stopPropagation();
             elements.langMenu.classList.toggle('show');
         });
-        document.addEventListener('click', () => elements.langMenu.classList.remove('show'));
-        elements.langMenu.querySelectorAll('li').forEach(li => {
-            li.addEventListener('click', () => {
-                playSound('button');
-                appState.language = li.dataset.lang;
+
+        // 메뉴 바깥 클릭 시 메뉴 닫기
+        document.addEventListener('click', () => {
+            if (elements.langMenu.classList.contains('show')) {
                 elements.langMenu.classList.remove('show');
-                // 언어 선택 후 Language 버튼 숨기기
-                const langSwitcher = document.querySelector('.lang-switcher');
-                if (langSwitcher) {
-                    langSwitcher.style.display = 'none';
-                }
-                render();
-            });
+            }
         });
 
         // 메인 화면 -> 질문 선택
         elements.mainShuffleArea.addEventListener('click', () => {
             playSound('select');
-            // 언어 선택 없이 진행 시 언어 메뉴 숨기기
-            const langSwitcher = document.querySelector('.lang-switcher');
-            if (langSwitcher) {
-                langSwitcher.style.display = 'none';
-            }
             navigateTo('question-dialog-screen');
         });
         
