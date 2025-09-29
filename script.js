@@ -1086,16 +1086,26 @@ function shuffleDeck() {
     function revealCardButtons(stageIndex) {
         const prevBtn = document.getElementById('card-prev-btn');
         const nextBtn = document.getElementById('card-next-btn');
-        
+        const totalCardStages = appState.fullResultData.cardInterpretations.length;
+
         if (prevBtn) {
-            prevBtn.style.display = stageIndex === 0 ? 'none' : 'inline-flex';
+            // 첫 번째 카드가 아니면 '이전' 버튼 보이기
+            prevBtn.classList.toggle('hidden', stageIndex === 0);
             if (stageIndex > 0) {
                 prevBtn.classList.add('show');
             }
         }
         
         if (nextBtn) {
-            nextBtn.style.display = 'inline-flex';
+            // 마지막 카드가 아니면 '다음' 버튼 보이기
+            // 마지막 카드일 경우, 버튼 텍스트를 '총정리 보기'로 변경
+            if (stageIndex < totalCardStages - 1) {
+                nextBtn.textContent = UI_TEXTS[appState.language].nextButton || '다음';
+                nextBtn.classList.remove('hidden');
+            } else {
+                nextBtn.textContent = UI_TEXTS[appState.language].summaryButtonLabel || '총정리 보기';
+                nextBtn.classList.remove('hidden');
+            }
             nextBtn.classList.add('show');
         }
     }

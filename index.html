@@ -136,17 +136,21 @@
                 <!-- 결과 표시 영역 (로딩 후 표시) -->
                 <div id="result-sections" style="display: none;">
                     <section id="individual-cards-section" class="result-stage">
-                        <h2 id="card-stage-title" data-i18n-key="individualCardsTitle">개별 카드 해석</h2>
+                        <!-- 제목과 버튼을 감싸는 새로운 div -->
+                        <div class="stage-header">
+                            <h2 id="card-stage-title" data-i18n-key="individualCardsTitle">개별 카드 해석</h2>
+                            <!-- 기존 하단에 있던 버튼들을 이 안으로 옮김 -->
+                            <div class="card-navigation-inline">
+                                <button id="card-prev-btn" class="card-nav-btn left">이전</button>
+                                <button id="card-next-btn" class="card-nav-btn right">다음</button>
+                            </div>
+                        </div>
                         <div class="result-content">
                             <div class="card-image-wrapper">
                                 <img id="result-card-image" src="" alt="Selected Card">
                                 <div id="card-overlay-text" class="card-overlay-text"></div>
                             </div>
                             <div id="keywords-area" class="keywords-area"></div>
-                        </div>
-                        <div class="card-navigation">
-                            <button id="card-prev-btn" class="card-nav-btn left">이전</button>
-                            <button id="card-next-btn" class="card-nav-btn right">다음</button>
                         </div>
                     </section>
                     <section id="summary-section" class="result-stage">

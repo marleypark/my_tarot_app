@@ -65,7 +65,8 @@ const UI_TEXTS = {
         keywordPositive: "긍정",
         keywordCaution: "주의",
         actionPlanButtonLabel: "현실 조언",
-        reshuffleButton: "다시 셔플"
+        reshuffleButton: "다시 셔플",
+        summaryButtonLabel: "총정리 보기"
     },
     eng: {
         mainTitle: "ASK ANYTHING",
@@ -113,7 +114,8 @@ const UI_TEXTS = {
             health: "Health Fortune",
             relationships: "Relationship Fortune"
         },
-        reshuffleButton: "Reshuffle"
+        reshuffleButton: "Reshuffle",
+        summaryButtonLabel: "View Summary"
     },
     can: {
         mainTitle: "ASK ANYTHING",
