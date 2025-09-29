@@ -266,6 +266,13 @@ const tarotData = [
         });
         elements.mbtiInput.value = '';
         elements.questionInput.value = '';
+        
+        // 언어 선택기 다시 보이기 (앱 초기화 시)
+        const langSwitcher = document.querySelector('.lang-switcher-top-right');
+        if (langSwitcher) {
+            langSwitcher.style.display = 'block';
+        }
+        
         // cardSelectScreen의 previewArea는 존재하지 않으므로 제거
         render();
     }
@@ -1333,6 +1340,11 @@ function shuffleDeck() {
                 playSound('button');
                 appState.language = lang.code;
                 elements.langMenu.classList.remove('show');
+                // 언어 선택 후 언어 선택기 숨기기
+                const langSwitcher = document.querySelector('.lang-switcher-top-right');
+                if (langSwitcher) {
+                    langSwitcher.style.display = 'none';
+                }
                 render(); // 언어 변경 후 화면 다시 그리기
             });
             elements.langMenu.appendChild(li);
@@ -1355,6 +1367,11 @@ function shuffleDeck() {
         // 메인 화면 -> 질문 선택
         elements.mainShuffleArea.addEventListener('click', () => {
             playSound('select');
+            // 언어 선택기 숨기기 (기본 한국어로 진행)
+            const langSwitcher = document.querySelector('.lang-switcher-top-right');
+            if (langSwitcher) {
+                langSwitcher.style.display = 'none';
+            }
             navigateTo('question-dialog-screen');
         });
         
