@@ -233,7 +233,8 @@ const tarotData = [
                 elements.mbtiResultScreen.display.textContent = appState.userMBTI;
                 break;
             case 'card-select-screen':
-                renderCardSelectScreen();
+                // 👇 [핵심 수정] 여기서 직접 카드 선택 화면을 설정하는 함수를 호출합니다.
+                setupCardSelectScreen();
                 break;
             case 'result-screen':
                 if (appState.fullResultData) {
@@ -461,54 +462,34 @@ function shuffleDeck() {
         return result;
     }
 
-    // 카드 선택 로직 - 새로운 디자인
-    function renderCardSelectScreen() {
-        // DOM이 완전히 로드된 후 실행되도록 보장
-        setTimeout(() => {
-            initializeCardSelect();
-        }, 100);
-    }
     
-    function initializeCardSelect() {
+    // 2. initializeCardSelect 함수를 setupCardSelectScreen으로 이름 변경 및 단순화
+    // (기존 renderCardSelectScreen과 initializeCardSelect 함수는 이 함수로 통합됩니다)
+    function setupCardSelectScreen() {
         const cardContainer = document.getElementById('card-container');
         const shuffleStatus = document.getElementById('shuffle-status');
         
-        console.log('initializeCardSelect 호출됨');
-        console.log('cardContainer:', cardContainer);
-        console.log('shuffleStatus:', shuffleStatus);
-        
         if (!cardContainer || !shuffleStatus) {
             console.error('카드 선택 화면의 필수 요소가 없습니다.');
-            console.error('cardContainer:', cardContainer);
-            console.error('shuffleStatus:', shuffleStatus);
             return;
         }
+
+        // 화면을 항상 깨끗한 상태에서 시작
+        cardContainer.innerHTML = ''; 
         
-        // 이전에 있던 카드들을 모두 지웁니다.
-        cardContainer.innerHTML = '';
-        
-        // 상태 텍스트를 "카드를 섞는 중..."으로 설정하고 보이게 합니다.
+        // UI 텍스트 및 카운터 초기화
+        updateCardCounter(); 
         shuffleStatus.textContent = UI_TEXTS[appState.language]?.shuffleStatus?.playing || '카드를 섞는 중...';
         shuffleStatus.style.opacity = '1';
 
-        // 셔플 사운드를 재생합니다.
         playSound('shuffle');
 
-        // 1.5초 동안 셔플 애니메이션을 보여준 후 카드를 펼칩니다.
+        // 1.5초 후 카드 생성
         setTimeout(() => {
-            // 셔플 사운드를 멈춥니다.
-            stopShuffleSound(); // 셔플 사운드를 멈추는 함수를 호출합니다 (아래에 추가됨).
-
-            // 상태 텍스트를 숨깁니다.
-            if (shuffleStatus) {
-                shuffleStatus.style.opacity = '0';
-            }
-            // 새로운 카드를 부채꼴 모양으로 생성합니다.
+            stopShuffleSound();
+            shuffleStatus.style.opacity = '0';
             createCards();
         }, 1500);
-        
-        // 현재 선택된 카드 수에 맞춰 카운터를 업데이트합니다.
-        updateCardCounter();
     }
     
     // 카드 생성 함수 (재사용 가능)
@@ -596,44 +577,13 @@ function shuffleDeck() {
         }
     }
     
+    // 3. reshuffleCards 함수도 새로운 구조에 맞게 수정
     function reshuffleCards() {
         playSound('button');
-        playSound('shuffle');
-
-        // [핵심 UX 개선] 이전에 선택한 카드는 그대로 유지합니다.
-        // appState.selectedCards = []; // 이 라인을 제거하거나 주석 처리합니다.
-
-        const cardContainer = document.getElementById('card-container');
-        const shuffleStatus = document.getElementById('shuffle-status');
-        const mainTitle = document.getElementById('main-title');
-
-        // 현재 펼쳐져 있는 부채꼴 카드들만 시각적으로 제거합니다.
-        if (cardContainer) {
-            cardContainer.innerHTML = '';
-        }
-
-        // "다시 셔플" 후에도 남은 카드 수를 정확히 표시하도록 카운터를 업데이트합니다.
-        updateCardCounter();
         
-        // 제목을 기본 상태로 되돌립니다.
-        if (mainTitle) {
-            mainTitle.textContent = UI_TEXTS[appState.language]?.selectCards || '4장의 카드를 선택하세요.';
-        }
-        
-        // 상태 텍스트를 "카드를 다시 섞는 중..."으로 설정하고 보이게 합니다.
-        if (shuffleStatus) {
-            shuffleStatus.textContent = UI_TEXTS[appState.language]?.shuffleStatus?.playing || '카드를 다시 섞는 중...';
-            shuffleStatus.style.opacity = '1';
-        }
-
-        // 1.5초 동안 '섞는 중' 메시지를 보여준 후, 새로운 카드를 생성합니다.
-        setTimeout(() => {
-            stopShuffleSound(); // 셔플 사운드를 멈춥니다.
-            if (shuffleStatus) {
-                shuffleStatus.style.opacity = '0';
-            }
-            createCards(); // 새로운 카드들을 부채꼴로 펼치는 함수 호출
-        }, 1500);
+        // [핵심] 이 함수는 이제 단순히 화면 설정 함수를 다시 호출하기만 하면 됩니다.
+        // '이어서 선택하기' 기능을 위해 appState.selectedCards는 초기화하지 않습니다.
+        setupCardSelectScreen(); 
     }
 
     // 셔플 사운드를 멈추기 위한 stopShuffleSound 함수가 필요합니다.
@@ -1416,13 +1366,10 @@ function shuffleDeck() {
         
         // MBTI 입력
         elements.mbtiSkipBtn.addEventListener('click', () => {
-            console.log('MBTI 건너뛰기 버튼 클릭됨');
             playSound('button');
             appState.userMBTI = '';
-            shuffleDeck();
-            console.log('현재 화면:', appState.currentScreen);
-            navigateTo('card-select-screen');
-            console.log('카드 선택 화면으로 이동 후:', appState.currentScreen);
+            shuffleDeck(); // 👈 덱을 섞는 준비
+            navigateTo('card-select-screen'); // 👈 화면 전환 명령
         });
         elements.mbtiSubmitBtn.addEventListener('click', () => {
             playSound('button');
