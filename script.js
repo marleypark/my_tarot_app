@@ -163,17 +163,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetApp() {
         stopShuffleSound();
         stopTypingEffect();
-        // stopLoadingTyping(); // 로딩은 결과화면에서만 관리
+        // stopLoadingTyping(); // 이 함수는 존재하지 않으므로 주석 처리하거나 삭제합니다.
+
         Object.assign(appState, {
-            currentScreen: 'main-screen', userQuestion: '', userMBTI: '', selectedCards: [],
-            deck: [], fullResultData: null, resultStage: 0,
-            languageChosenManually: false, sessionLanguageMode: null, autoLockUntil: null,
+            currentScreen: 'main-screen',
+            userQuestion: '',
+            userMBTI: '',
+            selectedCards: [],
+            deck: [],
+            fullResultData: null,
+            resultStage: 0,
+            languageChosenManually: false,
+            sessionLanguageMode: null,
+            autoLockUntil: null,
             mbti: { answers: [], currentQuestionIndex: 0 },
+            // isFetching은 reset하면 안됩니다. API 호출 중에 reset될 수 있기 때문입니다.
         });
-        try { localStorage.removeItem(AUTO_LOCK_STORAGE_KEY); } catch (e) {}
+
+        try {
+            localStorage.removeItem(AUTO_LOCK_STORAGE_KEY);
+        } catch (e) {
+            console.error("Failed to remove item from localStorage on reset:", e);
+        }
+
         elements.mbtiInput.value = '';
         elements.questionInput.value = '';
-        document.querySelector('.lang-switcher-top-right').style.display = 'block';
+        
+        // ⭐⭐⭐ 여기가 핵심 수정 부분입니다! ⭐⭐⭐
+        // 언어 선택기 다시 보이기 (앱 초기화 시)
+        const langSwitcher = document.querySelector('.lang-switcher-top-right');
+        if (langSwitcher) { // langSwitcher가 존재하는지 반드시 확인!
+            langSwitcher.style.display = 'block';
+        } else {
+            console.warn("'.lang-switcher-top-right' 요소를 찾을 수 없습니다. HTML을 확인해주세요.");
+        }
+        // ⭐⭐⭐ 여기까지 수정 ⭐⭐⭐
+        
         render();
     }
 
