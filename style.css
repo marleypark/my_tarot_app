@@ -1231,7 +1231,7 @@ button:hover {
     height: 160px;
     left: 50%;
     bottom: 0;
-    margin-left: -50px;
+    margin-left: 0; /* ✅ 이중 보정 제거 */
     background-image: url('images/card_back.png');
     background-size: cover;
     background-position: center;

@@ -391,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < cardCount; i++) {
             const card = document.createElement('div');
             card.className = 'card';
+            card.style.marginLeft = '0'; // ← CSS 중복 보정 방지
             const xPosition = (containerWidth / 2) - (cardWidth / 2);
             card.style.left = `${xPosition}px`;
             cardContainer.appendChild(card);
@@ -1008,4 +1009,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 앱 시작 시 잠금 상태 확인 및 UI 업데이트
     applyAutoLockUiState();
+    
+    // 리사이즈/회전에도 재정렬
+    window.addEventListener('resize', (() => {
+        let t;
+        return () => {
+            clearTimeout(t);
+            t = setTimeout(() => {
+                if (appState.currentScreen === 'card-select-screen') {
+                    createCards();
+                }
+            }, 150);
+        };
+    })());
 });
