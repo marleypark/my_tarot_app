@@ -14,7 +14,9 @@ const appState = {
     languageChosenManually: false,
     autoLockUntil: null,
     sessionLanguageMode: null,
-    lockTimer: null, // 👈 이 한 줄을 추가해주세요.
+    lockTimer: null,
+    readingRequested: false,      // 요청 예약 플래그
+    currentFetchController: null, // 진행 중인 fetch 제어
     typing: {
         isRunning: false,
         timer: null,
@@ -28,6 +30,9 @@ const appState = {
     // cardRevealed: [],
     // summaryRevealed: false,
 };
+
+// appState 객체 바로 아래에 추가
+let listenersInitialized = false;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -224,39 +229,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function resetApp() {
+        console.log("Resetting application...");
         stopShuffleSound();
         stopTypingEffect();
-        // stopLoadingTyping(); // 이 함수는 존재하지 않으므로 주석 처리하거나 삭제합니다.
+
+        // 모든 비동기 작업 확실하게 정리
+        if (appState.lockTimer) { clearInterval(appState.lockTimer); appState.lockTimer = null; }
+        if (appState.readingTimer) { clearTimeout(appState.readingTimer); appState.readingTimer = null; }
+        if (appState.currentFetchController) {
+            try { appState.currentFetchController.abort(); } catch {}
+            appState.currentFetchController = null;
+        }
 
         Object.assign(appState, {
             currentScreen: 'main-screen',
             userQuestion: '',
             userMBTI: '',
             selectedCards: [],
-            deck: [],
             fullResultData: null,
             resultStage: 0,
-            languageChosenManually: false,
-            sessionLanguageMode: null,
-            autoLockUntil: null,
-            mbti: { answers: [], currentQuestionIndex: 0 },
-            // isFetching은 reset하면 안됩니다. API 호출 중에 reset될 수 있기 때문입니다.
+            isFetching: false,
+            readingRequested: false,
+            // languageChosenManually는 유지하여 '무제한 모드'를 보존
         });
+        
+        // 오타 수정: mbiInput -> mbtiInput
+        if (elements.mbtiInput) elements.mbtiInput.value = '';
+        if (elements.questionInput) elements.questionInput.value = '';
 
-        elements.mbtiInput.value = '';
-        elements.questionInput.value = '';
-        
-        // ⭐⭐⭐ 여기가 핵심 수정 부분입니다! ⭐⭐⭐
-        // 언어 선택기 다시 보이기 (앱 초기화 시)
-        const langSwitcher = document.querySelector('.lang-switcher-main');
-        if (langSwitcher) { // langSwitcher가 존재하는지 반드시 확인!
-            langSwitcher.style.display = 'block';
-        } else {
-            console.warn("'.lang-switcher-top-right' 요소를 찾을 수 없습니다. HTML을 확인해주세요.");
-        }
-        // ⭐⭐⭐ 여기까지 수정 ⭐⭐⭐
-        
-        render();
+        navigateTo('main-screen');
     }
 
     // --- 5. 기능별 함수들 ---
@@ -265,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function persistAutoLockIfNeeded() { /* ... */ }
     function shouldBlockAutoFlow() { /* ... */ return false; } // 단순화를 위해 비활성화
     function showAutoLockNotice() { /* ... */ }
-    function applyAutoLockUiState() { /* ... */ }
     function startAutoLockCountdown() { /* ... */ }
 
     function applyTranslations() {
@@ -397,16 +397,23 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.opacity = "0";
         card.style.transform += " scale(0.8)";
         card.classList.add("chosen");
-        
+
         appState.selectedCards.push(cardIndex);
         playSound('select');
-        
+
         setTimeout(() => { card.style.display = "none"; }, 500);
-        
         updateCardCounter();
-        
+
         if (appState.selectedCards.length === CONFIG.CARDS_TO_PICK) {
-            setTimeout(fetchFullReading, 1000);
+            if (appState.readingRequested) return; // 🛡️ 이미 예약되었다면 중복 방지
+            appState.readingRequested = true;
+            
+            console.log("All cards selected. Scheduling API call.");
+            // 타이머 ID를 상태에 저장
+            appState.readingTimer = setTimeout(() => {
+                appState.readingTimer = null; // 타이머 실행 후 ID 제거
+                fetchFullReading();
+            }, 1000);
         }
     }
 
@@ -422,8 +429,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // API 호출
     async function fetchFullReading() {
-        // 🛡️ 1. API 호출 전 이중 잠금 체크 (가장 강력한 방어선)
-        if (appState.isFetching || isLocked()) return;
+        if (isLocked()) {
+            appState.readingRequested = false; // 잠겨있으면 요청 상태 해제
+            navigateTo('main-screen'); // 잠금 화면을 보여주기 위해 메인으로
+            return;
+        }
+        
+        // 🛡️ 이전 요청이 진행 중이면 취소 (최종 방어선)
+        if (appState.currentFetchController) {
+            appState.currentFetchController.abort();
+            console.warn("Previous fetch request aborted.");
+        }
+        const controller = new AbortController();
+        appState.currentFetchController = controller;
 
         try {
             appState.isFetching = true;
@@ -432,57 +450,55 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultScreen.resultSections.style.display = 'none';
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
+            console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
 
-            // 👇 여기가 수정된 핵심 부분입니다!
             const response = await fetch('/api/interpret', {
-                method: 'POST', // 1. POST 방식으로 명시
-                headers: {
-                    'Content-Type': 'application/json', // 2. 보내는 데이터가 JSON 형식임을 알림
-                },
-                body: JSON.stringify({ // 3. 보낼 데이터를 JSON 문자열로 변환
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     question: appState.userQuestion,
                     mbti: appState.userMBTI,
-                    cardNames: cardNames, // 서버가 기대하는 필드명으로 수정
+                    cardNames: cardNames,
                     language: appState.language
                 }),
+                signal: controller.signal // AbortController 신호 연결
             });
-            // 👆 여기까지 수정되었습니다.
 
             if (!response.ok) {
-                // 서버에서 보낸 JSON 에러 메시지를 먼저 시도하고, 없으면 기본 메시지 사용
                 let errorData;
-                try {
-                    errorData = await response.json();
-                } catch (e) {
-                    // JSON 파싱 실패 시
-                    throw new Error(`HTTP 에러: ${response.status}`);
-                }
-                throw new Error(errorData.message || `HTTP 에러: ${response.status}`);
+                try { errorData = await response.json(); } catch {}
+                throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
             }
-            
+
             const result = await response.json();
             if (!result.success || !result.data?.cardInterpretations) {
                 throw new Error('API 데이터 형식이 올바르지 않습니다.');
             }
-            
+
             appState.fullResultData = result.data;
             appState.resultStage = 0;
 
-            // ✨ 2. API 성공 후, 언어 수동 선택 안했다면 잠금 설정
-            if (!appState.languageChosenManually) {
-                setLock();
-            }
-
+            if (!appState.languageChosenManually) setLock();
             render();
-        } catch (error) {
-            console.error("API Error:", error);
+
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                console.log("Fetch request was successfully aborted.");
+                return; // 취소된 요청은 조용히 종료
+            }
+            console.error('API Error:', err);
             const loadingSection = document.getElementById('loading-section');
             if (loadingSection) {
-                // 에러 메시지를 p 태그 안으로 이동시켜 줄바꿈이 잘 되도록 수정
-                loadingSection.innerHTML = `<div class="error-message"><h3>오류 발생</h3><p>${error.message}</p><button onclick="window.location.reload()">처음으로</button></div>`;
+                loadingSection.innerHTML = `<div class="error-message"><h3>오류 발생</h3><p>${err.message}</p><button id="error-reset-btn">처음으로</button></div>`;
+                document.getElementById('error-reset-btn')?.addEventListener('click', resetApp);
             }
         } finally {
             appState.isFetching = false;
+            if (appState.currentFetchController === controller) {
+                appState.currentFetchController = null;
+            }
+            // finally 에서는 readingRequested를 false로 바꾸지 않습니다.
+            // 오직 resetApp을 통해서만 초기화되어야 게임의 한 사이클이 보장됩니다.
         }
     }
 
@@ -740,26 +756,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 이벤트 리스너 등록
     function initEventListeners() {
+        if (listenersInitialized) return; // 🛡️ 중복 실행 원천 차단
+        listenersInitialized = true;
+        console.log("Initializing event listeners for the first time.");
+
         // --- 메인 화면 ---
-        console.log('initEventListeners called');
-        console.log('elements.mainShuffleArea:', elements.mainShuffleArea);
-        
-        if (!elements.mainShuffleArea) {
-            console.error('mainShuffleArea element not found!');
-            return;
-        }
-        
         elements.mainShuffleArea.addEventListener('click', () => {
-            console.log('Main card clicked');
-            console.log('isLocked():', isLocked());
-            console.log('languageChosenManually:', appState.languageChosenManually);
-            console.log('localStorage lock:', localStorage.getItem(AUTO_LOCK_STORAGE_KEY));
-            
-            if (isLocked()) {
-                console.log('Card click blocked by lock');
-                return;
-            }
-            console.log('Card click proceeding...');
+            if (isLocked()) return;
             playSound('button');
             navigateTo('question-dialog-screen');
         });
@@ -926,9 +929,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        
-        // ... 이 아래로 MBTI, 결과 화면 등 다른 이벤트 리스너가 있다면 그대로 유지하시면 됩니다.
-        // 만약 없다면 이 코드가 전체가 됩니다.
+
+        // --- "처음으로" 버튼들 ---
+        elements.resultScreen.restartBtn?.addEventListener('click', () => {
+            playSound('button');
+            resetApp();
+        });
+
+        // 에러 발생 시의 "처음으로" 버튼은 fetchFullReading에서 동적으로 추가됩니다.
     }
 
     // 배경음악 초기화
