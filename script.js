@@ -346,6 +346,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 타이핑 사운드 제어 함수들
+    function startTypingSound() {
+        if (!appState.isMusicOn) return;
+        const s = elements.sounds.typing;
+        if (!s) return;
+        try {
+            s.loop = true;
+            s.currentTime = 0;
+            const p = s.play();
+            if (p && p.catch) p.catch(() => {});
+        } catch (e) {
+            console.log('Typing sound start failed:', e);
+        }
+    }
+
+    function stopTypingSound() {
+        const s = elements.sounds.typing;
+        if (!s) return;
+        try {
+            s.pause();
+            s.currentTime = 0;
+            s.loop = false;
+        } catch (e) {}
+    }
+
     // MBTI 로직 ...
     function startMbtiTest() { /* ... */ }
     function renderMbtiQuestion() { /* ... */ }
@@ -613,13 +638,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const showCardText = () => {
             clearTimeout(revealTimeout); 
             playSound('card-select');
+
             imageEl.classList.remove('interactive-card', 'reveal-animation');
             imageEl.classList.add('blur');
             overlayEl.classList.add('show');
             imageEl.onclick = null;
             imageEl.style.cursor = 'default';
+
+            // ✅ 카드가 블러되는 그 순간 '다음' 버튼 노출
+            revealCardButtons(stageIndex);
+
             startTypingEffect(overlayEl, text, () => {
-                // 타이핑 완료 시 즉시 버튼 표시 (2초 지연 제거)
+                // 타이핑 완료 후에 또 호출해도 무해(멱등). 유지해도 되고 삭제해도 됨.
                 revealCardButtons(stageIndex);
             });
         };
@@ -633,102 +663,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 타이핑 효과
     function startTypingEffect(element, fullText, onComplete) {
+        // 진행 중인 타이핑이 있다면 먼저 정리
+        stopTypingEffect();
+
         if (!element || !fullText) return;
-        
+
+        const t = appState.typing;
+        t.isRunning = true;
+        t.element = element;
         element.innerHTML = '';
-        let currentIndex = 0;
-        let isComplete = false;
-        let typingTimer = null;
-        
-        const typeChar = () => {
-            if (currentIndex < fullText.length && !isComplete) {
-                element.innerHTML += fullText[currentIndex];
-                currentIndex++;
-                
-                // 타이핑 사운드 재생 (공백이 아닌 문자일 때만)
-                if (fullText[currentIndex - 1] !== ' ') {
-                    playSound('typing');
-                }
-                
-                typingTimer = setTimeout(typeChar, 50); // 타이핑 속도 조절
-            } else if (currentIndex >= fullText.length && !isComplete) {
-                isComplete = true;
-                // 타이핑 완료 시 타이머 정리
-                if (typingTimer) {
-                    clearTimeout(typingTimer);
-                    typingTimer = null;
-                }
-                if (onComplete) onComplete();
-            }
-        };
-        
-        // 텍스트 터치 시 전체 텍스트 즉시 표시
-        const showFullText = () => {
-            if (!isComplete) {
-                isComplete = true;
-                element.innerHTML = fullText;
-                // 타이핑 중단 시 타이머 정리
-                if (typingTimer) {
-                    clearTimeout(typingTimer);
-                    typingTimer = null;
-                }
-                if (onComplete) onComplete();
-            }
-        };
-        
-        // 텍스트 클릭 이벤트 추가
-        element.addEventListener('click', showFullText, { once: true });
         element.style.cursor = 'pointer';
-        
+
+        let i = 0;
+
+        // 클릭 직후 사운드 루프 시작
+        startTypingSound();
+
+        const step = () => {
+            if (!t.isRunning) return;
+            if (i < fullText.length) {
+                element.innerHTML += fullText[i++];
+                t.timer = setTimeout(step, t.speed || 50);
+            } else {
+                // 완료
+                t.isRunning = false;
+                stopTypingSound();
+                if (onComplete) onComplete();
+            }
+        };
+
+        t.skipHandler = () => {
+            if (!t.isRunning) return;
+            t.isRunning = false;
+            if (t.timer) { clearTimeout(t.timer); t.timer = null; }
+            element.innerHTML = fullText; // 전체 즉시 표시
+            stopTypingSound();            // 즉시 소리 정지
+            if (onComplete) onComplete();
+        };
+
+        // 텍스트 클릭 시 스킵
+        element.addEventListener('click', t.skipHandler, { once: true });
+
         // 타이핑 시작
-        typeChar();
+        t.timer = setTimeout(step, t.speed || 50);
     }
+
     function stopTypingEffect() {
-        // 타이핑 효과를 중단하는 함수
-        // 현재는 특별한 정리 작업이 필요하지 않음
-        // 필요시 타이핑 중인 모든 요소를 정리할 수 있음
+        const t = appState.typing;
+        if (!t) return; // appState.typing이 정의되지 않은 경우를 대비한 가드
+
+        if (t.timer) { clearTimeout(t.timer); t.timer = null; }
+        if (t.element && t.skipHandler) {
+            try { t.element.removeEventListener('click', t.skipHandler); } catch {}
+        }
+        stopTypingSound();
+
+        t.isRunning = false;
+        t.element = null;
+        t.skipHandler = null;
     }
     
     // 버튼 표시/숨김
     function revealCardButtons(stageIndex) {
-        console.log('revealCardButtons called with stageIndex:', stageIndex);
         const cardNextBtn = document.getElementById('card-next-btn');
         const cardPrevBtn = document.getElementById('card-prev-btn');
-        
-        console.log('cardNextBtn found:', !!cardNextBtn);
-        
+
         if (cardNextBtn) {
             cardNextBtn.style.display = 'block';
-            // 다음 버튼을 우측 상단에 고정
+            cardNextBtn.classList.add('show'); // ✅ 가시화
+            // 필요한 경우 위치 고정
             cardNextBtn.style.position = 'fixed';
             cardNextBtn.style.top = '20px';
             cardNextBtn.style.right = '20px';
             cardNextBtn.style.zIndex = '1000';
-            cardNextBtn.style.backgroundColor = '#ff4444';
-            cardNextBtn.style.color = 'white';
-            cardNextBtn.style.padding = '10px 20px';
-            cardNextBtn.style.border = 'none';
-            cardNextBtn.style.borderRadius = '5px';
-            cardNextBtn.style.cursor = 'pointer';
-            console.log('Next button should be visible now');
-        } else {
-            console.log('cardNextBtn not found!');
         }
-        
         if (cardPrevBtn) {
-            cardPrevBtn.style.display = stageIndex > 0 ? 'block' : 'none';
-            // 이전 버튼을 좌측 상단에 고정
             if (stageIndex > 0) {
+                cardPrevBtn.style.display = 'block';
+                cardPrevBtn.classList.add('show'); // ✅ 가시화
                 cardPrevBtn.style.position = 'fixed';
                 cardPrevBtn.style.top = '20px';
                 cardPrevBtn.style.left = '20px';
                 cardPrevBtn.style.zIndex = '1000';
-                cardPrevBtn.style.backgroundColor = '#4444ff';
-                cardPrevBtn.style.color = 'white';
-                cardPrevBtn.style.padding = '10px 20px';
-                cardPrevBtn.style.border = 'none';
-                cardPrevBtn.style.borderRadius = '5px';
-                cardPrevBtn.style.cursor = 'pointer';
+            } else {
+                cardPrevBtn.classList.remove('show');
+                cardPrevBtn.style.display = 'none';
             }
         }
     }
