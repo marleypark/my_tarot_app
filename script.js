@@ -250,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function resetApp() {
         console.log("Resetting application...");
+        clearTextGuide(); // ✅ 추가
         stopShuffleSound();
         stopTypingEffect();
 
@@ -568,6 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateResultStageContent() {
+        clearTextGuide(); // ✅ 추가
         const { cardInterpretations, overallReading } = appState.fullResultData;
         const stage = appState.resultStage;
 
@@ -626,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imageEl.onclick = null;
         
         // ✅ 이전 힌트 정리
-        clearTapHint(); 
+        clearTextGuide(); 
         
         imageEl.src = tarotData[cardIndex].img;
         imageEl.style.display = 'block';
@@ -636,13 +638,13 @@ document.addEventListener('DOMContentLoaded', () => {
             imageEl.classList.remove('reveal-animation');
             imageEl.classList.add('interactive-card');
             // ✅ 힌트 스케줄링
-            scheduleTapHint(imageEl); 
+            scheduleTextGuide(imageEl); 
         }, 700);
 
         const showCardText = () => {
             clearTimeout(revealTimeout); 
             // ✅ 클릭 시 힌트 즉시 제거
-            clearTapHint(); 
+            clearTextGuide(); 
             playSound('card-select');
 
             imageEl.classList.remove('interactive-card', 'reveal-animation');
@@ -1038,31 +1040,38 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     })());
 
-    // 힌트 제어 유틸리티 함수들
-    function scheduleTapHint(imageEl) {
-        clearTapHint();
+    // 새로운 텍스트 가이드 제어 함수
+    function scheduleTextGuide(imageEl) {
+        clearTextGuide(); // 이전 가이드 정리
         const wrapper = imageEl.closest('.card-image-wrapper');
         if (!wrapper) return;
-        const hint = document.createElement('div');
-        hint.className = 'tap-hint';
-        hint.textContent = '👆';
-        wrapper.appendChild(hint);
+        const guide = document.createElement('div');
+        guide.className = 'touch-guide';
+        
+        const lang = appState.language;
+        const key = 'cardTouchHint';
+        // 번역 텍스트를 직접 가져와 설정 (i18n 속성 방식보다 안정적)
+        guide.textContent = (UI_TEXTS[lang] && UI_TEXTS[lang][key]) ? UI_TEXTS[lang][key] : 'Tap the card';
 
-        appState.tapHintEl = hint;
-        appState.tapHintTimer = setTimeout(() => {
-            hint.classList.add('show');
-            setTimeout(clearTapHint, 2000); // 2초 후 자동 제거
-        }, 1200); // 1.2초 유휴 후 노출
+        wrapper.appendChild(guide);
+        // requestAnimationFrame을 사용하여 다음 프레임에서 show 클래스를 추가해 CSS transition이 작동하도록 함
+        requestAnimationFrame(() => {
+            guide.classList.add('show');
+        });
+
+        appState.tapHintEl = guide; // 전역 상태에 참조 저장
     }
 
-    function clearTapHint() {
-        if (appState.tapHintTimer) {
-            clearTimeout(appState.tapHintTimer);
-            appState.tapHintTimer = null;
-        }
+    function clearTextGuide() {
         if (appState.tapHintEl) {
-            try { appState.tapHintEl.remove(); } catch {}
-            appState.tapHintEl = null;
+            appState.tapHintEl.classList.remove('show');
+            // transition이 끝난 후 DOM에서 제거하여 부드러운 사라짐 효과 구현
+            setTimeout(() => {
+                try { appState.tapHintEl?.remove(); } catch {}
+                if (appState.tapHintEl === appState.tapHintEl) { // 이중 체크
+                     appState.tapHintEl = null;
+                }
+            }, 300); // CSS transition 시간과 일치시킴
         }
     }
 });

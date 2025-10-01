@@ -1833,6 +1833,41 @@ button:hover {
     box-shadow: 0 6px 15px rgba(74, 74, 104, 0.4);
     background: #3a3a52;
 }
+/* 텍스트 가이드: 카드 하단 중앙, 숨쉬는 애니메이션 */
+.touch-guide {
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #e6ecff;
+  font-size: 13px;
+  line-height: 1;
+  padding: 8px 12px;
+  border-radius: 14px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 35;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  white-space: nowrap;
+  transition: opacity 0.3s ease; /* 부드러운 등장을 위한 transition 추가 */
+}
+.touch-guide.show {
+  opacity: 1;
+  animation: guide-breath 1.8s ease-in-out infinite; /* 애니메이션 속도 미세 조정 */
+}
+@keyframes guide-breath {
+  0%, 100% { opacity: 0.6; transform: translateX(-50%) translateY(0); }
+  50%  { opacity: 1; transform: translateX(-50%) translateY(-2px); }
+}
+
+/* 모션 최소화 환경 대응 */
+@media (prefers-reduced-motion: reduce) {
+  .touch-guide.show { animation: none; opacity: 0.9; }
+}
+
 /* style.css 맨 아래에 추가 */
 #lock-overlay {
   position: fixed; /* 어떤 화면 위에도 고정되도록 변경 */
