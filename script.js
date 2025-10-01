@@ -291,12 +291,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function initFortuneMenu() { /* ... */ }
     function getNestedTranslation(translations, key) { /* ... */ }
     
+    // 사운드 프리로딩 및 재생
+    const soundCache = {};
+    
+    function preloadSounds() {
+        const soundTypes = ['select', 'button', 'shuffle', 'typing'];
+        soundTypes.forEach(type => {
+            const sound = elements.sounds[type];
+            if (sound) {
+                sound.load();
+                soundCache[type] = sound;
+            }
+        });
+    }
+    
     function playSound(type) {
         if (!appState.isMusicOn) return;
-        const sound = elements.sounds[type];
+        const sound = soundCache[type] || elements.sounds[type];
         if (sound) {
+            // 딜레이 최소화를 위해 즉시 재생
             sound.currentTime = 0;
-            sound.play().catch(e => {});
+            const playPromise = sound.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    console.log('Sound play failed:', e);
+                });
+            }
         }
     }
     function startShuffleSound() { playSound('shuffle'); }
@@ -870,37 +890,55 @@ document.addEventListener('DOMContentLoaded', () => {
     function initBackgroundMusic() {
         const handpanSound = document.getElementById('handpan-sound');
         const handpan2Sound = document.getElementById('handpan2-sound');
-        if (!handpanSound || !handpan2Sound) { return; }
+        if (!handpanSound || !handpan2Sound) { 
+            console.log('Handpan sounds not found');
+            return; 
+        }
 
-        handpanSound.volume = 0.5;
-        handpan2Sound.volume = 0.5;
+        handpanSound.volume = 0.3;
+        handpan2Sound.volume = 0.3;
+        handpanSound.loop = true; // 첫 번째 트랙을 반복 재생
 
-        let currentTrack = 1;
-        const playNextTrack = () => {
-            if (!appState.isMusicOn) return;
-            // ...
-        };
-
-        handpanSound.addEventListener('ended', playNextTrack);
-        handpan2Sound.addEventListener('ended', playNextTrack);
+        // 사운드 프리로딩
+        handpanSound.load();
+        handpan2Sound.load();
 
         window.playBgMusic = () => {
-            if (!appState.isMusicOn || handpanSound.currentTime > 0) return;
-            handpanSound.play().catch(e => {});
-        };
-        window.stopBgMusic = () => {
-            handpanSound.pause(); handpanSound.currentTime = 0;
-            handpan2Sound.pause(); handpan2Sound.currentTime = 0;
+            if (!appState.isMusicOn) return;
+            console.log('Playing background music');
+            handpanSound.play().catch(e => {
+                console.log('Background music play failed:', e);
+            });
         };
         
-        const startMusicOnFirstInteraction = () => { if (appState.isMusicOn) window.playBgMusic(); };
+        window.stopBgMusic = () => {
+            handpanSound.pause(); 
+            handpanSound.currentTime = 0;
+            handpan2Sound.pause(); 
+            handpan2Sound.currentTime = 0;
+        };
+        
+        // 첫 번째 상호작용 시 음악 시작
+        const startMusicOnFirstInteraction = () => { 
+            console.log('First interaction detected, starting music');
+            if (appState.isMusicOn) window.playBgMusic(); 
+        };
+        
         document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
         document.addEventListener('touchstart', startMusicOnFirstInteraction, { once: true });
+        
+        // 앱 시작 시 자동으로 음악 시작 (선택사항)
+        setTimeout(() => {
+            if (appState.isMusicOn) {
+                window.playBgMusic();
+            }
+        }, 1000);
     }
 
     // --- 앱 시작 ---
     initEventListeners();
     initBackgroundMusic();
+    preloadSounds(); // 사운드 프리로딩
     resetApp();
     
     // 앱 시작 시 잠금 상태 확인 및 UI 업데이트
