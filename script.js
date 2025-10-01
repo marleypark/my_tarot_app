@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
             shuffle: document.getElementById('shuffle-sound'),
             'card-select': document.getElementById('select-sound'),
             typing: document.getElementById('typing-sound'),
+            cosmic: document.getElementById('cosmic-sound'),
         },
         musicBtn: document.getElementById('music-btn'),
         musicSliderContainer: document.getElementById('music-slider-container'),
@@ -316,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const soundCache = {};
     
     function preloadSounds() {
-        const soundTypes = ['select', 'button', 'shuffle', 'typing'];
+        const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic'];
         soundTypes.forEach(type => {
             const sound = elements.sounds[type];
             if (sound) {
@@ -372,6 +373,49 @@ document.addEventListener('DOMContentLoaded', () => {
             s.currentTime = 0;
             s.loop = false;
         } catch (e) {}
+    }
+
+    function startCosmicLoop() {
+        if (!appState.isMusicOn) return;
+        try { window.stopBgMusic && window.stopBgMusic(); } catch {}
+        const s = elements.sounds.cosmic;
+        if (!s) return;
+        s.loop = true;
+        s.currentTime = 0;
+        const p = s.play();
+        if (p && p.catch) p.catch(()=>{});
+    }
+    function stopCosmicLoop() {
+        const s = elements.sounds.cosmic;
+        if (!s) return;
+        s.pause();
+        s.currentTime = 0;
+        s.loop = false;
+        if (appState.isMusicOn && window.playBgMusic) {
+            try { window.playBgMusic(); } catch {}
+        }
+    }
+    function spawnLoadingParticles(count = 36) {
+        const host = document.getElementById('loading-stars');
+        if (!host) return;
+        host.innerHTML = '';
+        const rect = host.getBoundingClientRect();
+        for (let i=0; i<count; i++) {
+            const s = document.createElement('span');
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.max(rect.width, rect.height) * 0.7 * (0.8 + Math.random()*0.6);
+            s.style.setProperty('--sx', `${Math.cos(angle) * radius}px`);
+            s.style.setProperty('--sy', `${Math.sin(angle) * radius}px`);
+            s.style.setProperty('--dur', `${1200 + Math.random()*900}ms`);
+            s.style.setProperty('--delay', `${Math.random()*800}ms`);
+            s.style.left = '50%';
+            s.style.top  = '50%';
+            host.appendChild(s);
+        }
+    }
+    function clearLoadingParticles() {
+        const host = document.getElementById('loading-stars');
+        if (host) host.innerHTML = '';
     }
 
     // MBTI 로직 ...
@@ -497,6 +541,10 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultScreen.loadingSection.style.display = 'flex';
             elements.resultScreen.resultSections.style.display = 'none';
 
+            // ✅ 로딩 사운드/파티클 시작
+            startCosmicLoop();
+            spawnLoadingParticles();
+
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
 
@@ -541,6 +589,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('error-reset-btn')?.addEventListener('click', resetApp);
             }
         } finally {
+            // ✅ 로딩 사운드/파티클 정리
+            stopCosmicLoop();
+            clearLoadingParticles();
+
             appState.isFetching = false;
             if (appState.currentFetchController === controller) {
                 appState.currentFetchController = null;

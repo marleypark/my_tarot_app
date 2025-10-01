@@ -116,23 +116,18 @@
             <div id="result-content-wrapper">
     <!-- 로딩 화면 -->
     <div id="loading-section">
-        <!-- 나선형 궤적들 -->
-        <div class="spiral-trail"></div>
-        <div class="spiral-trail" style="animation-delay: 0.6s;"></div>
-        <div class="spiral-trail" style="animation-delay: 1.2s;"></div>
-        <div class="spiral-trail" style="animation-delay: 1.8s;"></div>
-        <div class="spiral-trail" style="animation-delay: 2.4s;"></div>
-        
-        <!-- 시계방향으로 빨려들어가는 파동들 -->
-        <div class="ripple-inward"></div>
-        <div class="ripple-inward"></div>
-        <div class="ripple-inward"></div>
-        <div class="ripple-inward"></div>
-        <div class="ripple-inward"></div>
-        <div class="ripple-inward"></div>
-        
-        <!-- 센터 블랙홀 -->
-        <div class="center-void"></div>
+        <div class="loading-vortex">
+          <!-- 파티클 컨테이너: JS가 span들을 붙였다가 제거 -->
+          <div id="loading-stars" class="stars"></div>
+          <!-- 회전 소용돌이(코어) -->
+          <div class="vortex"></div>
+          <!-- 외곽 링 3중 -->
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <!-- 사건 지평선(중앙 블랙홀) -->
+          <div class="event-horizon"></div>
+        </div>
     </div>
 
                 <!-- 결과 표시 영역 (로딩 후 표시) -->
@@ -204,6 +199,7 @@
     <audio id="typing-sound" src="sounds/typing.mp3"></audio>
     <audio id="handpan-sound" src="sounds/handpan.mp3"></audio>
     <audio id="handpan2-sound" src="sounds/handpan2.mp3"></audio>
+    <audio id="cosmic-sound" src="sounds/cosmic.mp3" preload="auto" loop></audio>
     
     <script src="translation.js"></script>
     <script src="script.js"></script>
