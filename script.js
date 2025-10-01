@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'card-select': document.getElementById('select-sound'),
             typing: document.getElementById('typing-sound'),
             cosmic: document.getElementById('cosmic-sound'),
+            handpan2: document.getElementById('handpan2-sound'),
         },
         musicBtn: document.getElementById('music-btn'),
         musicSliderContainer: document.getElementById('music-slider-container'),
@@ -267,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function resetApp() {
         console.log("Resetting application...");
+        AudioManager.setTheme('main'); // ✅ 메인 테마로 복귀
         clearTextGuide(); // ✅ 추가
         stopShuffleSound();
         stopTypingEffect();
@@ -339,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function preloadSounds() {
-        const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic'];
+        const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic', 'handpan2'];
         soundTypes.forEach(type => {
             const sound = elements.sounds[type];
             if (sound) {
@@ -428,64 +430,76 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function startCosmicLoop() {
-        if (!appState.isMusicOn) return;
-        const cosmic = elements.sounds.cosmic;
-        
-        // ✅ 추가된 방어 코드
-        if (!cosmic || appState.audio.cosmicError) {
-            console.warn("Cosmic sound is not available. Skipping playback.");
-            return; // 에러가 있거나 요소가 없으면 함수 종료
+    // AudioManager - 음악 감독 시스템
+    const AudioManager = (() => {
+        const tracks = {
+            main:   document.getElementById('handpan-sound'),
+            result: document.getElementById('handpan2-sound'),
+            cosmic: document.getElementById('cosmic-sound'),
+        };
+        const targetVol = { main: 0.3, result: 0.32, cosmic: 0.9 };
+        let currentTheme = null;
+        let cosmicActive = false;
+
+        async function playSafe(audio) {
+            if (!audio || audio.error) return;
+            try {
+                if(audio.paused) await audio.play();
+            } catch (e) { console.warn(`Audio play failed for ${audio.id}`, e); }
         }
-        
-        const handpan = document.getElementById('handpan-sound');
+        function pauseSafe(audio) { if (audio) audio.pause(); }
 
-        try {
-            cosmic.loop = true;
-            cosmic.volume = 0; // 페이드 인 준비
-            const p = cosmic.play();
-            if (p) p.catch(() => console.warn('Cosmic sound play failed.'));
-        } catch (e) { /* ignore */ }
-        
-        // 크로스페이드
-        Promise.all([
-            handpan ? fadeAudio(handpan, 0, 420) : Promise.resolve(),
-            fadeAudio(cosmic, 0.9, 420)
-        ]).then(() => {
-            if (handpan) handpan.pause();
-        });
-
-        appState.audio.cosmicStartedAt = Date.now();
-    }
-
-    function stopCosmicLoop() {
-        const cosmic = elements.sounds.cosmic;
-        if (!cosmic) return;
-        const handpan = document.getElementById('handpan-sound');
-        
-        const elapsed = Date.now() - (appState.audio.cosmicStartedAt || 0);
-        const remain = Math.max(0, appState.audio.cosmicMinMs - elapsed);
-
-        const doFadeOut = () => {
-            Promise.all([
-                fadeAudio(cosmic, 0, 380),
+        async function crossfade(fromAudio, toAudio, toVol) {
+            if (!appState.isMusicOn) return;
+            await Promise.all([
+                fromAudio ? fadeAudio(fromAudio, 0, 380) : Promise.resolve(),
                 (async () => {
-                    if (appState.isMusicOn && window.playBgMusic) {
-                        window.playBgMusic();
-                        if (handpan) {
-                            handpan.volume = 0;
-                            await fadeAudio(handpan, 0.3, 420);
-                        }
+                    if (toAudio) {
+                        await playSafe(toAudio);
+                        await fadeAudio(toAudio, toVol, 420);
                     }
                 })()
-            ]).then(() => {
-                cosmic.pause();
-                cosmic.currentTime = 0;
-            });
-        };
+            ]);
+            if (fromAudio) pauseSafe(fromAudio);
+        }
 
-        setTimeout(doFadeOut, remain);
-    }
+        return {
+            async setTheme(theme) { // 'main' | 'result' | null
+                if (!appState.isMusicOn || theme === currentTheme) return;
+                
+                const fromAudio = currentTheme ? tracks[currentTheme] : (cosmicActive ? tracks.cosmic : null);
+                const toAudio = theme ? tracks[theme] : null;
+                
+                await crossfade(fromAudio, toAudio, toAudio ? targetVol[theme] : 0);
+
+                currentTheme = theme;
+                if (fromAudio === tracks.cosmic) cosmicActive = false;
+            },
+            async startCosmic() {
+                if (!appState.isMusicOn || cosmicActive) return;
+                const fromAudio = currentTheme ? tracks[currentTheme] : null;
+                await crossfade(fromAudio, tracks.cosmic, targetVol.cosmic);
+                cosmicActive = true;
+                currentTheme = null;
+                appState.audio.cosmicStartedAt = Date.now();
+            },
+            async stopCosmic() {
+                if (!cosmicActive) return;
+                const elapsed = Date.now() - (appState.audio.cosmicStartedAt || 0);
+                const wait = Math.max(0, appState.audio.cosmicMinMs - elapsed);
+                
+                const endCosmic = async () => {
+                    await fadeAudio(tracks.cosmic, 0, 360);
+                    pauseSafe(tracks.cosmic);
+                    cosmicActive = false;
+                };
+
+                if (wait > 0) await new Promise(res => setTimeout(res, wait));
+                await endCosmic();
+            },
+        };
+    })();
+
 
 
     // MBTI 로직 ...
@@ -612,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultScreen.resultSections.style.display = 'none';
 
             // ✅ 로딩 음악 시작
-            startCosmicLoop();
+            await AudioManager.startCosmic();
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
@@ -684,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             // ✅ 로딩 음악 정리 (최소 재생 보장 후 배경 복귀)
-            stopCosmicLoop();
+            await AudioManager.stopCosmic();
 
             appState.isFetching = false;
             if (appState.currentFetchController === controller) {
@@ -697,6 +711,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 결과 화면 렌더링
     function renderResultScreen() {
+        AudioManager.setTheme('result'); // ✅ 결과 테마 시작
+        
         // stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
         elements.resultScreen.resultSections.style.display = 'block';
@@ -1127,32 +1143,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         handpanSound.volume = 0.3;
-        handpan2Sound.volume = 0.3;
+        handpan2Sound.volume = 0.32;
         handpanSound.loop = true; // 첫 번째 트랙을 반복 재생
+        handpan2Sound.loop = true; // 두 번째 트랙도 반복 재생
 
         // 사운드 프리로딩
         handpanSound.load();
         handpan2Sound.load();
 
-        window.playBgMusic = () => {
-            if (!appState.isMusicOn) return;
-            console.log('Playing background music');
-            handpanSound.play().catch(e => {
-                console.log('Background music play failed:', e);
-            });
-        };
-        
-        window.stopBgMusic = () => {
-            handpanSound.pause(); 
-            handpanSound.currentTime = 0;
-            handpan2Sound.pause(); 
-            handpan2Sound.currentTime = 0;
-        };
+        // 전역 play/stop 함수도 AudioManager와 연결 (기존 코드 호환성)
+        window.playBgMusic = () => AudioManager.setTheme('main');
+        window.stopBgMusic = () => AudioManager.setTheme(null);
         
         // 첫 번째 상호작용 시 음악 시작
         const startMusicOnFirstInteraction = () => { 
             console.log('First interaction detected, starting music');
-            if (appState.isMusicOn) window.playBgMusic(); 
+            if (appState.isMusicOn) AudioManager.setTheme('main'); 
         };
         
         document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
@@ -1161,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 앱 시작 시 자동으로 음악 시작 (선택사항)
         setTimeout(() => {
             if (appState.isMusicOn) {
-                window.playBgMusic();
+                AudioManager.setTheme('main');
             }
         }, 1000);
     }
