@@ -1815,69 +1815,32 @@ button:hover {
   50% { transform: translateY(-4px) }
 }
 
-/* === New Blackhole Loading (high-contrast, GPU-friendly) === */
-#loading-section {
-  background: #11142a; /* 조금 더 어두워 대비 강화 */
-}
-.loading-vortex { 
-  position: relative; 
-  width: min(84vw, 680px); 
-  height: min(84vw, 680px); 
-  filter: drop-shadow(0 30px 80px rgba(0,0,0,0.6));
-}
-.event-horizon {
-  position: absolute; inset: 50% auto auto 50%;
-  width: 78px; height: 78px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.95) 0%, rgba(10,10,31,0.9) 60%, rgba(0,0,0,0.0) 75%);
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.95), 0 0 90px rgba(120,100,255,0.45);
-  z-index: 5;
-  animation: event-pulse 1.8s ease-in-out infinite;
-}
-.vortex {
-  position: absolute; inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 55%),
-              conic-gradient(from 0deg, rgba(120,100,255,0.14), rgba(80,220,255,0.12), rgba(255,120,220,0.12), rgba(120,100,255,0.14));
-  mask-image: radial-gradient(circle at 50% 50%, transparent 10%, black 18%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 10%, black 18%);
-  animation: swirl 3.2s cubic-bezier(.22,.61,.36,1) infinite;
-}
-.ring { 
-  position: absolute; 
-  inset: 6% ; 
-  border-radius: 50%;
-  border: 2px solid rgba(200, 180, 255, 0.65);
-  box-shadow: 0 0 24px rgba(180, 160, 255, 0.65), inset 0 0 14px rgba(140, 200, 255, 0.35);
-  mix-blend-mode: screen;
-}
-.ring-1 { animation: ring-pulse 2.2s ease-in-out infinite; }
-.ring-2 { inset: 12%; animation: ring-pulse 2.2s ease-in-out .25s infinite; }
-.ring-3 { inset: 18%; animation: ring-pulse 2.2s ease-in-out .5s infinite; }
-.stars { position: absolute; inset: -10%; pointer-events: none; z-index: 1; }
-.stars span {
+/* === Minimal Ripples (circle, high contrast) === */
+.ripple-inward {
   position: absolute;
-  width: 3px; height: 3px; border-radius: 50%;
-  background: #d6e2ff;
-  box-shadow: 0 0 10px rgba(160,200,255,.9), 0 0 24px rgba(120,180,255,.7);
-  animation: star-fall var(--dur, 1.5s) cubic-bezier(.18,.67,.2,1) var(--delay, 0s) forwards;
+  width: 70vmin; /* 화면 비율과 무관한 정원 보장 */
+  height: 70vmin;
+  border-radius: 50%;
+  border: 2.5px solid rgba(210, 195, 255, 0.8); /* 더 두껍고 선명하게 */
+  box-shadow: 0 0 26px rgba(200, 180, 255, 0.6), inset 0 0 14px rgba(160, 200, 255, 0.35);
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+  animation: shrink-in 2.8s cubic-bezier(.2,.7,.3,1) infinite;
 }
-@keyframes swirl {
-  to { transform: rotate(720deg) scale(0.9); }
-}
-@keyframes ring-pulse {
-  50%  { transform: scale(1.06); opacity: 1; }
-}
-@keyframes event-pulse {
-  50% { transform: translate(-50%, -50%) scale(1.06); }
-}
-@keyframes star-fall {
-  0%   { opacity: 0; transform: translate(var(--sx,0), var(--sy,0)) scale(1); }
-  10%, 90% { opacity: 1; }
-  100% { opacity: 0; transform: translate(0,0) scale(0.2); }
+.ripple-inward:nth-child(1) { animation-delay: 0s; }
+.ripple-inward:nth-child(2) { animation-delay: .35s; }
+.ripple-inward:nth-child(3) { animation-delay: .7s; }
+.ripple-inward:nth-child(4) { animation-delay: 1.05s; }
+.ripple-inward:nth-child(5) { animation-delay: 1.4s; }
+.ripple-inward:nth-child(6) { animation-delay: 1.75s; }
+
+@keyframes shrink-in {
+  0%   { transform: translate(-50%, -50%) scale(1.05); opacity: 0; }
+  12%  { opacity: .35; }
+  40%  { opacity: .9; }
+  100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .vortex { animation: swirl 6s linear infinite; }
-  .stars span { display: none; }
+  .ripple-inward { animation-duration: 3.6s; box-shadow: none; }
 }

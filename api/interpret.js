@@ -11,42 +11,32 @@ function extractJsonFromText(text) {
   return raw.slice(start, end + 1);
 }
 
-// 재시도 + 타임아웃 함수
-async function callGeminiWithRetry(body, apiKey, { retries = 2, timeouts = [12000, 20000] } = {}) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`;
-  let lastErr;
-  for (let i = 0; i <= retries; i++) {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), timeouts[Math.min(i, timeouts.length - 1)]);
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal
-      });
-      clearTimeout(t);
-      if (res.ok) return res;
-      const txt = await res.text();
-      lastErr = new Error(`Gemini API 요청 실패: ${res.status} - ${txt}`);
-      // 503/429만 백오프 재시도
-      if (res.status === 503 || res.status === 429) {
-        if (i < retries) await new Promise(r => setTimeout(r, 600 * (i + 1)));
-        continue;
-      }
-      throw lastErr;
-    } catch (e) {
-      clearTimeout(t);
-      lastErr = e;
-      if (e.name === 'AbortError') {
-        if (i < retries) continue;
-        break;
-      }
-      // 네트워크 에러도 1~2회 재시도
-      if (i < retries) await new Promise(r => setTimeout(r, 600 * (i + 1)));
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function isRetriableError(error) {
+    const status = error.message.match(/(\d+)/)?.[0];
+    const msg = String(error.message || '').toLowerCase();
+    return status === '503' || status === '429' || status === '500' ||
+           msg.includes('unavailable') || msg.includes('overload') || 
+           msg.includes('timeout');
+}
+
+async function callGeminiWithRetry(apiCallFunction, { maxAttempts = 4, baseDelayMs = 800, capMs = 7000 } = {}) {
+    let attempt = 0;
+    while (attempt < maxAttempts) {
+        try {
+            return await apiCallFunction();
+        } catch (error) {
+            attempt++;
+            if (!isRetriableError(error) || attempt >= maxAttempts) {
+                throw error;
+            }
+            const exponentialDelay = Math.min(capMs, baseDelayMs * (2 ** (attempt - 1)));
+            const jitter = Math.random() * exponentialDelay; // Full Jitter
+            console.warn(`[Gemini Retry] Attempt ${attempt}/${maxAttempts}. Retrying in ${Math.round(jitter)}ms.`);
+            await sleep(jitter);
+        }
     }
-  }
-  throw lastErr;
 }
 
 async function handler(request, response) {
@@ -143,7 +133,19 @@ You must adhere strictly to the following JSON structure. Do not add or remove a
         maxOutputTokens: 4096 // flash-lite 안정성 위해 살짝 낮춤 권장
       }
     };
-    const apiResponse = await callGeminiWithRetry(body, API_KEY);
+    const apiResponse = await callGeminiWithRetry(async () => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${API_KEY}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`Gemini API 요청 실패: ${res.status} - ${txt}`);
+        }
+        return res;
+    });
 
     const data = await apiResponse.json();
     

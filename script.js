@@ -1,3 +1,12 @@
+const LOADING_RIPPLES_HTML = `
+  <div class="ripple-inward"></div><div class="ripple-inward"></div><div class="ripple-inward"></div>
+  <div class="ripple-inward"></div><div class="ripple-inward"></div><div class="ripple-inward"></div>`;
+  
+function resetLoadingSectionMarkup() {
+  const el = document.getElementById('loading-section');
+  if (el) el.innerHTML = LOADING_RIPPLES_HTML;
+}
+
 // 앱 상태 관리 (전역으로 이동)
 const appState = {
     currentScreen: 'main-screen',
@@ -148,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
             shuffle: document.getElementById('shuffle-sound'),
             'card-select': document.getElementById('select-sound'),
             typing: document.getElementById('typing-sound'),
-            cosmic: document.getElementById('cosmic-sound'),
         },
         musicBtn: document.getElementById('music-btn'),
         musicSliderContainer: document.getElementById('music-slider-container'),
@@ -317,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const soundCache = {};
     
     function preloadSounds() {
-        const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic'];
+        const soundTypes = ['select', 'button', 'shuffle', 'typing'];
         soundTypes.forEach(type => {
             const sound = elements.sounds[type];
             if (sound) {
@@ -375,48 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    function startCosmicLoop() {
-        if (!appState.isMusicOn) return;
-        try { window.stopBgMusic && window.stopBgMusic(); } catch {}
-        const s = elements.sounds.cosmic;
-        if (!s) return;
-        s.loop = true;
-        s.currentTime = 0;
-        const p = s.play();
-        if (p && p.catch) p.catch(()=>{});
-    }
-    function stopCosmicLoop() {
-        const s = elements.sounds.cosmic;
-        if (!s) return;
-        s.pause();
-        s.currentTime = 0;
-        s.loop = false;
-        if (appState.isMusicOn && window.playBgMusic) {
-            try { window.playBgMusic(); } catch {}
-        }
-    }
-    function spawnLoadingParticles(count = 36) {
-        const host = document.getElementById('loading-stars');
-        if (!host) return;
-        host.innerHTML = '';
-        const rect = host.getBoundingClientRect();
-        for (let i=0; i<count; i++) {
-            const s = document.createElement('span');
-            const angle = Math.random() * Math.PI * 2;
-            const radius = Math.max(rect.width, rect.height) * 0.7 * (0.8 + Math.random()*0.6);
-            s.style.setProperty('--sx', `${Math.cos(angle) * radius}px`);
-            s.style.setProperty('--sy', `${Math.sin(angle) * radius}px`);
-            s.style.setProperty('--dur', `${1200 + Math.random()*900}ms`);
-            s.style.setProperty('--delay', `${Math.random()*800}ms`);
-            s.style.left = '50%';
-            s.style.top  = '50%';
-            host.appendChild(s);
-        }
-    }
-    function clearLoadingParticles() {
-        const host = document.getElementById('loading-stars');
-        if (host) host.innerHTML = '';
-    }
 
     // MBTI 로직 ...
     function startMbtiTest() { /* ... */ }
@@ -541,9 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultScreen.loadingSection.style.display = 'flex';
             elements.resultScreen.resultSections.style.display = 'none';
 
-            // ✅ 로딩 사운드/파티클 시작
-            startCosmicLoop();
-            spawnLoadingParticles();
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
@@ -580,19 +543,40 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             if (err.name === 'AbortError') {
                 console.log("Fetch request was successfully aborted.");
-                return; // 취소된 요청은 조용히 종료
+                return;
             }
             console.error('API Error:', err);
+
+            const msg = String(err?.message || '');
+            const isOverload = /503|service unavailable|unavailable|overload/i.test(msg);
+            
             const loadingSection = document.getElementById('loading-section');
             if (loadingSection) {
-                loadingSection.innerHTML = `<div class="error-message"><h3>오류 발생</h3><p>${err.message}</p><button id="error-reset-btn">처음으로</button></div>`;
+                const errorTitle = UI_TEXTS[appState.language]?.errorTitle || '오류 발생';
+                const friendlyMsg = isOverload
+                  ? (UI_TEXTS[appState.language]?.serverOverloaded || '현재 접속이 많아 응답이 지연되고 있습니다.')
+                  : (UI_TEXTS[appState.language]?.genericError || '문제가 발생했습니다. 다시 시도해 주세요.');
+                const retryBtnText = UI_TEXTS[appState.language]?.retryButton || '재시도';
+                const restartBtnText = UI_TEXTS[appState.language]?.restartButton || '처음으로';
+
+                loadingSection.innerHTML = `
+                  <div class="error-message">
+                    <h3>${errorTitle}</h3>
+                    <p>${friendlyMsg}</p>
+                    <div style="display:flex; gap:12px; justify-content:center;">
+                      <button id="error-retry-btn">${retryBtnText}</button>
+                      <button id="error-reset-btn">${restartBtnText}</button>
+                    </div>
+                  </div>`;
+
+                document.getElementById('error-retry-btn')?.addEventListener('click', () => {
+                  resetLoadingSectionMarkup();
+                  // API 호출만 다시 실행
+                  fetchFullReading(); 
+                });
                 document.getElementById('error-reset-btn')?.addEventListener('click', resetApp);
             }
         } finally {
-            // ✅ 로딩 사운드/파티클 정리
-            stopCosmicLoop();
-            clearLoadingParticles();
-
             appState.isFetching = false;
             if (appState.currentFetchController === controller) {
                 appState.currentFetchController = null;
