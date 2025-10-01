@@ -14,6 +14,7 @@ const appState = {
     languageChosenManually: false,
     autoLockUntil: null,
     sessionLanguageMode: null,
+    lockTimer: null, // 👈 이 한 줄을 추가해주세요.
     typing: {
         isRunning: false,
         timer: null,
@@ -160,6 +161,64 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     }
     
+    // --- 잠금 관리 로직 ---
+    function isLocked() {
+        const until = localStorage.getItem(AUTO_LOCK_STORAGE_KEY);
+        if (!until) return false;
+        // 언어를 수동으로 선택했다면, 잠금을 무시합니다.
+        if (appState.languageChosenManually) return false;
+        return Date.now() < parseInt(until, 10);
+    }
+
+    function setLock() {
+        const until = Date.now() + AUTO_LOCK_DURATION_MS;
+        try {
+            localStorage.setItem(AUTO_LOCK_STORAGE_KEY, String(until));
+        } catch (e) {
+            console.error("Failed to set lock in localStorage", e);
+        }
+    }
+
+    function clearLock() {
+        appState.autoLockUntil = null;
+        if (appState.lockTimer) clearInterval(appState.lockTimer);
+        try {
+            localStorage.removeItem(AUTO_LOCK_STORAGE_KEY);
+        } catch (e) {
+            console.error("Failed to clear lock from localStorage", e);
+        }
+        applyAutoLockUiState(); // UI 즉시 갱신
+    }
+
+    function applyAutoLockUiState() {
+        const overlay = document.getElementById('lock-overlay');
+        if (!overlay) return;
+
+        const locked = isLocked();
+        overlay.style.display = locked ? 'flex' : 'none';
+
+        if (locked) {
+            const updateTimer = () => {
+                const until = parseInt(localStorage.getItem(AUTO_LOCK_STORAGE_KEY) || '0', 10);
+                const remain = Math.max(0, until - Date.now());
+                if (remain === 0) {
+                    if(appState.lockTimer) clearInterval(appState.lockTimer);
+                    applyAutoLockUiState(); // 시간이 다 되면 UI 다시 그림
+                    return;
+                }
+                const mm = String(Math.floor(remain / 60000)).padStart(2, '0');
+                const ss = String(Math.floor((remain % 60000) / 1000)).padStart(2, '0');
+                document.getElementById('lock-msg').textContent = `남은 시간 ${mm}:${ss}`;
+            };
+
+            if (appState.lockTimer) clearInterval(appState.lockTimer);
+            updateTimer(); // 즉시 한번 실행
+            appState.lockTimer = setInterval(updateTimer, 1000);
+        } else {
+            if (appState.lockTimer) clearInterval(appState.lockTimer);
+        }
+    }
+    
     function resetApp() {
         stopShuffleSound();
         stopTypingEffect();
@@ -179,12 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mbti: { answers: [], currentQuestionIndex: 0 },
             // isFetching은 reset하면 안됩니다. API 호출 중에 reset될 수 있기 때문입니다.
         });
-
-        try {
-            localStorage.removeItem(AUTO_LOCK_STORAGE_KEY);
-        } catch (e) {
-            console.error("Failed to remove item from localStorage on reset:", e);
-        }
 
         elements.mbtiInput.value = '';
         elements.questionInput.value = '';
@@ -345,7 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // API 호출
     async function fetchFullReading() {
-        if (appState.isFetching) return;
+        // 🛡️ 1. API 호출 전 이중 잠금 체크 (가장 강력한 방어선)
+        if (appState.isFetching || isLocked()) return;
 
         try {
             appState.isFetching = true;
@@ -362,6 +416,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             appState.fullResultData = result.data;
             appState.resultStage = 0;
+
+            // ✨ 2. API 성공 후, 언어 수동 선택 안했다면 잠금 설정
+            if (!appState.languageChosenManually) {
+                setLock();
+            }
+
             render();
         } catch (error) {
             console.error("API Error:", error);
@@ -468,7 +528,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 이벤트 리스너 등록
     function initEventListeners() {
-        // ... (음악 버튼 이벤트 리스너 포함한 모든 리스너) ...
+        // 1. 메인 카드 클릭 이벤트 수정
+        elements.mainShuffleArea.addEventListener('click', () => {
+            if (isLocked()) {
+                // 잠겨있으면 아무것도 하지 않고 UI가 막고 있음을 신뢰
+                return; 
+            }
+            playSound('button');
+            navigateTo('question-dialog-screen');
+        });
+
+        // 2. 언어 메뉴 클릭 이벤트에 로직 추가
+        const languages = [
+          { code: 'kor', label: 'KO' }, { code: 'eng', label: 'EN' },
+          { code: 'can', label: 'CAN' }, { code: 'vi', label: 'VI' },
+          { code: 'id', label: 'ID' }, { code: 'chn', label: 'CHN' },
+          { code: 'fr', label: 'FR' }, { code: 'es', label: 'ES' },
+          { code: 'hin', label: 'HIN' },
+        ];
+
+        if (elements.langMenu) {
+            elements.langMenu.innerHTML = '';
+            languages.forEach(({ code, label }) => {
+                const li = document.createElement('li');
+                li.textContent = label;
+                li.addEventListener('click', () => {
+                    appState.language = code;
+                    // 👇 핵심 로직 2줄 추가!
+                    appState.languageChosenManually = true; // 수동 선택 상태로 변경
+                    clearLock(); // 잠금 즉시 해제
+                    
+                    elements.langMenu.classList.remove('show');
+                    applyTranslations();
+                });
+                elements.langMenu.appendChild(li);
+            });
+        }
+
+        // 잠금 오버레이의 '언어 선택하기' 버튼 이벤트
+        const langChooseBtn = document.getElementById('lock-choose-lang-btn');
+        if (langChooseBtn) {
+            langChooseBtn.addEventListener('click', () => {
+                if (elements.langButton) elements.langButton.click();
+            });
+        }
+
+        // 언어 버튼 클릭 이벤트 (메뉴 토글)
+        if (elements.langButton) {
+            elements.langButton.addEventListener('click', () => {
+                elements.langMenu.classList.toggle('show');
+            });
+        }
+
+        // 다른 화면 클릭 시 언어 메뉴 닫기
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.lang-switcher-main')) {
+                elements.langMenu.classList.remove('show');
+            }
+        });
     }
 
     // 배경음악 초기화

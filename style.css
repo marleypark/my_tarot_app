@@ -1832,3 +1832,47 @@ button:hover {
     box-shadow: 0 6px 15px rgba(74, 74, 104, 0.4);
     background: #3a3a52;
 }
+/* style.css 맨 아래에 추가 */
+#lock-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    padding: 20px;
+  }
+  .lock-box {
+    background: rgba(42, 42, 68, 0.9);
+    border: 1px solid #e94560;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease-out;
+  }
+  .lock-box h3 {
+    color: #e94560;
+    margin: 0 0 15px;
+    font-size: 22px;
+  }
+  .lock-box p {
+    margin: 0 0 10px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .lock-hint {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-top: 20px;
+  }
+  #lock-choose-lang-btn {
+      margin-top: 15px;
+      background: #4a4a68;
+      padding: 10px 20px;
+      font-size: 14px;
+  }
