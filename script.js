@@ -406,13 +406,40 @@ document.addEventListener('DOMContentLoaded', () => {
             navigateTo('result-screen');
             elements.resultScreen.loadingSection.style.display = 'flex';
             elements.resultScreen.resultSections.style.display = 'none';
-            // startLoadingTyping(); // 로딩 애니메이션으로 대체
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
-            const response = await fetch('/api/interpret', { /* ... */ });
-            if (!response.ok) { throw new Error((await response.json()).message || `HTTP 에러: ${response.status}`); }
+
+            // 👇 여기가 수정된 핵심 부분입니다!
+            const response = await fetch('/api/interpret', {
+                method: 'POST', // 1. POST 방식으로 명시
+                headers: {
+                    'Content-Type': 'application/json', // 2. 보내는 데이터가 JSON 형식임을 알림
+                },
+                body: JSON.stringify({ // 3. 보낼 데이터를 JSON 문자열로 변환
+                    question: appState.userQuestion,
+                    mbti: appState.userMBTI,
+                    cards: cardNames,
+                    language: appState.language
+                }),
+            });
+            // 👆 여기까지 수정되었습니다.
+
+            if (!response.ok) {
+                // 서버에서 보낸 JSON 에러 메시지를 먼저 시도하고, 없으면 기본 메시지 사용
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    // JSON 파싱 실패 시
+                    throw new Error(`HTTP 에러: ${response.status}`);
+                }
+                throw new Error(errorData.message || `HTTP 에러: ${response.status}`);
+            }
+            
             const result = await response.json();
-            if (!result.success || !result.data?.cardInterpretations) { throw new Error('API 데이터 형식이 올바르지 않습니다.'); }
+            if (!result.success || !result.data?.cardInterpretations) {
+                throw new Error('API 데이터 형식이 올바르지 않습니다.');
+            }
             
             appState.fullResultData = result.data;
             appState.resultStage = 0;
@@ -427,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("API Error:", error);
             const loadingSection = document.getElementById('loading-section');
             if (loadingSection) {
+                // 에러 메시지를 p 태그 안으로 이동시켜 줄바꿈이 잘 되도록 수정
                 loadingSection.innerHTML = `<div class="error-message"><h3>오류 발생</h3><p>${error.message}</p><button onclick="window.location.reload()">처음으로</button></div>`;
             }
         } finally {
