@@ -1217,7 +1217,8 @@ button:hover {
 
 .card-container {
     position: absolute;
-    width: 800px;
+    width: 90%; /* 고정된 800px 대신 화면 너비의 90%를 사용 */
+    max-width: 800px; /* 화면이 아무리 넓어져도 최대 800px를 넘지 않도록 제한 */
     height: 400px;
     top: 50%;
     left: 50%;
