@@ -528,44 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 이벤트 리스너 등록
     function initEventListeners() {
-        // 1. 메인 카드 클릭 이벤트 수정
+        // --- 메인 화면 ---
         elements.mainShuffleArea.addEventListener('click', () => {
-            if (isLocked()) {
-                // 잠겨있으면 아무것도 하지 않고 UI가 막고 있음을 신뢰
-                return; 
-            }
+            if (isLocked()) return;
             playSound('button');
             navigateTo('question-dialog-screen');
         });
 
-        // 2. 언어 메뉴 클릭 이벤트에 로직 추가
-        const languages = [
-          { code: 'kor', label: 'KO' }, { code: 'eng', label: 'EN' },
-          { code: 'can', label: 'CAN' }, { code: 'vi', label: 'VI' },
-          { code: 'id', label: 'ID' }, { code: 'chn', label: 'CHN' },
-          { code: 'fr', label: 'FR' }, { code: 'es', label: 'ES' },
-          { code: 'hin', label: 'HIN' },
-        ];
-
-        if (elements.langMenu) {
-            elements.langMenu.innerHTML = '';
-            languages.forEach(({ code, label }) => {
-                const li = document.createElement('li');
-                li.textContent = label;
-                li.addEventListener('click', () => {
-                    appState.language = code;
-                    // 👇 핵심 로직 2줄 추가!
-                    appState.languageChosenManually = true; // 수동 선택 상태로 변경
-                    clearLock(); // 잠금 즉시 해제
-                    
-                    elements.langMenu.classList.remove('show');
-                    applyTranslations();
-                });
-                elements.langMenu.appendChild(li);
-            });
-        }
-
-        // 잠금 오버레이의 '언어 선택하기' 버튼 이벤트
         const langChooseBtn = document.getElementById('lock-choose-lang-btn');
         if (langChooseBtn) {
             langChooseBtn.addEventListener('click', () => {
@@ -573,19 +542,95 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 언어 버튼 클릭 이벤트 (메뉴 토글)
-        if (elements.langButton) {
-            elements.langButton.addEventListener('click', () => {
+        // --- 언어 메뉴 ---
+        const languages = [
+          { code: 'kor', label: 'KO' }, { code: 'eng', label: 'EN' },
+          { code: 'can', label: 'CAN' }, { code: 'vi', label: 'VI' },
+          { code: 'id', label: 'ID' }, { code: 'chn', label: 'CHN' },
+          { code: 'fr', label: 'FR' }, { code: 'es', label: 'ES' },
+          { code: 'hin', label: 'HIN' },
+        ];
+        if (elements.langMenu) {
+            elements.langMenu.innerHTML = '';
+            languages.forEach(({ code, label }) => {
+                const li = document.createElement('li');
+                li.textContent = label;
+                li.addEventListener('click', () => {
+                    appState.language = code;
+                    appState.languageChosenManually = true;
+                    clearLock();
+                    elements.langMenu.classList.remove('show');
+                    applyTranslations();
+                });
+                elements.langMenu.appendChild(li);
+            });
+            elements.langButton.addEventListener('click', (e) => {
+                e.stopPropagation();
                 elements.langMenu.classList.toggle('show');
+            });
+            document.addEventListener('click', () => {
+                elements.langMenu.classList.remove('show');
             });
         }
 
-        // 다른 화면 클릭 시 언어 메뉴 닫기
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.lang-switcher-main')) {
-                elements.langMenu.classList.remove('show');
-            }
-        });
+        // --- 질문 방식 선택 화면 ( 여기가 누락된 부분이었습니다! ) ---
+        if (elements.directInputBtn) {
+            elements.directInputBtn.addEventListener('click', () => {
+                playSound('button');
+                navigateTo('custom-question-screen');
+            });
+        }
+
+        if (elements.fortuneSelectBtn) {
+            elements.fortuneSelectBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playSound('button');
+                initFortuneMenu(); // 메뉴 내용을 다시 채우고
+                elements.fortuneMenu.classList.toggle('show'); // 보여주기/숨기기
+            });
+        }
+
+        if (elements.fortuneMenu) {
+            elements.fortuneMenu.addEventListener('click', (e) => {
+                if (e.target.tagName === 'LI') {
+                    playSound('button');
+                    appState.userQuestion = e.target.textContent;
+                    elements.fortuneMenu.classList.remove('show');
+                    navigateTo('mbti-entry-screen');
+                }
+            });
+        }
+
+        if (elements.mindQuestionBtn) {
+            elements.mindQuestionBtn.addEventListener('click', () => {
+                playSound('button');
+                appState.userQuestion = UI_TEXTS[appState.language]?.mindQuestion || "Question in mind";
+                navigateTo('mbti-entry-screen');
+            });
+        }
+        
+        // --- 질문 직접 입력 화면 ---
+        if(elements.backToDialogBtn) {
+            elements.backToDialogBtn.addEventListener('click', () => {
+                playSound('button');
+                navigateTo('question-dialog-screen');
+            });
+        }
+
+        if(elements.submitQuestionBtn) {
+            elements.submitQuestionBtn.addEventListener('click', () => {
+                if (elements.questionInput.value.trim() === '') {
+                    alert(UI_TEXTS[appState.language]?.questionPlaceholder || "Please enter a question.");
+                    return;
+                }
+                playSound('button');
+                appState.userQuestion = elements.questionInput.value;
+                navigateTo('mbti-entry-screen');
+            });
+        }
+        
+        // ... 이 아래로 MBTI, 결과 화면 등 다른 이벤트 리스너가 있다면 그대로 유지하시면 됩니다.
+        // 만약 없다면 이 코드가 전체가 됩니다.
     }
 
     // 배경음악 초기화
