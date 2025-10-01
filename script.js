@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function resetApp() {
         console.log("Resetting application...");
-        AudioManager.setTheme('main'); // ✅ 메인 테마로 복귀
+        // AudioManager.setTheme('main'); // ✅ 사용자 상호작용 후에만 실행되도록 제거
         clearTextGuide(); // ✅ 추가
         stopShuffleSound();
         stopTypingEffect();
@@ -1164,12 +1164,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
         document.addEventListener('touchstart', startMusicOnFirstInteraction, { once: true });
         
-        // 앱 시작 시 자동으로 음악 시작 (선택사항)
-        setTimeout(() => {
-            if (appState.isMusicOn) {
-                AudioManager.setTheme('main');
-            }
-        }, 1000);
+        // 앱 시작 시 자동으로 음악 시작 제거 (사용자 상호작용 필요)
+        // setTimeout(() => {
+        //     if (appState.isMusicOn) {
+        //         AudioManager.setTheme('main');
+        //     }
+        // }, 1000);
     }
 
     // --- 앱 시작 ---
