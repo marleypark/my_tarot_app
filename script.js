@@ -637,8 +637,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const revealTimeout = setTimeout(() => {
             imageEl.classList.remove('reveal-animation');
             imageEl.classList.add('interactive-card');
-            // ✅ 힌트 스케줄링
-            scheduleTextGuide(imageEl); 
+            
+            // ✅ 수정 지점: 첫 번째 카드일 때만 텍스트 가이드 표시
+            if (stageIndex === 0) {
+                scheduleTextGuide(imageEl);
+            }
         }, 700);
 
         const showCardText = () => {
