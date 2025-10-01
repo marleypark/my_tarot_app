@@ -1867,3 +1867,25 @@ button:hover {
   line-height: 1.5;
   color: #e0e0e0;
 }
+
+.tap-hint {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  font-size: 22px;
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none; /* 클릭 방해 금지 */
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  z-index: 30;
+}
+.tap-hint.show {
+  opacity: 0.9;
+  transform: translateY(0) scale(1);
+  animation: hint-bounce 1s ease-in-out 2; /* 2회만 튕김 */
+}
+@keyframes hint-bounce {
+  0%,100% { transform: translateY(0) }
+  50% { transform: translateY(-4px) }
+}

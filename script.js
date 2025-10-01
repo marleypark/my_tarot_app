@@ -24,6 +24,8 @@ const appState = {
         speed: 25,
         skipHandler: null,
     },
+    tapHintTimer: null,
+    tapHintEl: null,
     // 더 이상 사용하지 않는 오래된 상태값들 정리
     // currentResultIndex: 0, 
     // shufflePlaying: false,
@@ -226,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (remain === 0) {
                     if (appState.lockTimer) clearInterval(appState.lockTimer);
                     // 잠금이 풀리면 현재 화면을 다시 렌더링하여 오버레이를 없앰
-                    render();
+        render();
                     return;
                 }
 
@@ -441,13 +443,13 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.opacity = "0";
         card.style.transform += " scale(0.8)";
         card.classList.add("chosen");
-
+        
         appState.selectedCards.push(cardIndex);
         playSound('select');
-
+        
         setTimeout(() => { card.style.display = "none"; }, 500);
         updateCardCounter();
-
+        
         if (appState.selectedCards.length === CONFIG.CARDS_TO_PICK) {
             if (appState.readingRequested) return; // 🛡️ 이미 예약되었다면 중복 방지
             appState.readingRequested = true;
@@ -519,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!result.success || !result.data?.cardInterpretations) {
                 throw new Error('API 데이터 형식이 올바르지 않습니다.');
             }
-
+            
             appState.fullResultData = result.data;
             appState.resultStage = 0;
 
@@ -611,11 +613,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('card-stage-title').textContent = `${stageIndex + 1}번째 카드: ${cardName}`;
         elements.resultScreen.keywordsArea.innerHTML = buildKeywordsHtml(cardData.keywords);
-
-        // 👇 이 한 줄을 추가하여 키워드 영역을 보이게 만듭니다.
         elements.resultScreen.keywordsArea.style.display = 'block';
 
-        // 카드 네비게이션 버튼들 초기에 숨기기
         const cardNextBtn = document.getElementById('card-next-btn');
         const cardPrevBtn = document.getElementById('card-prev-btn');
         if (cardNextBtn) cardNextBtn.style.display = 'none';
@@ -626,6 +625,9 @@ document.addEventListener('DOMContentLoaded', () => {
         overlayEl.innerHTML = '';
         imageEl.onclick = null;
         
+        // ✅ 이전 힌트 정리
+        clearTapHint(); 
+        
         imageEl.src = tarotData[cardIndex].img;
         imageEl.style.display = 'block';
         imageEl.classList.add('reveal-animation');
@@ -633,10 +635,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const revealTimeout = setTimeout(() => {
             imageEl.classList.remove('reveal-animation');
             imageEl.classList.add('interactive-card');
+            // ✅ 힌트 스케줄링
+            scheduleTapHint(imageEl); 
         }, 700);
 
         const showCardText = () => {
             clearTimeout(revealTimeout); 
+            // ✅ 클릭 시 힌트 즉시 제거
+            clearTapHint(); 
             playSound('card-select');
 
             imageEl.classList.remove('interactive-card', 'reveal-animation');
@@ -645,11 +651,9 @@ document.addEventListener('DOMContentLoaded', () => {
             imageEl.onclick = null;
             imageEl.style.cursor = 'default';
 
-            // ✅ 카드가 블러되는 그 순간 '다음' 버튼 노출
             revealCardButtons(stageIndex);
 
             startTypingEffect(overlayEl, text, () => {
-                // 타이핑 완료 후에 또 호출해도 무해(멱등). 유지해도 되고 삭제해도 됨.
                 revealCardButtons(stageIndex);
             });
         };
@@ -729,22 +733,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardPrevBtn = document.getElementById('card-prev-btn');
 
         if (cardNextBtn) {
-            cardNextBtn.style.display = 'block';
-            cardNextBtn.classList.add('show'); // ✅ 가시화
-            // 필요한 경우 위치 고정
-            cardNextBtn.style.position = 'fixed';
-            cardNextBtn.style.top = '20px';
-            cardNextBtn.style.right = '20px';
-            cardNextBtn.style.zIndex = '1000';
+            cardNextBtn.style.display = 'inline-flex'; // block 대신 inline-flex로 변경하여 정렬에 유리하게
+            cardNextBtn.classList.add('show');
         }
+
         if (cardPrevBtn) {
             if (stageIndex > 0) {
-                cardPrevBtn.style.display = 'block';
-                cardPrevBtn.classList.add('show'); // ✅ 가시화
-                cardPrevBtn.style.position = 'fixed';
-                cardPrevBtn.style.top = '20px';
-                cardPrevBtn.style.left = '20px';
-                cardPrevBtn.style.zIndex = '1000';
+                cardPrevBtn.style.display = 'inline-flex';
+                cardPrevBtn.classList.add('show');
             } else {
                 cardPrevBtn.classList.remove('show');
                 cardPrevBtn.style.display = 'none';
@@ -1041,4 +1037,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 150);
         };
     })());
+
+    // 힌트 제어 유틸리티 함수들
+    function scheduleTapHint(imageEl) {
+        clearTapHint();
+        const wrapper = imageEl.closest('.card-image-wrapper');
+        if (!wrapper) return;
+        const hint = document.createElement('div');
+        hint.className = 'tap-hint';
+        hint.textContent = '👆';
+        wrapper.appendChild(hint);
+
+        appState.tapHintEl = hint;
+        appState.tapHintTimer = setTimeout(() => {
+            hint.classList.add('show');
+            setTimeout(clearTapHint, 2000); // 2초 후 자동 제거
+        }, 1200); // 1.2초 유휴 후 노출
+    }
+
+    function clearTapHint() {
+        if (appState.tapHintTimer) {
+            clearTimeout(appState.tapHintTimer);
+            appState.tapHintTimer = null;
+        }
+        if (appState.tapHintEl) {
+            try { appState.tapHintEl.remove(); } catch {}
+            appState.tapHintEl = null;
+        }
+    }
 });
