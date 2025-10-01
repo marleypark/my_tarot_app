@@ -1,5 +1,54 @@
 // 📁 api/interpret.js (전체 교체)
 
+// 안전한 JSON 파싱 함수
+function extractJsonFromText(text) {
+  if (!text) throw new Error('빈 응답을 받았습니다.');
+  const fenced = text.match(/```json([\s\S]*?)```/i) || text.match(/```([\s\S]*?)```/);
+  const raw = fenced ? fenced[1] : text;
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('모델 응답에서 JSON을 찾을 수 없습니다.');
+  return raw.slice(start, end + 1);
+}
+
+// 재시도 + 타임아웃 함수
+async function callGeminiWithRetry(body, apiKey, { retries = 2, timeouts = [12000, 20000] } = {}) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`;
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeouts[Math.min(i, timeouts.length - 1)]);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(t);
+      if (res.ok) return res;
+      const txt = await res.text();
+      lastErr = new Error(`Gemini API 요청 실패: ${res.status} - ${txt}`);
+      // 503/429만 백오프 재시도
+      if (res.status === 503 || res.status === 429) {
+        if (i < retries) await new Promise(r => setTimeout(r, 600 * (i + 1)));
+        continue;
+      }
+      throw lastErr;
+    } catch (e) {
+      clearTimeout(t);
+      lastErr = e;
+      if (e.name === 'AbortError') {
+        if (i < retries) continue;
+        break;
+      }
+      // 네트워크 에러도 1~2회 재시도
+      if (i < retries) await new Promise(r => setTimeout(r, 600 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 async function handler(request, response) {
   // CORS 헤더 설정
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -85,38 +134,36 @@ You must adhere strictly to the following JSON structure. Do not add or remove a
 5. MBTI INTEGRATION: If an MBTI type is provided, the analysis MUST be personalized.
 `;
 
-    const apiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.8,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-          },
-        }),
+    const body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.8,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 4096 // flash-lite 안정성 위해 살짝 낮춤 권장
       }
-    );
-
-    if (!apiResponse.ok) {
-      const errorText = await apiResponse.text();
-      throw new Error(`Gemini API 요청 실패: ${apiResponse.status} - ${errorText}`);
-    }
+    };
+    const apiResponse = await callGeminiWithRetry(body, API_KEY);
 
     const data = await apiResponse.json();
-    let responseJsonText = data.candidates[0].content.parts[0].text;
-
-    if (responseJsonText.startsWith("```json")) {
-      responseJsonText = responseJsonText.substring(7, responseJsonText.length - 3).trim();
-    } else if (responseJsonText.startsWith("```") && responseJsonText.endsWith("```")) {
-      responseJsonText = responseJsonText.substring(3, responseJsonText.length - 3).trim();
+    
+    // candidates 안전 가드
+    if (!data?.candidates?.length) {
+      throw new Error('모델 응답이 비었습니다');
     }
-
+    
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      throw new Error('모델 응답에서 텍스트를 찾을 수 없습니다');
+    }
+    
+    const responseJsonText = extractJsonFromText(text);
     const responseJson = JSON.parse(responseJsonText);
+    
+    // 응답 검증: cardInterpretations 길이 확인
+    if (!responseJson.cardInterpretations || responseJson.cardInterpretations.length !== cardNames.length) {
+      throw new Error(`카드 해석 개수가 일치하지 않습니다. 예상: ${cardNames.length}, 실제: ${responseJson.cardInterpretations?.length || 0}`);
+    }
     
     return response.status(200).json({ success: true, data: responseJson });
 
