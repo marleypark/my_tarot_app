@@ -149,6 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
         applyAutoLockUiState();
         applyTranslations();
         switch (appState.currentScreen) {
+            case 'main-screen': 
+                // 메인 화면에서 잠금 상태 확인 및 UI 업데이트
+                applyAutoLockUiState();
+                break;
             case 'mbti-test-screen': renderMbtiQuestion(); break;
             case 'mbti-result-screen': elements.mbtiResultScreen.display.textContent = appState.userMBTI; break;
             case 'card-select-screen': renderCardSelectScreen(); break;
@@ -703,6 +707,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearLock();
                     elements.langMenu.classList.remove('show');
                     applyTranslations();
+                    // 언어 선택 후 질문 방식 선택 화면으로 이동
+                    navigateTo('question-dialog-screen');
                 });
                 elements.langMenu.appendChild(li);
             });
@@ -878,4 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
     initBackgroundMusic();
     resetApp();
+    
+    // 앱 시작 시 잠금 상태 확인 및 UI 업데이트
+    applyAutoLockUiState();
 });
