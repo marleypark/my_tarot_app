@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ // 3. 보낼 데이터를 JSON 문자열로 변환
                     question: appState.userQuestion,
                     mbti: appState.userMBTI,
-                    cards: cardNames,
+                    cardNames: cardNames, // 서버가 기대하는 필드명으로 수정
                     language: appState.language
                 }),
             });
