@@ -36,6 +36,8 @@ const appState = {
     tapHintTimer: null,
     tapHintEl: null,
     audio: {
+        cosmicReady: false, // 로드 완료 여부
+        cosmicError: false, // 로드 에러 여부
         cosmicStartedAt: 0,
         cosmicMinMs: 1800,  // 최소 재생 보장 시간 (1.8초)
         _fadeRaf: null,     // 페이드 애니메이션 프레임 ID
@@ -330,6 +332,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 사운드 프리로딩 및 재생
     const soundCache = {};
     
+    // clamp01 헬퍼 함수 - 음량 값을 0-1 사이로 제한
+    function clamp01(n) {
+        if (!Number.isFinite(n)) return 0; // NaN/Infinity 방어
+        return Math.max(0, Math.min(1, n));
+    }
+    
     function preloadSounds() {
         const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic'];
         soundTypes.forEach(type => {
@@ -392,17 +400,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function fadeAudio(audio, toVol = 1, duration = 500) {
         return new Promise(resolve => {
             if (!audio) return resolve();
-            const from = audio.volume;
+            
+            const from = clamp01(audio.volume ?? 1); // null/undefined/NaN 방어
+            const target = clamp01(toVol);           // 목표 볼륨도 0-1 사이로 보정
+            
+            if (duration <= 0 || from === target) {
+                try { audio.volume = target; } catch {}
+                return resolve();
+            }
+
             const start = performance.now();
             const step = (now) => {
                 const t = Math.min(1, (now - start) / duration);
-                audio.volume = from + (toVol - from) * t;
+                const v = clamp01(from + (target - from) * t); // 매 스텝 값 보정
+                
+                try { audio.volume = v; } catch { /* ignore DOMException */ }
+
                 if (t < 1) {
                     appState.audio._fadeRaf = requestAnimationFrame(step);
                 } else {
                     resolve();
                 }
             };
+
             cancelAnimationFrame(appState.audio._fadeRaf || 0);
             appState.audio._fadeRaf = requestAnimationFrame(step);
         });
@@ -411,7 +431,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function startCosmicLoop() {
         if (!appState.isMusicOn) return;
         const cosmic = elements.sounds.cosmic;
-        if (!cosmic) return;
+        
+        // ✅ 추가된 방어 코드
+        if (!cosmic || appState.audio.cosmicError) {
+            console.warn("Cosmic sound is not available. Skipping playback.");
+            return; // 에러가 있거나 요소가 없으면 함수 종료
+        }
+        
         const handpan = document.getElementById('handpan-sound');
 
         try {
@@ -1144,6 +1170,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
     initBackgroundMusic();
     preloadSounds(); // 사운드 프리로딩
+    
+    // cosmic 사운드 상태 추적 로직 추가
+    const cosmicAudioEl = document.getElementById('cosmic-sound');
+    if (cosmicAudioEl) {
+        cosmicAudioEl.addEventListener('canplaythrough', () => { appState.audio.cosmicReady = true; });
+        cosmicAudioEl.addEventListener('error', (e) => { 
+            appState.audio.cosmicError = true; 
+            console.error('Cosmic audio file error:', e);
+        });
+    }
+    
     resetApp();
     
     // 앱 시작 시 잠금 상태 확인 및 UI 업데이트
