@@ -534,6 +534,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // 👇 이 한 줄을 추가하여 키워드 영역을 보이게 만듭니다.
         elements.resultScreen.keywordsArea.style.display = 'block';
 
+        // 카드 네비게이션 버튼들 초기에 숨기기
+        const cardNextBtn = document.getElementById('card-next-btn');
+        const cardPrevBtn = document.getElementById('card-prev-btn');
+        if (cardNextBtn) cardNextBtn.style.display = 'none';
+        if (cardPrevBtn) cardPrevBtn.style.display = 'none';
+
         imageEl.classList.remove('interactive-card', 'reveal-animation', 'blur');
         overlayEl.classList.remove('show');
         overlayEl.innerHTML = '';
@@ -617,6 +623,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cardNextBtn.style.top = '20px';
             cardNextBtn.style.right = '20px';
             cardNextBtn.style.zIndex = '1000';
+            cardNextBtn.style.backgroundColor = '#ff4444';
+            cardNextBtn.style.color = 'white';
+            cardNextBtn.style.padding = '10px 20px';
+            cardNextBtn.style.border = 'none';
+            cardNextBtn.style.borderRadius = '5px';
+            cardNextBtn.style.cursor = 'pointer';
         }
         
         if (cardPrevBtn) {
@@ -627,6 +639,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 cardPrevBtn.style.top = '20px';
                 cardPrevBtn.style.left = '20px';
                 cardPrevBtn.style.zIndex = '1000';
+                cardPrevBtn.style.backgroundColor = '#4444ff';
+                cardPrevBtn.style.color = 'white';
+                cardPrevBtn.style.padding = '10px 20px';
+                cardPrevBtn.style.border = 'none';
+                cardPrevBtn.style.borderRadius = '5px';
+                cardPrevBtn.style.cursor = 'pointer';
             }
         }
     }
