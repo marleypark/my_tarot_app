@@ -628,6 +628,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 navigateTo('mbti-entry-screen');
             });
         }
+
+        // --- MBTI 입력 화면 ---
+        if (elements.mbtiSkipBtn) {
+            elements.mbtiSkipBtn.addEventListener('click', () => {
+                playSound('button');
+                appState.userMBTI = '';
+                navigateTo('card-select-screen');
+            });
+        }
+
+        if (elements.mbtiSubmitBtn) {
+            elements.mbtiSubmitBtn.addEventListener('click', () => {
+                const mbtiValue = elements.mbtiInput.value.trim().toUpperCase();
+                if (mbtiValue === '') {
+                    alert(UI_TEXTS[appState.language]?.mbtiPlaceholder || "Please enter your MBTI type.");
+                    return;
+                }
+                playSound('button');
+                appState.userMBTI = mbtiValue;
+                navigateTo('card-select-screen');
+            });
+        }
+
+        // MBTI 검사 시작 버튼
+        const startMbtiTestBtn = document.getElementById('start-mbti-test-btn');
+        if (startMbtiTestBtn) {
+            startMbtiTestBtn.addEventListener('click', () => {
+                playSound('button');
+                navigateTo('mbti-test-screen');
+            });
+        }
+
+        // MBTI 검사 화면의 뒤로가기 버튼
+        if (elements.mbtiBackBtn) {
+            elements.mbtiBackBtn.addEventListener('click', () => {
+                playSound('button');
+                navigateTo('mbti-entry-screen');
+            });
+        }
         
         // ... 이 아래로 MBTI, 결과 화면 등 다른 이벤트 리스너가 있다면 그대로 유지하시면 됩니다.
         // 만약 없다면 이 코드가 전체가 됩니다.
