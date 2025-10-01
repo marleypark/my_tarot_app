@@ -35,6 +35,11 @@ const appState = {
     },
     tapHintTimer: null,
     tapHintEl: null,
+    audio: {
+        cosmicStartedAt: 0,
+        cosmicMinMs: 1800,  // 최소 재생 보장 시간 (1.8초)
+        _fadeRaf: null,     // 페이드 애니메이션 프레임 ID
+    },
     // 더 이상 사용하지 않는 오래된 상태값들 정리
     // currentResultIndex: 0, 
     // shufflePlaying: false,
@@ -157,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             shuffle: document.getElementById('shuffle-sound'),
             'card-select': document.getElementById('select-sound'),
             typing: document.getElementById('typing-sound'),
+            cosmic: document.getElementById('cosmic-sound'),
         },
         musicBtn: document.getElementById('music-btn'),
         musicSliderContainer: document.getElementById('music-slider-container'),
@@ -325,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const soundCache = {};
     
     function preloadSounds() {
-        const soundTypes = ['select', 'button', 'shuffle', 'typing'];
+        const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic'];
         soundTypes.forEach(type => {
             const sound = elements.sounds[type];
             if (sound) {
@@ -381,6 +387,78 @@ document.addEventListener('DOMContentLoaded', () => {
             s.currentTime = 0;
             s.loop = false;
         } catch (e) {}
+    }
+
+    function fadeAudio(audio, toVol = 1, duration = 500) {
+        return new Promise(resolve => {
+            if (!audio) return resolve();
+            const from = audio.volume;
+            const start = performance.now();
+            const step = (now) => {
+                const t = Math.min(1, (now - start) / duration);
+                audio.volume = from + (toVol - from) * t;
+                if (t < 1) {
+                    appState.audio._fadeRaf = requestAnimationFrame(step);
+                } else {
+                    resolve();
+                }
+            };
+            cancelAnimationFrame(appState.audio._fadeRaf || 0);
+            appState.audio._fadeRaf = requestAnimationFrame(step);
+        });
+    }
+
+    function startCosmicLoop() {
+        if (!appState.isMusicOn) return;
+        const cosmic = elements.sounds.cosmic;
+        if (!cosmic) return;
+        const handpan = document.getElementById('handpan-sound');
+
+        try {
+            cosmic.loop = true;
+            cosmic.volume = 0; // 페이드 인 준비
+            const p = cosmic.play();
+            if (p) p.catch(() => console.warn('Cosmic sound play failed.'));
+        } catch (e) { /* ignore */ }
+        
+        // 크로스페이드
+        Promise.all([
+            handpan ? fadeAudio(handpan, 0, 420) : Promise.resolve(),
+            fadeAudio(cosmic, 0.9, 420)
+        ]).then(() => {
+            if (handpan) handpan.pause();
+        });
+
+        appState.audio.cosmicStartedAt = Date.now();
+    }
+
+    function stopCosmicLoop() {
+        const cosmic = elements.sounds.cosmic;
+        if (!cosmic) return;
+        const handpan = document.getElementById('handpan-sound');
+        
+        const elapsed = Date.now() - (appState.audio.cosmicStartedAt || 0);
+        const remain = Math.max(0, appState.audio.cosmicMinMs - elapsed);
+
+        const doFadeOut = () => {
+            Promise.all([
+                fadeAudio(cosmic, 0, 380),
+                (async () => {
+                    if (appState.isMusicOn && window.playBgMusic) {
+                        window.playBgMusic();
+                        if (handpan) {
+                            handpan.volume = 0;
+                            await fadeAudio(handpan, 0.3, 420);
+                        }
+                    }
+                })()
+            ]).then(() => {
+                cosmic.pause();
+                cosmic.currentTime = 0;
+            });
+        };
+
+        setTimeout(doFadeOut, remain);
     }
 
 
@@ -507,6 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultScreen.loadingSection.style.display = 'flex';
             elements.resultScreen.resultSections.style.display = 'none';
 
+            // ✅ 로딩 음악 시작
+            startCosmicLoop();
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
@@ -577,6 +657,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('error-reset-btn')?.addEventListener('click', resetApp);
             }
         } finally {
+            // ✅ 로딩 음악 정리 (최소 재생 보장 후 배경 복귀)
+            stopCosmicLoop();
+
             appState.isFetching = false;
             if (appState.currentFetchController === controller) {
                 appState.currentFetchController = null;
