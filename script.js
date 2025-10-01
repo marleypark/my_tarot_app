@@ -174,14 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function navigateTo(screenId) {
-        // 🛡️ "Invisible Wall" - 잠금 상태일 때 메인 화면 외 모든 화면 차단
-        if (isLocked() && screenId !== 'main-screen') {
-            console.log(`Access blocked to ${screenId} - user is locked`);
-            return; // 보이지 않는 벽으로 차단
-        }
-        
         appState.currentScreen = screenId;
-        render();
+        render(); // 오직 화면 전환과 렌더링만 담당
     }
     
     // --- 잠금 관리 로직 ---
@@ -274,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultStage: 0,
             isFetching: false,
             readingRequested: false,
-            // languageChosenManually는 유지하여 '무제한 모드'를 보존
+            languageChosenManually: false, // 👈 이 부분이 반드시 false로 초기화되어야 함
         });
         
         // 오타 수정: mbiInput -> mbtiInput
@@ -454,8 +448,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // API 호출
     async function fetchFullReading() {
         if (isLocked()) {
-            appState.readingRequested = false; // 잠겨있으면 요청 상태 해제
-            navigateTo('main-screen'); // 잠금 화면을 보여주기 위해 메인으로
+            appState.readingRequested = false; 
+            // main-screen이 아닌, 오버레이가 즉시 나타날 수 있는 화면으로 보낸다.
+            navigateTo('question-dialog-screen'); 
             return;
         }
         
