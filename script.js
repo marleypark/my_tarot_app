@@ -504,6 +504,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('card-stage-title').textContent = `${stageIndex + 1}번째 카드: ${cardName}`;
         elements.resultScreen.keywordsArea.innerHTML = buildKeywordsHtml(cardData.keywords);
 
+        // 👇 이 한 줄을 추가하여 키워드 영역을 보이게 만듭니다.
+        elements.resultScreen.keywordsArea.style.display = 'block';
+
         imageEl.classList.remove('interactive-card', 'reveal-animation', 'blur');
         overlayEl.classList.remove('show');
         overlayEl.innerHTML = '';
@@ -547,7 +550,39 @@ document.addEventListener('DOMContentLoaded', () => {
     function revealStageButtons(context) { /* ... */ }
 
     // 유틸리티
-    function buildKeywordsHtml(keywords) { /* ... */ }
+    function buildKeywordsHtml(keywords) {
+        // 키워드 데이터가 없거나 형식이 맞지 않으면 빈 문자열을 반환하여 오류를 방지합니다.
+        if (!keywords || typeof keywords !== 'object') {
+            return '';
+        }
+
+        let html = '';
+        const lang = appState.language;
+
+        // 긍정 키워드 생성
+        if (keywords.positive && keywords.positive.length > 0) {
+            const positiveTitle = UI_TEXTS[lang]?.keywordPositive || '긍정';
+            html += `
+                <div class="keyword-group">
+                    <span class="keyword-title positive">${positiveTitle}:</span>
+                    ${keywords.positive.map(kw => `<span class="keyword positive">${kw}</span>`).join('')}
+                </div>
+            `;
+        }
+
+        // 주의(부정) 키워드 생성
+        if (keywords.caution && keywords.caution.length > 0) {
+            const cautionTitle = UI_TEXTS[lang]?.keywordCaution || '주의';
+            html += `
+                <div class="keyword-group">
+                    <span class="keyword-title negative">${cautionTitle}:</span>
+                    ${keywords.caution.map(kw => `<span class="keyword negative">${kw}</span>`).join('')}
+                </div>
+            `;
+        }
+
+        return html;
+    }
     function translationForKey(key, fallback) { /* ... */ }
     
     // PDF 생성
