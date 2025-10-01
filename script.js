@@ -601,14 +601,25 @@ document.addEventListener('DOMContentLoaded', () => {
         element.innerHTML = '';
         let currentIndex = 0;
         let isComplete = false;
+        let typingSoundInterval = null;
         
         const typeChar = () => {
             if (currentIndex < fullText.length && !isComplete) {
                 element.innerHTML += fullText[currentIndex];
                 currentIndex++;
+                
+                // 타이핑 사운드 재생 (공백이 아닌 문자일 때만)
+                if (fullText[currentIndex - 1] !== ' ') {
+                    playSound('typing');
+                }
+                
                 setTimeout(typeChar, 50); // 타이핑 속도 조절
             } else if (currentIndex >= fullText.length && !isComplete) {
                 isComplete = true;
+                // 타이핑 완료 시 사운드 정리
+                if (typingSoundInterval) {
+                    clearInterval(typingSoundInterval);
+                }
                 if (onComplete) onComplete();
             }
         };
@@ -618,6 +629,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isComplete) {
                 isComplete = true;
                 element.innerHTML = fullText;
+                // 타이핑 중단 시 사운드 정리
+                if (typingSoundInterval) {
+                    clearInterval(typingSoundInterval);
+                }
                 if (onComplete) onComplete();
             }
         };
@@ -629,7 +644,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // 타이핑 시작
         typeChar();
     }
-    function stopTypingEffect() { /* ... */ }
+    function stopTypingEffect() {
+        // 타이핑 효과를 중단하는 함수
+        // 현재는 특별한 정리 작업이 필요하지 않음
+        // 필요시 타이핑 중인 모든 요소를 정리할 수 있음
+    }
     
     // 버튼 표시/숨김
     function revealCardButtons(stageIndex) {
