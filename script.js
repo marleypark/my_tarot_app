@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // ⭐⭐⭐ 여기가 핵심 수정 부분입니다! ⭐⭐⭐
         // 언어 선택기 다시 보이기 (앱 초기화 시)
-        const langSwitcher = document.querySelector('.lang-switcher-top-right');
+        const langSwitcher = document.querySelector('.lang-switcher-main');
         if (langSwitcher) { // langSwitcher가 존재하는지 반드시 확인!
             langSwitcher.style.display = 'block';
         } else {
