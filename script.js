@@ -542,11 +542,55 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderActionPlanStage(plan) { /* ... */ }
 
     // 타이핑 효과
-    function startTypingEffect(element, fullText, onComplete) { /* ... */ }
+    function startTypingEffect(element, fullText, onComplete) {
+        if (!element || !fullText) return;
+        
+        element.innerHTML = '';
+        let currentIndex = 0;
+        let isComplete = false;
+        
+        const typeChar = () => {
+            if (currentIndex < fullText.length && !isComplete) {
+                element.innerHTML += fullText[currentIndex];
+                currentIndex++;
+                setTimeout(typeChar, 50); // 타이핑 속도 조절
+            } else if (currentIndex >= fullText.length && !isComplete) {
+                isComplete = true;
+                if (onComplete) onComplete();
+            }
+        };
+        
+        // 텍스트 터치 시 전체 텍스트 즉시 표시
+        const showFullText = () => {
+            if (!isComplete) {
+                isComplete = true;
+                element.innerHTML = fullText;
+                if (onComplete) onComplete();
+            }
+        };
+        
+        // 텍스트 클릭 이벤트 추가
+        element.addEventListener('click', showFullText, { once: true });
+        element.style.cursor = 'pointer';
+        
+        // 타이핑 시작
+        typeChar();
+    }
     function stopTypingEffect() { /* ... */ }
     
     // 버튼 표시/숨김
-    function revealCardButtons(stageIndex) { /* ... */ }
+    function revealCardButtons(stageIndex) {
+        const cardNextBtn = document.getElementById('card-next-btn');
+        const cardPrevBtn = document.getElementById('card-prev-btn');
+        
+        if (cardNextBtn) {
+            cardNextBtn.style.display = 'block';
+        }
+        
+        if (cardPrevBtn) {
+            cardPrevBtn.style.display = stageIndex > 0 ? 'block' : 'none';
+        }
+    }
     function revealStageButtons(context) { /* ... */ }
 
     // 유틸리티
@@ -728,6 +772,34 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.mbtiBackBtn.addEventListener('click', () => {
                 playSound('button');
                 navigateTo('mbti-entry-screen');
+            });
+        }
+
+        // --- 카드 네비게이션 버튼 ---
+        const cardNextBtn = document.getElementById('card-next-btn');
+        const cardPrevBtn = document.getElementById('card-prev-btn');
+        
+        if (cardNextBtn) {
+            cardNextBtn.addEventListener('click', () => {
+                playSound('button');
+                if (appState.resultStage < CONFIG.CARDS_TO_PICK - 1) {
+                    appState.resultStage++;
+                    updateResultStageContent();
+                } else {
+                    // 마지막 카드 후 다음 단계로
+                    appState.resultStage = CONFIG.CARDS_TO_PICK;
+                    updateResultStageContent();
+                }
+            });
+        }
+        
+        if (cardPrevBtn) {
+            cardPrevBtn.addEventListener('click', () => {
+                playSound('button');
+                if (appState.resultStage > 0) {
+                    appState.resultStage--;
+                    updateResultStageContent();
+                }
             });
         }
         
