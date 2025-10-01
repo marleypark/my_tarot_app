@@ -29,16 +29,6 @@
             <div id="main-shuffle-area">
                 <img src="images/card_back.png" alt="카드 뒷면" class="card-back-static">
             </div>
-            
-            <!-- 잠금 오버레이 -->
-            <div id="lock-overlay" style="display: none;">
-                <div class="lock-box">
-                    <h3 data-i18n-key="lock.title">서비스 이용 제한</h3>
-                    <p id="lock-msg"></p>
-                    <p data-i18n-key="lock.unlockHint" class="lock-hint">언어를 선택하면 즉시 이용 가능합니다.</p>
-                    <button id="lock-choose-lang-btn" data-i18n-key="lock.langButton">언어 선택하기</button>
-                </div>
-            </div>
         </div>
 
         <!-- 2. 질문 방식 선택 -->
@@ -195,6 +185,15 @@
                         <button id="restart-btn" data-i18n-key="restartButton">처음으로</button>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- 👇 모든 screen들 아래, app-container의 맨 끝에 이 블록을 추가! -->
+        <div id="lock-overlay" style="display: none;">
+            <div class="lock-box">
+                <h3 data-i18n-key="lock.title">서비스 이용 제한</h3>
+                <p id="lock-msg"></p>
+                <!-- 힌트와 버튼은 완전히 제거 -->
             </div>
         </div>
     </div>

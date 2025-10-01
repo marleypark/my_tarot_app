@@ -34,6 +34,16 @@ const appState = {
 // appState 객체 바로 아래에 추가
 let listenersInitialized = false;
 
+// 👇 잠금 대상 화면 목록 정의
+const LOCK_APPLIES_TO_SCREENS = new Set([
+    'question-dialog-screen',
+    'custom-question-screen',
+    'mbti-entry-screen',
+    'mbti-test-screen',
+    'mbti-result-screen',
+    'card-select-screen'
+]);
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. 데이터 및 설정 (Data & Config) ---
@@ -151,13 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.screens.forEach(screen => {
             screen.style.display = screen.id === appState.currentScreen ? 'flex' : 'none';
         });
-        applyAutoLockUiState();
+        
         applyTranslations();
+        applyAutoLockUiState(); // 모든 화면 전환 시 잠금 상태를 체크하여 '벽'을 세울지 결정
+
         switch (appState.currentScreen) {
-            case 'main-screen': 
-                // 메인 화면에서 잠금 상태 확인 및 UI 업데이트
-                applyAutoLockUiState();
-                break;
             case 'mbti-test-screen': renderMbtiQuestion(); break;
             case 'mbti-result-screen': elements.mbtiResultScreen.display.textContent = appState.userMBTI; break;
             case 'card-select-screen': renderCardSelectScreen(); break;
@@ -166,6 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function navigateTo(screenId) {
+        // 🛡️ "Invisible Wall" - 잠금 상태일 때 메인 화면 외 모든 화면 차단
+        if (isLocked() && screenId !== 'main-screen') {
+            console.log(`Access blocked to ${screenId} - user is locked`);
+            return; // 보이지 않는 벽으로 차단
+        }
+        
         appState.currentScreen = screenId;
         render();
     }
@@ -204,27 +218,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!overlay) return;
 
         const locked = isLocked();
-        overlay.style.display = locked ? 'flex' : 'none';
+        // 현재 화면이 잠금 대상 화면 목록에 포함되어 있을 때만 오버레이를 보여줌
+        const shouldShowOverlay = locked && LOCK_APPLIES_TO_SCREENS.has(appState.currentScreen);
 
-        if (locked) {
+        overlay.style.display = shouldShowOverlay ? 'flex' : 'none';
+
+        if (shouldShowOverlay) {
+            const msgEl = document.getElementById('lock-msg');
             const updateTimer = () => {
                 const until = parseInt(localStorage.getItem(AUTO_LOCK_STORAGE_KEY) || '0', 10);
                 const remain = Math.max(0, until - Date.now());
+
                 if (remain === 0) {
-                    if(appState.lockTimer) clearInterval(appState.lockTimer);
-                    applyAutoLockUiState(); // 시간이 다 되면 UI 다시 그림
+                    if (appState.lockTimer) clearInterval(appState.lockTimer);
+                    // 잠금이 풀리면 현재 화면을 다시 렌더링하여 오버레이를 없앰
+                    render();
                     return;
                 }
+
                 const mm = String(Math.floor(remain / 60000)).padStart(2, '0');
                 const ss = String(Math.floor((remain % 60000) / 1000)).padStart(2, '0');
-                document.getElementById('lock-msg').textContent = `남은 시간 ${mm}:${ss}`;
+                msgEl.textContent = `잠시 후 다시 이용할 수 있습니다. (남은 시간 ${mm}:${ss})`;
             };
 
             if (appState.lockTimer) clearInterval(appState.lockTimer);
-            updateTimer(); // 즉시 한번 실행
+            updateTimer();
             appState.lockTimer = setInterval(updateTimer, 1000);
         } else {
-            if (appState.lockTimer) clearInterval(appState.lockTimer);
+            if (appState.lockTimer) {
+                clearInterval(appState.lockTimer);
+                appState.lockTimer = null;
+            }
         }
     }
     
@@ -762,17 +786,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- 메인 화면 ---
         elements.mainShuffleArea.addEventListener('click', () => {
-            if (isLocked()) return;
             playSound('button');
+            // 잠금 여부 체크 없이 무조건 다음 화면으로 이동 요청
             navigateTo('question-dialog-screen');
         });
-
-        const langChooseBtn = document.getElementById('lock-choose-lang-btn');
-        if (langChooseBtn) {
-            langChooseBtn.addEventListener('click', () => {
-                if (elements.langButton) elements.langButton.click();
-            });
-        }
 
         // --- 언어 메뉴 ---
         const languages = [
