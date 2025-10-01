@@ -467,6 +467,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
         elements.resultScreen.resultSections.style.display = 'block';
+        
+        // 결과 화면 진입 시 모든 하단 버튼들 숨기기
+        const pdfSaveBtn = document.getElementById('pdf-save-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const bottomNav = document.querySelector('.bottom-navigation');
+        
+        if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
+        if (restartBtn) restartBtn.style.display = 'none';
+        if (bottomNav) bottomNav.style.display = 'none';
+        
         updateResultStageContent();
     }
 
@@ -479,6 +489,15 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.resultScreen.summarySection.style.display = 'none';
         elements.resultScreen.actionPlanSection.style.display = 'none';
         
+        // PDF 버튼과 하단 네비게이션 버튼들 숨기기
+        const pdfSaveBtn = document.getElementById('pdf-save-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const bottomNav = document.querySelector('.bottom-navigation');
+        
+        if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
+        if (restartBtn) restartBtn.style.display = 'none';
+        if (bottomNav) bottomNav.style.display = 'none';
+        
         if (stage < CONFIG.CARDS_TO_PICK) {
             elements.resultScreen.cardSection.style.display = 'block';
             prepareCardStage(stage, cardInterpretations[stage].interpretation);
@@ -488,6 +507,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             elements.resultScreen.actionPlanSection.style.display = 'block';
             renderActionPlanStage(overallReading.mbtiActionPlan);
+            // 마지막 화면에서만 PDF 버튼과 하단 네비게이션 표시
+            if (pdfSaveBtn) pdfSaveBtn.style.display = 'block';
+            if (restartBtn) restartBtn.style.display = 'block';
+            if (bottomNav) bottomNav.style.display = 'flex';
         }
     }
 
@@ -585,10 +608,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (cardNextBtn) {
             cardNextBtn.style.display = 'block';
+            // 다음 버튼을 우측 상단에 고정
+            cardNextBtn.style.position = 'fixed';
+            cardNextBtn.style.top = '20px';
+            cardNextBtn.style.right = '20px';
+            cardNextBtn.style.zIndex = '1000';
         }
         
         if (cardPrevBtn) {
             cardPrevBtn.style.display = stageIndex > 0 ? 'block' : 'none';
+            // 이전 버튼을 좌측 상단에 고정
+            if (stageIndex > 0) {
+                cardPrevBtn.style.position = 'fixed';
+                cardPrevBtn.style.top = '20px';
+                cardPrevBtn.style.left = '20px';
+                cardPrevBtn.style.zIndex = '1000';
+            }
         }
     }
     function revealStageButtons(context) { /* ... */ }
