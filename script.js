@@ -583,7 +583,8 @@ document.addEventListener('DOMContentLoaded', () => {
             imageEl.onclick = null;
             imageEl.style.cursor = 'default';
             startTypingEffect(overlayEl, text, () => {
-                setTimeout(() => revealCardButtons(stageIndex), 2000);
+                // 타이핑 완료 시 즉시 버튼 표시 (2초 지연 제거)
+                revealCardButtons(stageIndex);
             });
         };
 
@@ -601,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
         element.innerHTML = '';
         let currentIndex = 0;
         let isComplete = false;
-        let typingSoundInterval = null;
+        let typingTimer = null;
         
         const typeChar = () => {
             if (currentIndex < fullText.length && !isComplete) {
@@ -613,12 +614,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     playSound('typing');
                 }
                 
-                setTimeout(typeChar, 50); // 타이핑 속도 조절
+                typingTimer = setTimeout(typeChar, 50); // 타이핑 속도 조절
             } else if (currentIndex >= fullText.length && !isComplete) {
                 isComplete = true;
-                // 타이핑 완료 시 사운드 정리
-                if (typingSoundInterval) {
-                    clearInterval(typingSoundInterval);
+                // 타이핑 완료 시 타이머 정리
+                if (typingTimer) {
+                    clearTimeout(typingTimer);
+                    typingTimer = null;
                 }
                 if (onComplete) onComplete();
             }
@@ -629,9 +631,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isComplete) {
                 isComplete = true;
                 element.innerHTML = fullText;
-                // 타이핑 중단 시 사운드 정리
-                if (typingSoundInterval) {
-                    clearInterval(typingSoundInterval);
+                // 타이핑 중단 시 타이머 정리
+                if (typingTimer) {
+                    clearTimeout(typingTimer);
+                    typingTimer = null;
                 }
                 if (onComplete) onComplete();
             }
@@ -652,8 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 버튼 표시/숨김
     function revealCardButtons(stageIndex) {
+        console.log('revealCardButtons called with stageIndex:', stageIndex);
         const cardNextBtn = document.getElementById('card-next-btn');
         const cardPrevBtn = document.getElementById('card-prev-btn');
+        
+        console.log('cardNextBtn found:', !!cardNextBtn);
         
         if (cardNextBtn) {
             cardNextBtn.style.display = 'block';
@@ -668,6 +674,9 @@ document.addEventListener('DOMContentLoaded', () => {
             cardNextBtn.style.border = 'none';
             cardNextBtn.style.borderRadius = '5px';
             cardNextBtn.style.cursor = 'pointer';
+            console.log('Next button should be visible now');
+        } else {
+            console.log('cardNextBtn not found!');
         }
         
         if (cardPrevBtn) {
@@ -732,8 +741,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // 이벤트 리스너 등록
     function initEventListeners() {
         // --- 메인 화면 ---
+        console.log('initEventListeners called');
+        console.log('elements.mainShuffleArea:', elements.mainShuffleArea);
+        
+        if (!elements.mainShuffleArea) {
+            console.error('mainShuffleArea element not found!');
+            return;
+        }
+        
         elements.mainShuffleArea.addEventListener('click', () => {
-            if (isLocked()) return;
+            console.log('Main card clicked');
+            console.log('isLocked():', isLocked());
+            console.log('languageChosenManually:', appState.languageChosenManually);
+            console.log('localStorage lock:', localStorage.getItem(AUTO_LOCK_STORAGE_KEY));
+            
+            if (isLocked()) {
+                console.log('Card click blocked by lock');
+                return;
+            }
+            console.log('Card click proceeding...');
             playSound('button');
             navigateTo('question-dialog-screen');
         });
