@@ -897,47 +897,70 @@ document.addEventListener('DOMContentLoaded', () => {
         stopTypingEffect();
         clearTextGuide();
         
-        // 데이터가 없는 경우에 대한 방어
+        const actionPlanContainer = document.getElementById('action-plan-container');
+        if (!actionPlanContainer) return;
+
+        // --- 기존 내용 초기화 ---
+        actionPlanContainer.innerHTML = ''; 
+        actionPlanContainer.className = ''; // 이전 클래스 초기화
+
+        // --- 데이터 부재 시 방어 ---
         if (!plan || !plan.phases || !Array.isArray(plan.phases)) {
-            const phasesEl = document.getElementById('action-plan-phases');
-            if(phasesEl) phasesEl.innerHTML = "<p>현실 조언을 준비하지 못했습니다.</p>";
+            const errorMsg = document.createElement('p');
+            errorMsg.textContent = "현실 조언을 준비하지 못했습니다.";
+            actionPlanContainer.appendChild(errorMsg);
+        } else {
+            // --- 1. 제목 렌더링 ---
+            const titleEl = document.getElementById('action-plan-title');
+            if (titleEl) {
+                titleEl.textContent = plan.title || 'AI 현실 조언';
+            }
+
+            // --- 2. 내용 렌더링 (createElement 사용) ---
+            const scrollWrapper = document.createElement('div');
+            scrollWrapper.className = 'action-plan-full-scroll';
+
+            // 소개글 추가
+            if (plan.introduction) {
+                const introEl = document.createElement('p');
+                introEl.className = 'action-plan-intro';
+                introEl.textContent = plan.introduction;
+                scrollWrapper.appendChild(introEl);
+            }
+
+            // 3단계 계획 추가
+            plan.phases.forEach((phase, index) => {
+                const stageEl = document.createElement('div');
+                stageEl.className = 'action-plan-stage';
+
+                const stageTitle = document.createElement('h3');
+                stageTitle.className = 'stage-title';
+                stageTitle.textContent = phase.phaseTitle || `${index + 1}단계`;
+                stageEl.appendChild(stageTitle);
+
+                const stepList = document.createElement('ul');
+                stepList.className = 'stage-steps';
+                phase.steps.forEach(stepText => {
+                    const stepItem = document.createElement('li');
+                    stepItem.textContent = stepText;
+                    stepList.appendChild(stepItem);
+                });
+                stageEl.appendChild(stepList);
+                scrollWrapper.appendChild(stageEl);
+
+                // 마지막 단계가 아니면 구분선 추가
+                if (index < plan.phases.length - 1) {
+                    const divider = document.createElement('hr');
+                    divider.className = 'stage-divider';
+                    scrollWrapper.appendChild(divider);
+                }
+            });
             
-            // 최종 버튼들만 표시
-            document.querySelector('.bottom-navigation').style.display = 'flex';
-            document.querySelector('.stage-navigation').style.display = 'none';
-            return;
-        }
-
-        // --- 1. 제목 렌더링 ---
-        const titleEl = document.getElementById('action-plan-title');
-        if (titleEl) {
-            titleEl.textContent = plan.title || 'AI 현실 조언';
-        }
-
-        // --- 2. 내용 렌더링 (소개 + 3단계 계획) ---
-        const phasesEl = document.getElementById('action-plan-phases');
-        if (phasesEl) {
-            // XSS 방지를 위해 textContent를 사용하거나, sanitizer를 거쳐야 하지만,
-            // 현재 프로젝트 구조상 innerHTML을 사용하므로 그대로 진행. (향후 개선 과제)
-            let phasesHtml = `<p class="action-plan-intro">${plan.introduction || ''}</p>`;
-            
-            phasesHtml += plan.phases.map((phase, index) => `
-                <div class="action-plan-stage">
-                    <h3 class="stage-title">${phase.phaseTitle || `${index + 1}단계`}</h3>
-                    <ul class="stage-steps">
-                        ${phase.steps.map(step => `<li>${step}</li>`).join('')}
-                    </ul>
-                </div>
-            `).join('<div class="stage-divider"></div>');
-
-            phasesEl.innerHTML = `<div class="action-plan-full-scroll">${phasesHtml}</div>`;
+            actionPlanContainer.appendChild(scrollWrapper);
         }
 
         // --- 3. 버튼 상태 동기화 ---
-        // '뒤로'/'다음' 버튼 컨테이너는 숨김
         document.querySelector('.stage-navigation').style.display = 'none';
-        
-        // 'PDF 저장'/'처음으로' 버튼 컨테이너는 표시
         document.querySelector('.bottom-navigation').style.display = 'flex';
     }
 
