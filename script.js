@@ -1086,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function translationForKey(key, fallback) { /* ... */ }
     
 
-    // PDF 생성 함수들 (Opus-4 네이티브 렌더링 최적화 버전)
+    // PDF 생성 함수들 (Opus-4 최종 최적화 버전)
     async function generatePDF() {
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
         const originalBtnText = pdfSaveBtn.textContent;
@@ -1095,154 +1095,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+            const doc = new jsPDF('p', 'mm', 'a4');
 
-            // --- 스타일 및 레이아웃 상수 ---
-            const COLORS = {
-                primary: '#2c3e50',
-                secondary: '#34495e',
-                text: '#333333',
-                light: '#555555',
-                border: '#eeeeee',
-                background: '#ffffff'
-            };
+            const PAGE_WIDTH = 210;
+            const MARGIN_X = 15;
+            const MARGIN_Y = 20;
+            const CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);
+            const MAX_Y = 297 - MARGIN_Y;
+            let currentY = MARGIN_Y;
 
-            const MARGIN = { left: 20, right: 20, top: 20, bottom: 25 };
-            const CONTENT_WIDTH = 210 - MARGIN.left - MARGIN.right;
-            let currentY = MARGIN.top;
+            const contentContainer = createPDFContent();
+            document.body.appendChild(contentContainer);
 
-            // --- 헬퍼 함수들 ---
-            function checkNewPage(neededSpace) {
-                if (currentY + neededSpace > 297 - MARGIN.bottom) {
-                    doc.addPage();
-                    currentY = MARGIN.top;
-                    return true;
-                }
-                return false;
-            }
+            await document.fonts.ready;
 
-            function addWrappedText(text, fontSize, color, align = 'left', maxWidth = CONTENT_WIDTH) {
-                const lines = doc.splitTextToSize(text, maxWidth);
-                const lineHeight = fontSize * 0.4;
-                
-                if (checkNewPage(lines.length * lineHeight)) {
-                    return addWrappedText(text, fontSize, color, align, maxWidth);
-                }
+            const sections = contentContainer.querySelectorAll('.pdf-section');
 
-                doc.setFontSize(fontSize);
-                doc.setTextColor(color);
-                doc.text(lines, MARGIN.left, currentY, { align });
-                currentY += lines.length * lineHeight + 2;
-            }
-
-            function drawDivider() {
-                if (checkNewPage(5)) return;
-                doc.setDrawColor(COLORS.border);
-                doc.line(MARGIN.left, currentY, MARGIN.left + CONTENT_WIDTH, currentY);
-                currentY += 5;
-            }
-
-            async function addCardImage(imagePath, width = 60) {
-                try {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        img.src = imagePath;
-                    });
-
-                    const aspectRatio = img.height / img.width;
-                    const height = width * aspectRatio;
-                    
-                    if (checkNewPage(height + 10)) {
-                        return addCardImage(imagePath, width);
-                    }
-
-                    const x = MARGIN.left + (CONTENT_WIDTH - width) / 2;
-                    doc.addImage(img, 'JPEG', x, currentY, width, height, undefined, 'FAST');
-                    currentY += height + 10;
-                } catch (error) {
-                    console.warn('이미지 로드 실패:', error);
-                    addWrappedText('[이미지 로드 실패]', 12, COLORS.light, 'center');
-                }
-            }
-            
-            // --- 폰트 설정 ---
-            try {
-                doc.setFont('NotoSansKR', 'normal');
-            } catch (e) {
-                doc.setFont('helvetica', 'normal');
-                console.warn('Korean font not available, using helvetica');
-            }
-
-            // --- PDF 내용 생성 로직 ---
-            if (!appState.fullResultData) {
-                addWrappedText('데이터가 없습니다.', 16, COLORS.primary, 'center');
-                doc.save('ask-anything-tarot-error.pdf');
-                return;
-            }
-
-            const { cardInterpretations, overallReading } = appState.fullResultData;
-            
-            // 1. 제목 페이지
-            addWrappedText('ASK ANYTHING 타로 리딩', 24, COLORS.primary, 'center');
-            currentY += 5;
-            addWrappedText(new Date().toLocaleDateString(), 12, COLORS.light, 'center');
-            currentY += 10;
-            drawDivider();
-
-            // 2. 카드별 해석
-            cardInterpretations.forEach((interpretation, index) => {
-                addWrappedText(`${index + 1}. ${interpretation.cardName}`, 18, COLORS.secondary);
-                currentY += 3;
-                
-                // 카드 이미지 추가
-                const cardData = tarotData[appState.selectedCards[index]];
-                addCardImage(cardData.img, 60);
-                
-                // 해석 텍스트
-                addWrappedText(interpretation.interpretation, 14, COLORS.text);
-                currentY += 5;
-                drawDivider();
-            });
-
-            // 3. 총정리
-            addWrappedText(overallReading.title, 20, COLORS.primary, 'center');
-            currentY += 5;
-            addWrappedText(overallReading.summary, 14, COLORS.text);
-            currentY += 10;
-            drawDivider();
-
-            // 4. AI 현실 조언
-            if (overallReading.mbtiActionPlan) {
-                const plan = overallReading.mbtiActionPlan;
-                addWrappedText(plan.title, 20, COLORS.primary, 'center');
-                currentY += 5;
-                addWrappedText(plan.introduction, 14, COLORS.text);
-                currentY += 5;
-
-                plan.phases.forEach((phase, index) => {
-                    addWrappedText(phase.phaseTitle, 16, COLORS.secondary);
-                    currentY += 3;
-                    
-                    phase.steps.forEach(step => {
-                        addWrappedText(`• ${step}`, 14, COLORS.text, 'left', CONTENT_WIDTH - 10);
-                    });
-                    currentY += 5;
+            for (const section of sections) {
+                const canvas = await html2canvas(section, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: null
                 });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgHeight = (canvas.height * CONTENT_WIDTH) / canvas.width;
+
+                if (currentY > MARGIN_Y && currentY + imgHeight > MAX_Y) {
+                    doc.addPage();
+                    currentY = MARGIN_Y;
+                }
+
+                doc.addImage(imgData, 'PNG', MARGIN_X, currentY, CONTENT_WIDTH, imgHeight);
+                currentY += imgHeight + 5;
             }
 
-            // 최종 페이지 번호 추가
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(10);
-                doc.setTextColor(COLORS.light);
-                doc.text(`${i} / ${pageCount}`, 105, 297 - 10, { align: 'center' });
-            }
-
+            document.body.removeChild(contentContainer);
             const date = new Date().toISOString().split('T')[0];
             doc.save(`ask-anything-tarot-${date}.pdf`);
 
@@ -1253,6 +1142,84 @@ document.addEventListener('DOMContentLoaded', async () => {
             pdfSaveBtn.disabled = false;
             pdfSaveBtn.textContent = originalBtnText;
         }
+    }
+
+    function createPDFContent() {
+        const container = document.createElement('div');
+        container.className = 'pdf-render-container';
+        Object.assign(container.style, {
+            position: 'absolute', left: '-9999px', top: '0',
+            width: '800px', backgroundColor: 'white', color: 'black',
+            fontFamily: "'Noto Sans KR', sans-serif",
+        });
+
+        if (!appState.fullResultData) {
+            const errorDiv = document.createElement('div');
+            const errorH1 = document.createElement('h1');
+            errorH1.textContent = '데이터가 없습니다.';
+            errorDiv.appendChild(errorH1);
+            return container;
+        }
+        
+        const { cardInterpretations, overallReading } = appState.fullResultData;
+        
+        // 헬퍼 함수: 섹션 생성
+        function createSection(className, contentCallback) {
+            const section = document.createElement('div');
+            section.className = `pdf-section ${className}`;
+            section.style.padding = "10px";
+            section.style.backgroundColor = "white";
+            contentCallback(section);
+            container.appendChild(section);
+        }
+        
+        // 1. 제목 섹션
+        createSection('title-section', section => {
+            section.innerHTML = `
+                <h1 style="text-align: center; font-size: 24px;">ASK ANYTHING 타로 리딩</h1>
+                <p style="text-align: center; font-size: 12px; color: #555;">${new Date().toLocaleDateString()}</p>
+            `;
+        });
+        
+        // 2. 카드별 해석 섹션
+        cardInterpretations.forEach((interpretation, index) => {
+            createSection('card-section', section => {
+                const cardImgSrc = tarotData[appState.selectedCards[index]].img;
+                section.innerHTML = `
+                    <h3 style="font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${index + 1}. ${interpretation.cardName}</h3>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <img src="${cardImgSrc}" style="max-width: 150px; border-radius: 8px;">
+                    </div>
+                    <p style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${interpretation.interpretation}</p>
+                `;
+            });
+        });
+
+        // 3. 총정리 섹션
+        createSection('summary-section', section => {
+            section.innerHTML = `
+                <h2 style="font-size: 20px; text-align: center;">${overallReading.title}</h2>
+                <p style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${overallReading.summary}</p>
+            `;
+        });
+
+        // 4. AI 현실 조언 섹션
+        if (overallReading.mbtiActionPlan) {
+            createSection('action-plan-section', section => {
+                const plan = overallReading.mbtiActionPlan;
+                let phasesHtml = plan.phases.map(p => `
+                    <h4 style="font-size: 16px;">${p.phaseTitle}</h4>
+                    <ul style="padding-left: 20px;">${p.steps.map(s => `<li>${s}</li>`).join('')}</ul>
+                `).join('');
+                section.innerHTML = `
+                    <h2 style="font-size: 20px; text-align: center;">${plan.title}</h2>
+                    <p style="font-style: italic;">${plan.introduction}</p>
+                    ${phasesHtml}
+                `;
+            });
+        }
+
+        return container;
     }
 
     // 이벤트 리스너 등록
@@ -1432,8 +1399,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // --- PDF 저장 버튼 ---
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
-        if (pdfSaveBtn) {
-            pdfSaveBtn.addEventListener('click', generatePDF);
+        if (pdfSaveBtn && !pdfSaveBtn.hasAttribute('data-listener-added')) {
+            pdfSaveBtn.setAttribute('data-listener-added', 'true');
+            pdfSaveBtn.addEventListener('click', () => {
+                playSound('button');
+                generatePDF();
+            });
         }
 
         // --- 총정리/액션플랜 단계 네비게이션 (누락분 추가) ---
