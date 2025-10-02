@@ -850,7 +850,50 @@ document.addEventListener('DOMContentLoaded', () => {
         imageEl.style.cursor = 'pointer';
     }
 
-    function renderSummaryStage(overallReading) { /* ... */ }
+    function renderSummaryStage(overallReading) {
+        if (!overallReading) return;
+
+        // 1. 총정리 제목 설정
+        const summaryTitleEl = document.getElementById('summary-title');
+        if (summaryTitleEl) {
+            summaryTitleEl.textContent = overallReading.title || '카드 조합 총정리';
+        }
+
+        // 2. 선택된 카드 이미지들 표시
+        const summaryCardsDisplayEl = document.getElementById('summary-cards-display');
+        if (summaryCardsDisplayEl) {
+            summaryCardsDisplayEl.innerHTML = appState.selectedCards.map(cardIndex => {
+                const cardData = tarotData[cardIndex];
+                const cardName = getLocalizedCardNameByIndex(cardIndex, appState.language);
+                return `
+                    <div class="summary-card-container">
+                        <img src="${cardData.img}" alt="${cardName}">
+                        <span class="summary-card-name">${cardName}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 3. 타이핑 효과로 총정리 텍스트 표시
+        const summaryTextEl = document.getElementById('summary-text');
+        if (summaryTextEl) {
+            // 다음/이전 버튼을 위한 로직 추가
+            const stageNav = document.querySelector('.stage-navigation');
+            const nextBtn = document.getElementById('next-stage-btn');
+            if (stageNav) stageNav.style.display = 'none'; // 타이핑 시작 전에는 숨김
+
+            startTypingEffect(summaryTextEl, overallReading.summary, () => {
+                // 타이핑 완료 후 '다음' 버튼 표시
+                if (stageNav) stageNav.style.display = 'flex';
+                if (nextBtn) {
+                    nextBtn.classList.add('show');
+                    // 이전 버튼은 이 단계에서 필요 없으므로 숨김 처리
+                    document.getElementById('prev-stage-btn').classList.remove('show');
+                }
+            });
+        }
+    }
+    
     function renderActionPlanStage(plan) { /* ... */ }
 
     // 타이핑 효과
