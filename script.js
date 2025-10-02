@@ -340,6 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.max(0, Math.min(1, n));
     }
     
+    // 동시성-안전한 fadeAudio를 위한 WeakMap
+    const _fadeState = new WeakMap(); // audio -> { rafId, resolve }
+    
     function preloadSounds() {
         const soundTypes = ['select', 'button', 'shuffle', 'typing', 'cosmic', 'handpan2'];
         soundTypes.forEach(type => {
@@ -399,34 +402,42 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    function fadeAudio(audio, toVol = 1, duration = 500) {
+    function fadeAudio(audio, toVol = 1, duration = 420) {
         return new Promise(resolve => {
             if (!audio) return resolve();
-            
-            const from = clamp01(audio.volume ?? 1); // null/undefined/NaN 방어
-            const target = clamp01(toVol);           // 목표 볼륨도 0-1 사이로 보정
-            
+
+            // 이전 페이드가 있으면 안전 취소 + 즉시 resolve
+            const prev = _fadeState.get(audio);
+            if (prev) {
+                cancelAnimationFrame(prev.rafId || 0);
+                try { prev.resolve && prev.resolve(); } catch {}
+            }
+
+            const from = clamp01(audio.volume ?? 1);
+            const target = clamp01(toVol);
             if (duration <= 0 || from === target) {
                 try { audio.volume = target; } catch {}
+                _fadeState.delete(audio);
                 return resolve();
             }
 
             const start = performance.now();
-            const step = (now) => {
-                const t = Math.min(1, (now - start) / duration);
-                const v = clamp01(from + (target - from) * t); // 매 스텝 값 보정
-                
-                try { audio.volume = v; } catch { /* ignore DOMException */ }
+            const state = { rafId: 0, resolve };
+            _fadeState.set(audio, state);
 
+            const step = (now) => {
+                if (_fadeState.get(audio) !== state) return; // 이미 취소되었으면 중단
+                const t = Math.min(1, (now - start) / duration);
+                const v = clamp01(from + (target - from) * t);
+                try { audio.volume = v; } catch {}
                 if (t < 1) {
-                    appState.audio._fadeRaf = requestAnimationFrame(step);
+                    state.rafId = requestAnimationFrame(step);
                 } else {
+                    _fadeState.delete(audio);
                     resolve();
                 }
             };
-
-            cancelAnimationFrame(appState.audio._fadeRaf || 0);
-            appState.audio._fadeRaf = requestAnimationFrame(step);
+            state.rafId = requestAnimationFrame(step);
         });
     }
 
@@ -451,6 +462,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function crossfade(fromAudio, toAudio, toVol) {
             if (!appState.isMusicOn) return;
+
+            // ✅ 방어 로직 추가
+            if (fromAudio === toAudio) {
+                if (toAudio) await playSafe(toAudio);
+                return;
+            }
+
             await Promise.all([
                 fromAudio ? fadeAudio(fromAudio, 0, 380) : Promise.resolve(),
                 (async () => {
@@ -625,8 +643,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultScreen.loadingSection.style.display = 'flex';
             elements.resultScreen.resultSections.style.display = 'none';
 
-            // ✅ 로딩 음악 시작
-            await AudioManager.startCosmic();
+            // ✅ 로딩 음악 시작 (fire-and-forget)
+            AudioManager.startCosmic();
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
@@ -666,6 +684,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             console.error('API Error:', err);
+            
+            AudioManager.setTheme('main'); // ✅ 실패 시 메인 테마로 복귀
 
             const msg = String(err?.message || '');
             const isOverload = /503|service unavailable|unavailable|overload/i.test(msg);
@@ -697,8 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('error-reset-btn')?.addEventListener('click', resetApp);
             }
         } finally {
-            // ✅ 로딩 음악 정리 (최소 재생 보장 후 배경 복귀)
-            await AudioManager.stopCosmic();
+            // ✅ 로딩 음악 정리는 renderResultScreen에서 처리
 
             appState.isFetching = false;
             if (appState.currentFetchController === controller) {
@@ -711,7 +730,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 결과 화면 렌더링
     function renderResultScreen() {
-        AudioManager.setTheme('result'); // ✅ 결과 테마 시작
+        // ✅ cosmic 음악 정리 후 결과 테마 시작
+        AudioManager.stopCosmic().then(() => {
+            AudioManager.setTheme('result');
+        });
         
         // stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
