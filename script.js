@@ -790,38 +790,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function prepareCardStage(stageIndex, text) {
         const imageEl = elements.resultScreen.cardImage;
         const overlayEl = elements.resultScreen.overlayText;
-        if (!imageEl || !overlayEl) { return; }
+        if (!imageEl || !overlayEl) return;
 
         // --- 이미지 강제 새로고침 로직 ---
         imageEl.src = ''; // src 초기화
         void imageEl.offsetHeight; // 강제 리플로우
         // ---
 
-        const cardData = appState.fullResultData.cardInterpretations[stageIndex];
         const cardIndex = appState.selectedCards[stageIndex];
+        const cardData = tarotData[cardIndex];
         const cardName = getLocalizedCardNameByIndex(cardIndex, appState.language);
 
         document.getElementById('card-stage-title').textContent = `${stageIndex + 1}번째 카드: ${cardName}`;
-        elements.resultScreen.keywordsArea.innerHTML = buildKeywordsHtml(cardData.keywords);
-        elements.resultScreen.keywordsArea.style.display = 'block';
+        elements.resultScreen.keywordsArea.innerHTML = buildKeywordsHtml(appState.fullResultData.cardInterpretations[stageIndex].keywords);
+        
+        // --- 캐시 무효화를 위한 타임스탬프 추가 ---
+        const cacheBuster = `?t=${Date.now()}`;
+        imageEl.src = cardData.img + cacheBuster;
+        // ---
 
-        const cardNextBtn = document.getElementById('card-next-btn');
-        const cardPrevBtn = document.getElementById('card-prev-btn');
-        if (cardNextBtn) cardNextBtn.style.display = 'none';
-        if (cardPrevBtn) cardPrevBtn.style.display = 'none';
-
+        // ... (기존의 classList 조작, onclick 설정 등 나머지 로직은 동일) ...
+        // (Opus-4 보고서의 나머지 로직을 여기에 통합)
         imageEl.classList.remove('interactive-card', 'reveal-animation', 'blur');
         overlayEl.classList.remove('show');
         overlayEl.innerHTML = '';
         imageEl.onclick = null;
         
-        // ✅ 이전 힌트 정리
         clearTextGuide(); 
-        
-        // --- 캐시 무효화를 위한 타임스탬프 추가 ---
-        const cacheBuster = `?t=${Date.now()}`;
-        imageEl.src = tarotData[cardIndex].img + cacheBuster;
-        // ---
         
         imageEl.style.display = 'block';
         imageEl.classList.add('reveal-animation');
@@ -829,8 +824,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const revealTimeout = setTimeout(() => {
             imageEl.classList.remove('reveal-animation');
             imageEl.classList.add('interactive-card');
-            
-            // ✅ 수정 지점: 첫 번째 카드일 때만 텍스트 가이드 표시
             if (stageIndex === 0) {
                 scheduleTextGuide(imageEl);
             }
@@ -838,7 +831,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const showCardText = () => {
             clearTimeout(revealTimeout); 
-            // ✅ 클릭 시 힌트 즉시 제거
             clearTextGuide(); 
             playSound('card-select');
 
@@ -1094,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function translationForKey(key, fallback) { /* ... */ }
     
 
-    // PDF 생성 함수들 (Opus-4 안전 버전)
+    // PDF 생성 함수들 (Opus-4 최종 버전)
     async function generatePDF() {
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
         const originalBtnText = pdfSaveBtn.textContent;
