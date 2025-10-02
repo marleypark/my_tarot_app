@@ -12,6 +12,21 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- 전역 음악 컨트롤 -->
+        <div id="global-music-control" class="music-control" aria-label="Global music control">
+            <button id="music-btn" class="music-button" aria-haspopup="true" aria-expanded="false">
+                <span class="music-icon" aria-hidden="true">🎵</span>
+                <span class="music-label">Music</span>
+            </button>
+            <div id="music-slider-container" class="music-popover" role="dialog" aria-label="Music toggle">
+                <label class="switch">
+                    <input id="music-toggle" type="checkbox" aria-label="Toggle music" />
+                    <span class="slider" aria-hidden="true"></span>
+                    <span class="switch-text"><span class="on">ON</span><span class="off">OFF</span></span>
+                </label>
+            </div>
+        </div>
+        
         <!-- 1. 메인 시작 화면 -->
         <div id="main-screen" class="screen">
             <!-- 제목과 버튼을 감싸는 새로운 컨테이너를 만듭니다. -->

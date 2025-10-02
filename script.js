@@ -1,3 +1,5 @@
+const MUSIC_LS_KEY = 'ASK_ANYTHING_MUSIC_ON';
+
 const LOADING_RIPPLES_HTML = `
   <div class="ripple-inward"></div><div class="ripple-inward"></div><div class="ripple-inward"></div>
   <div class="ripple-inward"></div><div class="ripple-inward"></div><div class="ripple-inward"></div>`;
@@ -19,7 +21,7 @@ const appState = {
     resultStage: 0,
     isFetching: false, // API 호출 잠금장치
     backgroundMusic: null,
-    isMusicOn: true,
+    isMusicOn: localStorage.getItem(MUSIC_LS_KEY) !== '0', // '0'을 false로 간주, 그 외는 true
     languageChosenManually: false,
     autoLockUntil: null,
     sessionLanguageMode: null,
@@ -1499,6 +1501,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 앱 시작 ---
     await initKoreanFont(); // 폰트 초기화
     initEventListeners();
+    
+    // --- Global Music Control Logic ---
+    function initGlobalMusicControl() {
+      const btn = document.getElementById('music-btn');
+      const popover = document.getElementById('music-slider-container');
+      const toggle = document.getElementById('music-toggle');
+      if (!btn || !popover || !toggle) return;
+
+      updateMusicUiState(appState.isMusicOn);
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        popover.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!popover.contains(e.target) && !btn.contains(e.target)) {
+          popover.classList.remove('open');
+        }
+      });
+
+      toggle.addEventListener('change', async () => {
+        const on = toggle.checked;
+        appState.isMusicOn = on;
+        localStorage.setItem(MUSIC_LS_KEY, on ? '1' : '0');
+        await applyMusicState(on);
+        updateMusicUiState(on);
+      });
+    }
+
+    async function applyMusicState(on) {
+      if (on) {
+        const theme = appState.currentScreen === 'result-screen' ? 'result' : 'main';
+        await AudioManager.setTheme(theme);
+      } else {
+        await AudioManager.setTheme(null);
+        // 모든 효과음 즉시 중지
+        Object.values(elements.sounds).forEach(a => { if (a?.pause) { a.pause(); a.currentTime = 0; }});
+      }
+    }
+
+    function updateMusicUiState(on) {
+      const btn = document.getElementById('music-btn');
+      const toggle = document.getElementById('music-toggle');
+      if (toggle) toggle.checked = !!on;
+      if (btn) btn.classList.toggle('off', !on);
+    }
+
+    initGlobalMusicControl();
+    // --- End of Music Control Logic ---
+    
     initBackgroundMusic();
     preloadSounds(); // 사운드 프리로딩
     

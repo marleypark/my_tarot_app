@@ -1844,3 +1844,70 @@ button:hover {
 @media (prefers-reduced-motion: reduce) {
   .ripple-inward { animation-duration: 3.6s; box-shadow: none; }
 }
+
+/* --- Global Music Control --- */
+:root {
+  --music-top: 20px;
+  --music-right: 20px;
+  --music-z: 1500; /* lang-switcher-main(1000) 보다 위 */
+}
+.music-control {
+  position: fixed;
+  top: var(--music-top);
+  right: var(--music-right);
+  z-index: var(--music-z);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.music-button {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 50px;
+  background: rgba(42, 42, 68, 0.8);
+  border: 1px solid #4a4a68;
+  color: #e0e0e0;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  backdrop-filter: blur(5px);
+  transition: all 0.2s ease;
+}
+.music-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.music-button.off { color: #888; }
+.music-icon { font-size: 16px; }
+.music-label { font-size: 14px; }
+
+.music-popover {
+  padding: 10px 15px;
+  border-radius: 12px;
+  background: rgba(42, 42, 68, 0.9);
+  border: 1px solid #4a4a68;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+  transform-origin: top right;
+  transform: translateY(-10px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+}
+.music-popover.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.switch { display: inline-flex; align-items: center; gap: 10px; user-select: none; }
+.switch input { position: absolute; opacity: 0; }
+.slider { width: 48px; height: 26px; background: #3a3a52; border-radius: 13px; position: relative; transition: background 0.2s ease; cursor: pointer; }
+.slider::after { content: ''; width: 20px; height: 20px; position: absolute; top: 3px; left: 3px; background: white; border-radius: 50%; transition: transform 0.2s ease; }
+.switch input:checked + .slider { background: #667eea; }
+.switch input:checked + .slider::after { transform: translateX(22px); }
+.switch-text { font-size: 12px; font-weight: 700; width: 30px; }
+.switch-text .on { display: none; color: #a3b9ff; }
+.switch-text .off { display: inline; color: #888; }
+.switch input:checked ~ .switch-text .on { display: inline; }
+.switch input:checked ~ .switch-text .off { display: none; }
