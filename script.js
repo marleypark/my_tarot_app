@@ -1086,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function translationForKey(key, fallback) { /* ... */ }
     
 
-    // PDF 생성 함수들 (Opus-4 최종 버전)
+    // PDF 생성 함수들 (Opus-4 최종 검증 버전)
     async function generatePDF() {
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
         const originalBtnText = pdfSaveBtn.textContent;
@@ -1095,62 +1095,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'p',
-                unit: 'mm',
-                format: 'a4',
-                putOnlyUsedFonts: true
-            });
+            const pdf = new jsPDF('p', 'mm', 'a4');
 
-            // 안전한 DOM 기반 콘텐츠 생성
-            const contentToCapture = createPDFContentElement();
-            
-            // PDF 렌더링을 위한 임시 스타일 적용
-            contentToCapture.style.position = 'absolute';
-            contentToCapture.style.left = '-9999px';
-            contentToCapture.style.width = '210mm'; // A4 width
-            contentToCapture.style.padding = '15mm';
-            contentToCapture.style.boxSizing = 'border-box';
-            contentToCapture.style.backgroundColor = 'white';
-            contentToCapture.style.color = 'black';
-            contentToCapture.style.fontFamily = 'Noto Sans KR, sans-serif';
-            document.body.appendChild(contentToCapture);
+            const PAGE_WIDTH = 210;
+            const MARGIN_X = 15;
+            const MARGIN_Y = 20;
+            const CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);
+            const MAX_Y = 297 - MARGIN_Y;
+            let currentY = MARGIN_Y;
 
-            // 웹폰트가 로드되기를 기다림 (안정성)
+            const contentContainer = createPDFContentElement();
+            document.body.appendChild(contentContainer);
+
             await document.fonts.ready;
 
-            const canvas = await html2canvas(contentToCapture, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                onclone: (clonedDoc) => {
-                    // 클론된 문서에서 페이지 브레이크 클래스 처리
-                    const pageBreaks = clonedDoc.querySelectorAll('.pdf-page-break');
-                    pageBreaks.forEach(el => {
-                        el.style.pageBreakAfter = 'always';
-                    });
+            const sections = contentContainer.querySelectorAll('.pdf-section');
+
+            for (const section of sections) {
+                const canvas = await html2canvas(section, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: null // 섹션 배경이 투명할 수 있도록
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgHeight = (canvas.height * CONTENT_WIDTH) / canvas.width;
+
+                if (currentY > MARGIN_Y && currentY + imgHeight > MAX_Y) {
+                    pdf.addPage();
+                    currentY = MARGIN_Y;
                 }
-            });
 
-            document.body.removeChild(contentToCapture);
-
-            const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 180; // A4 width - margins (210 - 15*2)
-            const pageHeight = 267; // A4 height - margins (297 - 15*2)
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 15; // Top margin
-
-            pdf.addImage(imgData, 'PNG', 15, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight + 15; // Recalculate position
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 15, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+                pdf.addImage(imgData, 'PNG', MARGIN_X, currentY, CONTENT_WIDTH, imgHeight);
+                currentY += imgHeight + 5; // 섹션 간 간격
             }
 
+            document.body.removeChild(contentContainer);
             const date = new Date().toISOString().split('T')[0];
             pdf.save(`ask-anything-tarot-${date}.pdf`);
 
@@ -1164,125 +1145,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createPDFContentElement() {
+        const container = document.createElement('div');
+        container.className = 'pdf-render-container';
+        Object.assign(container.style, {
+            position: 'absolute', left: '-9999px', top: '0',
+            width: '800px', backgroundColor: 'white', color: 'black',
+            fontFamily: "'Noto Sans KR', sans-serif",
+        });
+
         if (!appState.fullResultData) {
             const errorDiv = document.createElement('div');
             const errorH1 = document.createElement('h1');
             errorH1.textContent = '데이터가 없습니다.';
             errorDiv.appendChild(errorH1);
-            return errorDiv;
+            return container;
         }
-
+        
         const { cardInterpretations, overallReading } = appState.fullResultData;
-        const container = document.createElement('div');
-        container.style.fontFamily = 'Noto Sans KR, sans-serif';
-
-        // 헤더
-        const header = document.createElement('div');
-        header.style.textAlign = 'center';
-        header.style.marginBottom = '20px';
-
-        const title = document.createElement('h1');
-        title.textContent = 'ASK ANYTHING 타로 리딩';
-        title.style.marginBottom = '10px';
-
-        const date = document.createElement('p');
-        date.textContent = new Date().toLocaleDateString();
-
-        header.appendChild(title);
-        header.appendChild(date);
-        container.appendChild(header);
-
-        // 구분선
-        const hr1 = document.createElement('hr');
-        container.appendChild(hr1);
-
-        // 선택된 카드들
-        appState.selectedCards.forEach((cardIndex, i) => {
-            const cardData = tarotData[cardIndex];
-            const interpretation = cardInterpretations[i];
-            
-            const cardDiv = document.createElement('div');
-            cardDiv.className = 'pdf-page-break';
-            cardDiv.style.marginBottom = '20px';
-
-            const cardTitle = document.createElement('h3');
-            cardTitle.textContent = `${i + 1}. ${interpretation.cardName}`;
-            cardDiv.appendChild(cardTitle);
-
-            const imgContainer = document.createElement('div');
-            imgContainer.style.textAlign = 'center';
-            imgContainer.style.margin = '10px 0';
-
-            const img = document.createElement('img');
-            img.src = cardData.img;
-            img.style.maxWidth = '150px';
-            img.style.borderRadius = '8px';
-            imgContainer.appendChild(img);
-            cardDiv.appendChild(imgContainer);
-
-            const interpretationP = document.createElement('p');
-            interpretationP.textContent = interpretation.interpretation;
-            cardDiv.appendChild(interpretationP);
-
-            container.appendChild(cardDiv);
+        
+        // 헬퍼 함수: 섹션 생성
+        function createSection(className, contentCallback) {
+            const section = document.createElement('div');
+            section.className = `pdf-section ${className}`;
+            section.style.padding = "10px";
+            section.style.backgroundColor = "white"; // 배경색 보장
+            contentCallback(section);
+            container.appendChild(section);
+        }
+        
+        // 1. 제목 섹션
+        createSection('title-section', section => {
+            section.innerHTML = `
+                <h1 style="text-align: center; font-size: 24px;">ASK ANYTHING 타로 리딩</h1>
+                <p style="text-align: center; font-size: 12px; color: #555;">${new Date().toLocaleDateString()}</p>
+            `;
         });
-
-        // 구분선
-        const hr2 = document.createElement('hr');
-        container.appendChild(hr2);
-
-        // 총정리
-        const summaryDiv = document.createElement('div');
-        summaryDiv.className = 'pdf-page-break';
-        summaryDiv.style.marginBottom = '20px';
-
-        const summaryTitle = document.createElement('h2');
-        summaryTitle.textContent = overallReading.title;
-        summaryDiv.appendChild(summaryTitle);
-
-        const summaryP = document.createElement('p');
-        summaryP.textContent = overallReading.summary;
-        summaryDiv.appendChild(summaryP);
-
-        container.appendChild(summaryDiv);
-
-        // 구분선
-        const hr3 = document.createElement('hr');
-        container.appendChild(hr3);
-
-        // AI 현실 조언
-        const actionPlan = overallReading.mbtiActionPlan;
-        const actionPlanDiv = document.createElement('div');
-        actionPlanDiv.className = 'pdf-page-break';
-
-        const actionPlanTitle = document.createElement('h2');
-        actionPlanTitle.textContent = actionPlan.title;
-        actionPlanDiv.appendChild(actionPlanTitle);
-
-        const actionPlanIntro = document.createElement('p');
-        actionPlanIntro.textContent = actionPlan.introduction;
-        actionPlanDiv.appendChild(actionPlanIntro);
-
-        actionPlan.phases.forEach(phase => {
-            const phaseDiv = document.createElement('div');
-            phaseDiv.style.marginTop = '15px';
-
-            const phaseTitle = document.createElement('h4');
-            phaseTitle.textContent = phase.phaseTitle;
-            phaseDiv.appendChild(phaseTitle);
-
-            const stepsList = document.createElement('ul');
-            phase.steps.forEach(step => {
-                const stepItem = document.createElement('li');
-                stepItem.textContent = step;
-                stepsList.appendChild(stepItem);
+        
+        // 2. 카드별 해석 섹션
+        cardInterpretations.forEach((interpretation, index) => {
+            createSection('card-section', section => {
+                const cardImgSrc = tarotData[appState.selectedCards[index]].img;
+                section.innerHTML = `
+                    <h3 style="font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${index + 1}. ${interpretation.cardName}</h3>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <img src="${cardImgSrc}" style="max-width: 150px; border-radius: 8px;">
+                    </div>
+                    <p style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${interpretation.interpretation}</p>
+                `;
             });
-            phaseDiv.appendChild(stepsList);
-
-            actionPlanDiv.appendChild(phaseDiv);
         });
 
-        container.appendChild(actionPlanDiv);
+        // 3. 총정리 섹션
+        createSection('summary-section', section => {
+            section.innerHTML = `
+                <h2 style="font-size: 20px; text-align: center;">${overallReading.title}</h2>
+                <p style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${overallReading.summary}</p>
+            `;
+        });
+
+        // 4. AI 현실 조언 섹션
+        if (overallReading.mbtiActionPlan) {
+            createSection('action-plan-section', section => {
+                const plan = overallReading.mbtiActionPlan;
+                let phasesHtml = plan.phases.map(p => `
+                    <h4 style="font-size: 16px;">${p.phaseTitle}</h4>
+                    <ul style="padding-left: 20px;">${p.steps.map(s => `<li>${s}</li>`).join('')}</ul>
+                `).join('');
+                section.innerHTML = `
+                    <h2 style="font-size: 20px; text-align: center;">${plan.title}</h2>
+                    <p style="font-style: italic;">${plan.introduction}</p>
+                    ${phasesHtml}
+                `;
+            });
+        }
 
         return container;
     }
