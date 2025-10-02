@@ -879,17 +879,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryTextEl) {
             // 다음/이전 버튼을 위한 로직 추가
             const stageNav = document.querySelector('.stage-navigation');
+            const prevBtn = document.getElementById('prev-stage-btn');
             const nextBtn = document.getElementById('next-stage-btn');
             if (stageNav) stageNav.style.display = 'none'; // 타이핑 시작 전에는 숨김
 
             startTypingEffect(summaryTextEl, overallReading.summary, () => {
-                // 타이핑 완료 후 '다음' 버튼 표시
+                // 타이핑 완료 후 두 버튼 모두 표시
                 if (stageNav) stageNav.style.display = 'flex';
-                if (nextBtn) {
-                    nextBtn.classList.add('show');
-                    // 이전 버튼은 이 단계에서 필요 없으므로 숨김 처리
-                    document.getElementById('prev-stage-btn').classList.remove('show');
-                }
+                if (prevBtn) prevBtn.classList.add('show'); // ✅ '뒤로' 버튼 보이기
+                if (nextBtn) nextBtn.classList.add('show'); // '다음' 버튼 보이기
             });
         }
     }
@@ -1194,6 +1192,32 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('button');
             resetApp();
         });
+
+        // --- 총정리/액션플랜 단계 네비게이션 (누락분 추가) ---
+        const stagePrevBtn = elements.resultScreen.stagePrevBtn;
+        const stageNextBtn = elements.resultScreen.stageNextBtn;
+
+        if (stagePrevBtn) {
+            stagePrevBtn.addEventListener('click', () => {
+                playSound('button');
+                // 현재 stage가 총정리(4) 또는 액션플랜(5)일 때, 마지막 카드(3)로 돌아감
+                if (appState.resultStage > CONFIG.CARDS_TO_PICK - 1) {
+                    appState.resultStage = CONFIG.CARDS_TO_PICK - 1;
+                    updateResultStageContent();
+                }
+            });
+        }
+
+        if (stageNextBtn) {
+            stageNextBtn.addEventListener('click', () => {
+                playSound('button');
+                // 현재 stage가 총정리(4)일 때, 액션플랜(5)으로 이동
+                if (appState.resultStage === CONFIG.CARDS_TO_PICK) {
+                    appState.resultStage = CONFIG.CARDS_TO_PICK + 1;
+                    updateResultStageContent();
+                }
+            });
+        }
 
         // 에러 발생 시의 "처음으로" 버튼은 fetchFullReading에서 동적으로 추가됩니다.
     }
