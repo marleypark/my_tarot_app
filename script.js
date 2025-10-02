@@ -792,6 +792,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlayEl = elements.resultScreen.overlayText;
         if (!imageEl || !overlayEl) { return; }
 
+        // --- 이미지 강제 새로고침 로직 ---
+        imageEl.src = ''; // src 초기화
+        void imageEl.offsetHeight; // 강제 리플로우
+        // ---
+
         const cardData = appState.fullResultData.cardInterpretations[stageIndex];
         const cardIndex = appState.selectedCards[stageIndex];
         const cardName = getLocalizedCardNameByIndex(cardIndex, appState.language);
@@ -813,7 +818,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // ✅ 이전 힌트 정리
         clearTextGuide(); 
         
-        imageEl.src = tarotData[cardIndex].img;
+        // --- 캐시 무효화를 위한 타임스탬프 추가 ---
+        const cacheBuster = `?t=${Date.now()}`;
+        imageEl.src = tarotData[cardIndex].img + cacheBuster;
+        // ---
+        
         imageEl.style.display = 'block';
         imageEl.classList.add('reveal-animation');
         
@@ -1085,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function translationForKey(key, fallback) { /* ... */ }
     
 
-    // PDF 생성 함수들
+    // PDF 생성 함수들 (Opus-4 안전 버전)
     async function generatePDF() {
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
         const originalBtnText = pdfSaveBtn.textContent;
@@ -1101,9 +1110,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 putOnlyUsedFonts: true
             });
 
-            // 캡처할 콘텐츠 전체를 담는 컨테이너 생성
-            const contentToCapture = document.createElement('div');
-            contentToCapture.innerHTML = createPDFContent();
+            // 안전한 DOM 기반 콘텐츠 생성
+            const contentToCapture = createPDFContentElement();
             
             // PDF 렌더링을 위한 임시 스타일 적용
             contentToCapture.style.position = 'absolute';
@@ -1113,6 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contentToCapture.style.boxSizing = 'border-box';
             contentToCapture.style.backgroundColor = 'white';
             contentToCapture.style.color = 'black';
+            contentToCapture.style.fontFamily = 'Noto Sans KR, sans-serif';
             document.body.appendChild(contentToCapture);
 
             // 웹폰트가 로드되기를 기다림 (안정성)
@@ -1121,7 +1130,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const canvas = await html2canvas(contentToCapture, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                onclone: (clonedDoc) => {
+                    // 클론된 문서에서 페이지 브레이크 클래스 처리
+                    const pageBreaks = clonedDoc.querySelectorAll('.pdf-page-break');
+                    pageBreaks.forEach(el => {
+                        el.style.pageBreakAfter = 'always';
+                    });
+                }
             });
 
             document.body.removeChild(contentToCapture);
@@ -1155,62 +1171,128 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function createPDFContent() {
-        if (!appState.fullResultData) return '<h1>데이터가 없습니다.</h1>';
-        const { cardInterpretations, overallReading } = appState.fullResultData;
-        const lang = appState.language;
+    function createPDFContentElement() {
+        if (!appState.fullResultData) {
+            const errorDiv = document.createElement('div');
+            const errorH1 = document.createElement('h1');
+            errorH1.textContent = '데이터가 없습니다.';
+            errorDiv.appendChild(errorH1);
+            return errorDiv;
+        }
 
-        // 1. 선택된 카드 이미지 및 이름
-        const cardsHtml = appState.selectedCards.map((cardIndex, i) => {
+        const { cardInterpretations, overallReading } = appState.fullResultData;
+        const container = document.createElement('div');
+        container.style.fontFamily = 'Noto Sans KR, sans-serif';
+
+        // 헤더
+        const header = document.createElement('div');
+        header.style.textAlign = 'center';
+        header.style.marginBottom = '20px';
+
+        const title = document.createElement('h1');
+        title.textContent = 'ASK ANYTHING 타로 리딩';
+        title.style.marginBottom = '10px';
+
+        const date = document.createElement('p');
+        date.textContent = new Date().toLocaleDateString();
+
+        header.appendChild(title);
+        header.appendChild(date);
+        container.appendChild(header);
+
+        // 구분선
+        const hr1 = document.createElement('hr');
+        container.appendChild(hr1);
+
+        // 선택된 카드들
+        appState.selectedCards.forEach((cardIndex, i) => {
             const cardData = tarotData[cardIndex];
             const interpretation = cardInterpretations[i];
-            return `
-                <div style="margin-bottom: 15px; page-break-inside: avoid;">
-                    <h3>${i + 1}. ${interpretation.cardName}</h3>
-                    <div style="text-align: center; margin: 10px 0;">
-                        <img src="${cardData.img}" style="max-width: 150px; border-radius: 8px;">
-                    </div>
-                    <p>${interpretation.interpretation.replace(/\n/g, '<br>')}</p>
-                </div>
-            `;
-        }).join('');
+            
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'pdf-page-break';
+            cardDiv.style.marginBottom = '20px';
 
-        // 2. 총정리
-        const summaryHtml = `
-            <div style="margin-bottom: 15px; page-break-inside: avoid;">
-                <h2>${overallReading.title}</h2>
-                <p>${overallReading.summary.replace(/\n/g, '<br>')}</p>
-            </div>
-        `;
-        
-        // 3. AI 현실 조언
+            const cardTitle = document.createElement('h3');
+            cardTitle.textContent = `${i + 1}. ${interpretation.cardName}`;
+            cardDiv.appendChild(cardTitle);
+
+            const imgContainer = document.createElement('div');
+            imgContainer.style.textAlign = 'center';
+            imgContainer.style.margin = '10px 0';
+
+            const img = document.createElement('img');
+            img.src = cardData.img;
+            img.style.maxWidth = '150px';
+            img.style.borderRadius = '8px';
+            imgContainer.appendChild(img);
+            cardDiv.appendChild(imgContainer);
+
+            const interpretationP = document.createElement('p');
+            interpretationP.textContent = interpretation.interpretation;
+            cardDiv.appendChild(interpretationP);
+
+            container.appendChild(cardDiv);
+        });
+
+        // 구분선
+        const hr2 = document.createElement('hr');
+        container.appendChild(hr2);
+
+        // 총정리
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'pdf-page-break';
+        summaryDiv.style.marginBottom = '20px';
+
+        const summaryTitle = document.createElement('h2');
+        summaryTitle.textContent = overallReading.title;
+        summaryDiv.appendChild(summaryTitle);
+
+        const summaryP = document.createElement('p');
+        summaryP.textContent = overallReading.summary;
+        summaryDiv.appendChild(summaryP);
+
+        container.appendChild(summaryDiv);
+
+        // 구분선
+        const hr3 = document.createElement('hr');
+        container.appendChild(hr3);
+
+        // AI 현실 조언
         const actionPlan = overallReading.mbtiActionPlan;
-        const actionPlanHtml = `
-            <div style="page-break-inside: avoid;">
-                <h2>${actionPlan.title}</h2>
-                <p>${actionPlan.introduction}</p>
-                ${actionPlan.phases.map(phase => `
-                    <div style="margin-top: 10px;">
-                        <h4>${phase.phaseTitle}</h4>
-                        <ul>${phase.steps.map(step => `<li>${step}</li>`).join('')}</ul>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+        const actionPlanDiv = document.createElement('div');
+        actionPlanDiv.className = 'pdf-page-break';
 
-        // 최종 HTML 조합
-        return `
-            <div style="font-family: 'Noto Sans KR', sans-serif;">
-                <h1 style="text-align: center;">ASK ANYTHING 타로 리딩</h1>
-                <p style="text-align: center;">${new Date().toLocaleDateString()}</p>
-                <hr>
-                ${cardsHtml}
-                <hr>
-                ${summaryHtml}
-                <hr>
-                ${actionPlanHtml}
-            </div>
-        `;
+        const actionPlanTitle = document.createElement('h2');
+        actionPlanTitle.textContent = actionPlan.title;
+        actionPlanDiv.appendChild(actionPlanTitle);
+
+        const actionPlanIntro = document.createElement('p');
+        actionPlanIntro.textContent = actionPlan.introduction;
+        actionPlanDiv.appendChild(actionPlanIntro);
+
+        actionPlan.phases.forEach(phase => {
+            const phaseDiv = document.createElement('div');
+            phaseDiv.style.marginTop = '15px';
+
+            const phaseTitle = document.createElement('h4');
+            phaseTitle.textContent = phase.phaseTitle;
+            phaseDiv.appendChild(phaseTitle);
+
+            const stepsList = document.createElement('ul');
+            phase.steps.forEach(step => {
+                const stepItem = document.createElement('li');
+                stepItem.textContent = step;
+                stepsList.appendChild(stepItem);
+            });
+            phaseDiv.appendChild(stepsList);
+
+            actionPlanDiv.appendChild(phaseDiv);
+        });
+
+        container.appendChild(actionPlanDiv);
+
+        return container;
     }
 
     // 이벤트 리스너 등록
@@ -1391,10 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- PDF 저장 버튼 ---
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
         if (pdfSaveBtn) {
-            pdfSaveBtn.addEventListener('click', () => {
-                playSound('button');
-                generatePDF();
-            });
+            pdfSaveBtn.addEventListener('click', generatePDF);
         }
 
         // --- 총정리/액션플랜 단계 네비게이션 (누락분 추가) ---
