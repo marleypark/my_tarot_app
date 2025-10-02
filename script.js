@@ -892,7 +892,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function renderActionPlanStage(plan) { /* ... */ }
+    function renderActionPlanStage(plan) {
+        // --- 사전 정리 작업 ---
+        stopTypingEffect();
+        clearTextGuide();
+        
+        // 데이터가 없는 경우에 대한 방어
+        if (!plan || !plan.phases || !Array.isArray(plan.phases)) {
+            const phasesEl = document.getElementById('action-plan-phases');
+            if(phasesEl) phasesEl.innerHTML = "<p>현실 조언을 준비하지 못했습니다.</p>";
+            
+            // 최종 버튼들만 표시
+            document.querySelector('.bottom-navigation').style.display = 'flex';
+            document.querySelector('.stage-navigation').style.display = 'none';
+            return;
+        }
+
+        // --- 1. 제목 렌더링 ---
+        const titleEl = document.getElementById('action-plan-title');
+        if (titleEl) {
+            titleEl.textContent = plan.title || 'AI 현실 조언';
+        }
+
+        // --- 2. 내용 렌더링 (소개 + 3단계 계획) ---
+        const phasesEl = document.getElementById('action-plan-phases');
+        if (phasesEl) {
+            // XSS 방지를 위해 textContent를 사용하거나, sanitizer를 거쳐야 하지만,
+            // 현재 프로젝트 구조상 innerHTML을 사용하므로 그대로 진행. (향후 개선 과제)
+            let phasesHtml = `<p class="action-plan-intro">${plan.introduction || ''}</p>`;
+            
+            phasesHtml += plan.phases.map((phase, index) => `
+                <div class="action-plan-stage">
+                    <h3 class="stage-title">${phase.phaseTitle || `${index + 1}단계`}</h3>
+                    <ul class="stage-steps">
+                        ${phase.steps.map(step => `<li>${step}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('<div class="stage-divider"></div>');
+
+            phasesEl.innerHTML = `<div class="action-plan-full-scroll">${phasesHtml}</div>`;
+        }
+
+        // --- 3. 버튼 상태 동기화 ---
+        // '뒤로'/'다음' 버튼 컨테이너는 숨김
+        document.querySelector('.stage-navigation').style.display = 'none';
+        
+        // 'PDF 저장'/'처음으로' 버튼 컨테이너는 표시
+        document.querySelector('.bottom-navigation').style.display = 'flex';
+    }
 
     // 타이핑 효과
     function startTypingEffect(element, fullText, onComplete) {
@@ -1192,6 +1239,16 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('button');
             resetApp();
         });
+
+        // --- PDF 저장 버튼 (임시) ---
+        const pdfSaveBtn = document.getElementById('pdf-save-btn');
+        if (pdfSaveBtn) {
+            pdfSaveBtn.addEventListener('click', () => {
+                playSound('button');
+                alert('PDF 저장 기능은 현재 준비 중입니다.'); // 임시 안내
+                // 향후 여기에 await generatePDF(); 코드가 들어갈 예정
+            });
+        }
 
         // --- 총정리/액션플랜 단계 네비게이션 (누락분 추가) ---
         const stagePrevBtn = elements.resultScreen.stagePrevBtn;
