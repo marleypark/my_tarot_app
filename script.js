@@ -1084,9 +1084,134 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function translationForKey(key, fallback) { /* ... */ }
     
-    // PDF 생성
-    async function generatePDF() { /* ... */ }
-    function createPDFContent() { /* ... */ }
+
+    // PDF 생성 함수들
+    async function generatePDF() {
+        const pdfSaveBtn = document.getElementById('pdf-save-btn');
+        const originalBtnText = pdfSaveBtn.textContent;
+        pdfSaveBtn.disabled = true;
+        pdfSaveBtn.textContent = 'PDF 생성 중...';
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4',
+                putOnlyUsedFonts: true
+            });
+
+            // 캡처할 콘텐츠 전체를 담는 컨테이너 생성
+            const contentToCapture = document.createElement('div');
+            contentToCapture.innerHTML = createPDFContent();
+            
+            // PDF 렌더링을 위한 임시 스타일 적용
+            contentToCapture.style.position = 'absolute';
+            contentToCapture.style.left = '-9999px';
+            contentToCapture.style.width = '210mm'; // A4 width
+            contentToCapture.style.padding = '15mm';
+            contentToCapture.style.boxSizing = 'border-box';
+            contentToCapture.style.backgroundColor = 'white';
+            contentToCapture.style.color = 'black';
+            document.body.appendChild(contentToCapture);
+
+            // 웹폰트가 로드되기를 기다림 (안정성)
+            await document.fonts.ready;
+
+            const canvas = await html2canvas(contentToCapture, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            });
+
+            document.body.removeChild(contentToCapture);
+
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 180; // A4 width - margins (210 - 15*2)
+            const pageHeight = 267; // A4 height - margins (297 - 15*2)
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 15; // Top margin
+
+            pdf.addImage(imgData, 'PNG', 15, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight + 15; // Recalculate position
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 15, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            const date = new Date().toISOString().split('T')[0];
+            pdf.save(`ask-anything-tarot-${date}.pdf`);
+
+        } catch (error) {
+            console.error('PDF 생성 실패:', error);
+            alert('PDF 생성에 실패했습니다. 다시 시도해 주세요.');
+        } finally {
+            pdfSaveBtn.disabled = false;
+            pdfSaveBtn.textContent = originalBtnText;
+        }
+    }
+
+    function createPDFContent() {
+        if (!appState.fullResultData) return '<h1>데이터가 없습니다.</h1>';
+        const { cardInterpretations, overallReading } = appState.fullResultData;
+        const lang = appState.language;
+
+        // 1. 선택된 카드 이미지 및 이름
+        const cardsHtml = appState.selectedCards.map((cardIndex, i) => {
+            const cardData = tarotData[cardIndex];
+            const interpretation = cardInterpretations[i];
+            return `
+                <div style="margin-bottom: 15px; page-break-inside: avoid;">
+                    <h3>${i + 1}. ${interpretation.cardName}</h3>
+                    <div style="text-align: center; margin: 10px 0;">
+                        <img src="${cardData.img}" style="max-width: 150px; border-radius: 8px;">
+                    </div>
+                    <p>${interpretation.interpretation.replace(/\n/g, '<br>')}</p>
+                </div>
+            `;
+        }).join('');
+
+        // 2. 총정리
+        const summaryHtml = `
+            <div style="margin-bottom: 15px; page-break-inside: avoid;">
+                <h2>${overallReading.title}</h2>
+                <p>${overallReading.summary.replace(/\n/g, '<br>')}</p>
+            </div>
+        `;
+        
+        // 3. AI 현실 조언
+        const actionPlan = overallReading.mbtiActionPlan;
+        const actionPlanHtml = `
+            <div style="page-break-inside: avoid;">
+                <h2>${actionPlan.title}</h2>
+                <p>${actionPlan.introduction}</p>
+                ${actionPlan.phases.map(phase => `
+                    <div style="margin-top: 10px;">
+                        <h4>${phase.phaseTitle}</h4>
+                        <ul>${phase.steps.map(step => `<li>${step}</li>`).join('')}</ul>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // 최종 HTML 조합
+        return `
+            <div style="font-family: 'Noto Sans KR', sans-serif;">
+                <h1 style="text-align: center;">ASK ANYTHING 타로 리딩</h1>
+                <p style="text-align: center;">${new Date().toLocaleDateString()}</p>
+                <hr>
+                ${cardsHtml}
+                <hr>
+                ${summaryHtml}
+                <hr>
+                ${actionPlanHtml}
+            </div>
+        `;
+    }
 
     // 이벤트 리스너 등록
     function initEventListeners() {
@@ -1263,13 +1388,12 @@ document.addEventListener('DOMContentLoaded', () => {
             resetApp();
         });
 
-        // --- PDF 저장 버튼 (임시) ---
+        // --- PDF 저장 버튼 ---
         const pdfSaveBtn = document.getElementById('pdf-save-btn');
         if (pdfSaveBtn) {
             pdfSaveBtn.addEventListener('click', () => {
                 playSound('button');
-                alert('PDF 저장 기능은 현재 준비 중입니다.'); // 임시 안내
-                // 향후 여기에 await generatePDF(); 코드가 들어갈 예정
+                generatePDF();
             });
         }
 
