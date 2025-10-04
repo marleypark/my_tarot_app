@@ -1617,3 +1617,93 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+
+/**
+ * ==========================================================
+ * BACKGROUND MUSIC CONTROLLER (Final Version)
+ * 수석 탐정 Gemini Pro 최종 검수 완료
+ * ==========================================================
+ */
+(function () {
+  'use strict';
+
+  // --- 설정 (Constants) ---
+  const STORAGE_KEY = 'isMusicOn';     // localStorage에 저장될 키
+  const BUTTON_ID = 'music-button';    // 제어할 버튼의 ID
+  const AUDIO_ID = 'backgroundMusic';  // 제어할 오디오의 ID
+  const ACTIVE_CLASS = 'sound-on';     // 'ON' 상태일 때 버튼에 추가될 CSS 클래스
+
+  // --- 요소 참조 (DOM Elements) ---
+  let musicButton = null;
+  let backgroundMusic = null;
+
+  // --- 상태 적용 함수 ---
+  // 이 함수는 음악 재생/정지 및 버튼의 시각적 상태를 모두 책임진다.
+  function applyState(isMusicOn) {
+    if (!musicButton || !backgroundMusic) return;
+
+    if (isMusicOn) {
+      // 음악을 켠다
+      const playPromise = backgroundMusic.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // 브라우저 자동 재생 정책으로 인해 실패할 경우,
+          // 사용자의 첫 상호작용을 기다렸다가 다시 재생을 시도한다.
+          console.log("Autoplay was prevented. Waiting for user interaction.");
+          const playAfterInteraction = () => backgroundMusic.play().catch(e => console.error("Playback failed again:", e));
+          document.addEventListener('click', playAfterInteraction, { once: true });
+          document.addEventListener('touchstart', playAfterInteraction, { once: true });
+        });
+      }
+      musicButton.classList.add(ACTIVE_CLASS);
+      musicButton.innerHTML = '🎵 Music ON'; // 텍스트도 변경 (선택사항)
+    } else {
+      // 음악을 끈다 (일시정지)
+      backgroundMusic.pause();
+      musicButton.classList.remove(ACTIVE_CLASS);
+      musicButton.innerHTML = '🎵 Music OFF'; // 텍스트도 변경 (선택사항)
+    }
+    console.log(`[Music Control] State set to: ${isMusicOn ? 'ON' : 'OFF'}`);
+  }
+
+  // --- 초기화 함수 ---
+  // 페이지가 로드될 때 한 번만 실행된다.
+  function init() {
+    musicButton = document.getElementById(BUTTON_ID);
+    backgroundMusic = document.getElementById(AUDIO_ID);
+
+    if (!musicButton || !backgroundMusic) {
+      console.error(`Music control elements (#${BUTTON_ID} or #${AUDIO_ID}) not found!`);
+      return;
+    }
+
+    // 1. localStorage에서 저장된 상태를 읽어온다.
+    // 저장된 값이 없으면 'true'(ON)를 기본값으로 사용한다.
+    const savedState = localStorage.getItem(STORAGE_KEY) !== 'false';
+
+    // 2. 읽어온 상태를 즉시 적용한다.
+    applyState(savedState);
+
+    // 3. 버튼에 클릭 이벤트 리스너를 추가한다.
+    musicButton.addEventListener('click', () => {
+      // 현재 상태를 반전시켜 새로운 상태를 결정한다.
+      const currentState = musicButton.classList.contains(ACTIVE_CLASS);
+      const newState = !currentState;
+
+      // 4. 새로운 상태를 localStorage에 저장한다.
+      localStorage.setItem(STORAGE_KEY, newState.toString());
+
+      // 5. 새로운 상태를 즉시 적용한다.
+      applyState(newState);
+    });
+
+    console.log('[Music Control] System Initialized.');
+  }
+
+  // DOM이 완전히 로드된 후 초기화 함수를 안전하게 실행한다.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
