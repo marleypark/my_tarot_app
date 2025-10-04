@@ -22,7 +22,7 @@ body {
     /* 핵심 수정 사항 */
     min-height: 100vh; /* 화면 전체 높이를 사용하도록 변경 */
     box-sizing: border-box; /* 패딩이 높이에 포함되도록 설정 */
-    padding-bottom: 25vh; /* 화면 하단에 25%의 여백을 추가하여 콘텐츠를 위로 밀어냄 */
+    padding-bottom: 35vh; /* 화면 하단에 35%의 여백을 추가하여 콘텐츠를 위로 밀어냄 */
     
     /* 기존 속성은 유지 */
     padding-left: 20px;
@@ -1916,4 +1916,41 @@ button:hover {
 #music-button.sound-on {
   background-color: #ff4d4d;
   box-shadow: 0 0 10px rgba(255, 77, 77, 0.7);
+}
+
+/* --- 상단 통합 내비게이션 스타일 --- */
+.top-navigation {
+    position: fixed;
+    top: 20px; /* music-button과 동일한 높이 */
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between; /* 양쪽 끝으로 버튼 그룹 정렬 */
+    align-items: center;
+    z-index: 1400; /* music-button보다 아래, 다른 콘텐츠보다 위 */
+    pointer-events: none; /* 컨테이너 자체는 클릭되지 않도록 */
+}
+
+.top-nav-group {
+    display: none; /* 기본적으로 숨김 */
+    gap: 15px;
+}
+
+.top-nav-btn {
+    pointer-events: auto; /* 버튼은 클릭 가능하도록 */
+    background: #4a4a68;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.top-nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 74, 104, 0.4);
 }

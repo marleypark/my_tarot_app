@@ -11,6 +11,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+    <!-- 👇 상단 통합 내비게이션 영역 -->
+    <div id="top-navigation-area" class="top-navigation">
+        <!-- 총정리 화면용 버튼들 -->
+        <div id="summary-top-nav" class="top-nav-group">
+            <button id="prev-stage-btn-top" class="top-nav-btn"></button>
+            <button id="next-stage-btn-top" class="top-nav-btn"></button>
+        </div>
+        <!-- 액션플랜 화면용 버튼들 -->
+        <div id="action-plan-top-nav" class="top-nav-group">
+            <button id="pdf-save-btn-top" class="top-nav-btn"></button>
+            <button id="restart-btn-top" class="top-nav-btn"></button>
+        </div>
+    </div>
+    
     <div class="app-container">
         <!-- 전역 음악 컨트롤 -->
         <div class="music-control-container">
@@ -169,15 +183,6 @@
                             <button id="action-phase-next" class="phase-nav-btn">다음 단계</button>
                         </div>
                     </section>
-                    <div class="navigation-buttons stage-navigation">
-                        <button id="prev-stage-btn" data-i18n-key="prevButton">이전</button>
-                        <button id="next-stage-btn" data-i18n-key="actionPlanButton">AI 현실조언</button>
-                    </div>
-                    <!-- 하단 네비게이션 버튼들 -->
-                    <div class="bottom-navigation">
-                        <button id="pdf-save-btn" data-i18n-key="pdfSaveButton">PDF로 저장</button>
-                        <button id="restart-btn" data-i18n-key="restartButton">처음으로</button>
-                    </div>
                 </div>
             </div>
         </div>

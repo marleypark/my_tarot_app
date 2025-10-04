@@ -176,11 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             actionPlanTitle: document.getElementById('action-plan-title'),
             actionPlanIntro: document.getElementById('action-plan-intro'),
             actionPlanPhases: document.getElementById('action-plan-phases'),
-            pdfSaveBtn: document.getElementById('pdf-save-btn'),
-            restartBtn: document.getElementById('restart-btn'),
-            stagePrevBtn: document.getElementById('prev-stage-btn'),
-            stageNextBtn: document.getElementById('next-stage-btn'),
-            stageNav: document.querySelector('.stage-navigation'),
+            // 기존 하단 네비게이션 요소들은 상단 내비게이션으로 이전됨
         },
         sounds: {
             select: document.getElementById('select-sound'),
@@ -680,15 +676,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.resultScreen.loadingSection.style.display = 'none';
         elements.resultScreen.resultSections.style.display = 'block';
         
-        // 결과 화면 진입 시 모든 하단 버튼들 숨기기
-        const pdfSaveBtn = document.getElementById('pdf-save-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const bottomNav = document.querySelector('.bottom-navigation');
-        
-        if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
-        if (restartBtn) restartBtn.style.display = 'none';
-        if (bottomNav) bottomNav.style.display = 'none';
-        
         updateResultStageContent();
     }
 
@@ -702,29 +689,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.resultScreen.summarySection.style.display = 'none';
         elements.resultScreen.actionPlanSection.style.display = 'none';
         
-        // PDF 버튼과 하단 네비게이션 버튼들 숨기기
-        const pdfSaveBtn = document.getElementById('pdf-save-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const bottomNav = document.querySelector('.bottom-navigation');
-        
-        if (pdfSaveBtn) pdfSaveBtn.style.display = 'none';
-        if (restartBtn) restartBtn.style.display = 'none';
-        if (bottomNav) bottomNav.style.display = 'none';
+        // --- 기존 내용 초기화 ---
+        document.getElementById('summary-top-nav').style.display = 'none';
+        document.getElementById('action-plan-top-nav').style.display = 'none';
         
         if (stage < CONFIG.CARDS_TO_PICK) {
             elements.resultScreen.cardSection.style.display = 'block';
             prepareCardStage(stage, cardInterpretations[stage].interpretation);
         } else if (stage === CONFIG.CARDS_TO_PICK) {
+            // 총정리 스테이지
             elements.resultScreen.summarySection.style.display = 'block';
             renderSummaryStage(overallReading);
+            // 👇 상단 내비게이션 표시
+            const summaryNav = document.getElementById('summary-top-nav');
+            summaryNav.style.display = 'flex';
+            summaryNav.innerHTML = `
+                <button id="prev-stage-btn-top" class="top-nav-btn" data-i18n-key="prevButton">이전</button>
+                <button id="next-stage-btn-top" class="top-nav-btn" data-i18n-key="actionPlanButton">AI 현실조언</button>
+            `;
+            // 이벤트 리스너 재연결
+            document.getElementById('prev-stage-btn-top').addEventListener('click', () => {
+                playSound('button');
+                // 현재 stage가 총정리(4) 또는 액션플랜(5)일 때, 마지막 카드(3)로 돌아감
+                if (appState.resultStage > CONFIG.CARDS_TO_PICK - 1) {
+                    appState.resultStage = CONFIG.CARDS_TO_PICK - 1;
+                    updateResultStageContent();
+                }
+            });
+            document.getElementById('next-stage-btn-top').addEventListener('click', () => {
+                playSound('button');
+                // 현재 stage가 총정리(4)일 때, 액션플랜(5)으로 이동
+                if (appState.resultStage === CONFIG.CARDS_TO_PICK) {
+                    appState.resultStage = CONFIG.CARDS_TO_PICK + 1;
+                    updateResultStageContent();
+                }
+            });
         } else {
+            // 액션 플랜 스테이지
             elements.resultScreen.actionPlanSection.style.display = 'block';
             renderActionPlanStage(overallReading.mbtiActionPlan);
-            // 마지막 화면에서만 PDF 버튼과 하단 네비게이션 표시
-            if (pdfSaveBtn) pdfSaveBtn.style.display = 'block';
-            if (restartBtn) restartBtn.style.display = 'block';
-            if (bottomNav) bottomNav.style.display = 'flex';
+            // 👇 상단 내비게이션 표시
+            const actionPlanNav = document.getElementById('action-plan-top-nav');
+            actionPlanNav.style.display = 'flex';
+            actionPlanNav.innerHTML = `
+                <button id="pdf-save-btn-top" class="top-nav-btn" data-i18n-key="pdfSaveButton">PDF로 저장</button>
+                <button id="restart-btn-top" class="top-nav-btn" data-i18n-key="restartButton">처음으로</button>
+            `;
+            // 이벤트 리스너 재연결
+            document.getElementById('pdf-save-btn-top').addEventListener('click', () => {
+                playSound('button');
+                generatePDF();
+            });
+            document.getElementById('restart-btn-top').addEventListener('click', () => {
+                playSound('button');
+                resetApp();
+            });
         }
+
+        // i18n 텍스트 적용
+        applyTranslations();
     }
 
     // ⭐⭐⭐ 최종 완성된 결과 카드 애니메이션 로직 ⭐⭐⭐
@@ -819,17 +842,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 3. 타이핑 효과로 총정리 텍스트 표시
         const summaryTextEl = document.getElementById('summary-text');
         if (summaryTextEl) {
-            // 다음/이전 버튼을 위한 로직 추가
-            const stageNav = document.querySelector('.stage-navigation');
-            const prevBtn = document.getElementById('prev-stage-btn');
-            const nextBtn = document.getElementById('next-stage-btn');
-            if (stageNav) stageNav.style.display = 'none'; // 타이핑 시작 전에는 숨김
-
             startTypingEffect(summaryTextEl, overallReading.summary, () => {
-                // 타이핑 완료 후 두 버튼 모두 표시
-                if (stageNav) stageNav.style.display = 'flex';
-                if (prevBtn) prevBtn.classList.add('show'); // ✅ '뒤로' 버튼 보이기
-                if (nextBtn) nextBtn.classList.add('show'); // '다음' 버튼 보이기
+                // 타이핑 완료 후 상단 내비게이션은 updateResultStageContent에서 처리됨
             });
         }
     }
@@ -901,9 +915,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             actionPlanContainer.appendChild(scrollWrapper);
         }
 
-        // --- 3. 버튼 상태 동기화 ---
-        document.querySelector('.stage-navigation').style.display = 'none';
-        document.querySelector('.bottom-navigation').style.display = 'flex';
+        // --- 3. 버튼 상태 동기화는 updateResultStageContent에서 처리됨 ---
     }
 
     // 타이핑 효과
@@ -1029,10 +1041,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // PDF 생성 함수들 (Opus-4 최종 최적화 버전)
     async function generatePDF() {
-        const pdfSaveBtn = document.getElementById('pdf-save-btn');
-        const originalBtnText = pdfSaveBtn.textContent;
-        pdfSaveBtn.disabled = true;
-        pdfSaveBtn.textContent = 'PDF 생성 중...';
+        const pdfSaveBtn = document.getElementById('pdf-save-btn-top');
+        const originalBtnText = pdfSaveBtn ? pdfSaveBtn.textContent : 'PDF로 저장';
+        if (pdfSaveBtn) {
+            pdfSaveBtn.disabled = true;
+            pdfSaveBtn.textContent = 'PDF 생성 중...';
+        }
 
         try {
             const { jsPDF } = window.jspdf;
@@ -1080,8 +1094,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('PDF 생성 실패:', error);
             alert('PDF 생성에 실패했습니다. 다시 시도해 주세요.');
         } finally {
-            pdfSaveBtn.disabled = false;
-            pdfSaveBtn.textContent = originalBtnText;
+            if (pdfSaveBtn) {
+                pdfSaveBtn.disabled = false;
+                pdfSaveBtn.textContent = originalBtnText;
+            }
         }
     }
 
@@ -1332,47 +1348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // --- "처음으로" 버튼들 ---
-        elements.resultScreen.restartBtn?.addEventListener('click', () => {
-            playSound('button');
-            resetApp();
-        });
-
-        // --- PDF 저장 버튼 ---
-        const pdfSaveBtn = document.getElementById('pdf-save-btn');
-        if (pdfSaveBtn && !pdfSaveBtn.hasAttribute('data-listener-added')) {
-            pdfSaveBtn.setAttribute('data-listener-added', 'true');
-            pdfSaveBtn.addEventListener('click', () => {
-                playSound('button');
-                generatePDF();
-            });
-        }
-
-        // --- 총정리/액션플랜 단계 네비게이션 (누락분 추가) ---
-        const stagePrevBtn = elements.resultScreen.stagePrevBtn;
-        const stageNextBtn = elements.resultScreen.stageNextBtn;
-
-        if (stagePrevBtn) {
-            stagePrevBtn.addEventListener('click', () => {
-                playSound('button');
-                // 현재 stage가 총정리(4) 또는 액션플랜(5)일 때, 마지막 카드(3)로 돌아감
-                if (appState.resultStage > CONFIG.CARDS_TO_PICK - 1) {
-                    appState.resultStage = CONFIG.CARDS_TO_PICK - 1;
-                    updateResultStageContent();
-                }
-            });
-        }
-
-        if (stageNextBtn) {
-            stageNextBtn.addEventListener('click', () => {
-                playSound('button');
-                // 현재 stage가 총정리(4)일 때, 액션플랜(5)으로 이동
-                if (appState.resultStage === CONFIG.CARDS_TO_PICK) {
-                    appState.resultStage = CONFIG.CARDS_TO_PICK + 1;
-                    updateResultStageContent();
-                }
-            });
-        }
+        // --- 기존 하단 네비게이션 이벤트 리스너들은 상단 내비게이션으로 이전됨 ---
 
         // 에러 발생 시의 "처음으로" 버튼은 fetchFullReading에서 동적으로 추가됩니다.
     }
