@@ -14,17 +14,15 @@ body {
 
 /* 새로운 리팩토링된 스타일 */
 .screen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    box-sizing: border-box;
-    padding-bottom: 10vh; /* 25vh → 10vh로 대폭 축소 */
-    padding-top: 80px;    /* 상단 네비게이션 바 공간 확보 */
-    padding-left: 20px;
-    padding-right: 20px;
-    animation: fadeIn 0.5s;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh; /* dvh for mobile viewport consistency */
+  box-sizing: border-box;
+  /* 상단 고정 내비 높이만큼 안전 여백 확보 */
+  padding: 80px 20px 40px;
+  animation: fadeIn 0.5s;
 }
 
 .screen.active {
@@ -2029,3 +2027,60 @@ button:hover {
 .stage-navigation, .bottom-navigation {
     display: none !important;
 }
+
+/* --- 상단 고정 내비게이션 --- */
+:root {
+  --top-nav-height: 56px;
+}
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0; right: 0;
+  z-index: 1500;
+  padding-top: env(safe-area-inset-top);
+  display: flex;
+  justify-content: center;
+}
+.top-nav-inner {
+  width: 100%;
+  max-width: 540px; /* app-container 보다 약간 넓게 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px;
+}
+.top-nav-left,
+.top-nav-right {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+.top-nav-right {
+  justify-content: flex-end;
+}
+.top-nav-center {
+  flex-shrink: 0;
+}
+.nav-btn {
+  background: #4a4a68;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.nav-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(74, 74, 104, 0.45); }
+
+/* --- 화면별 미세 조정 --- */
+#loading-section {
+    position: fixed; inset: 0; z-index: 2000;
+    padding: 0;
+}
+.instructions { top: 16vh; }
+.reshuffle-button { bottom: 20vh; }

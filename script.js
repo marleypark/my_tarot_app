@@ -178,6 +178,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             actionPlanPhases: document.getElementById('action-plan-phases'),
             // 기존 하단 네비게이션 요소들은 상단 내비게이션으로 이전됨
         },
+        topNav: {
+            left: document.getElementById('top-nav-left'),
+            right: document.getElementById('top-nav-right'),
+        },
         sounds: {
             select: document.getElementById('select-sound'),
             button: document.getElementById('button-sound'),
@@ -193,6 +197,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     if (elements.sounds.shuffle) {
         elements.sounds.shuffle.loop = true;
+    }
+
+    // 헬퍼 함수들
+    function clearNode(node) {
+        if (!node) return;
+        while (node.firstChild) node.removeChild(node.firstChild);
+    }
+    
+    function makeTopBtn({ id, key, label, onClick }) {
+        const btn = document.createElement('button');
+        btn.id = id;
+        btn.className = 'nav-btn';
+        if (key) {
+            btn.dataset.i18nKey = key;
+            const t = UI_TEXTS[appState.language];
+            btn.textContent = (t && getNestedTranslation(t, key)) || label || '';
+        } else {
+            btn.textContent = label || '';
+        }
+        btn.addEventListener('click', () => { playSound('button'); onClick(); });
+        return btn;
+    }
+    
+    function renderTopNavByStage() {
+        const left = elements.topNav?.left;
+        const right = elements.topNav?.right;
+        if (!left || !right) return;
+
+        clearNode(left);
+        clearNode(right);
+
+        if (appState.currentScreen !== 'result-screen' || !appState.fullResultData) return;
+
+        const stage = appState.resultStage;
+        
+        if (stage < CONFIG.CARDS_TO_PICK) {
+            // 개별 카드 해석 단계에서는 상단 버튼 비표시
+            return;
+        }
+
+        if (stage === CONFIG.CARDS_TO_PICK) { // 총정리
+            left.appendChild(makeTopBtn({
+                id: 'top-prev-btn', key: 'prevButton', label: '이전',
+                onClick: () => { appState.resultStage = CONFIG.CARDS_TO_PICK - 1; updateResultStageContent(); }
+            }));
+            right.appendChild(makeTopBtn({
+                id: 'top-action-btn', key: 'actionPlanButton', label: 'AI 현실조언',
+                onClick: () => { appState.resultStage = CONFIG.CARDS_TO_PICK + 1; updateResultStageContent(); }
+            }));
+        } else { // 액션 플랜
+            left.appendChild(makeTopBtn({
+                id: 'top-prev-btn', key: 'summaryButtonLabel', label: '총정리 보기',
+                onClick: () => { appState.resultStage = CONFIG.CARDS_TO_PICK; updateResultStageContent(); }
+            }));
+            right.appendChild(makeTopBtn({
+                id: 'top-pdf-btn', key: 'pdfSaveButton', label: 'PDF로 저장',
+                onClick: generatePDF
+            }));
+            right.appendChild(makeTopBtn({
+                id: 'top-restart-btn', key: 'restartButton', label: '처음으로',
+                onClick: resetApp
+            }));
+        }
     }
 
     // --- 4. 핵심 로직 (Core Logic) ---
@@ -215,7 +282,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     function navigateTo(screenId) {
         appState.currentScreen = screenId;
-        render(); // 오직 화면 전환과 렌더링만 담당
+        render();
+        renderTopNavByStage(); // 이 라인 추가
     }
     
     // --- 잠금 관리 로직 ---
@@ -290,10 +358,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Resetting application...");
         
         // 상단 네비게이션 비활성화
-        const navLeft = document.getElementById('nav-left');
-        const navRight = document.getElementById('nav-right');
-        if (navLeft) navLeft.classList.remove('active');
-        if (navRight) navRight.classList.remove('active');
+        const navLeft = document.getElementById('top-nav-left');
+        const navRight = document.getElementById('top-nav-right');
+        if (navLeft) clearNode(navLeft);
+        if (navRight) clearNode(navRight);
 
         clearTextGuide(); // ✅ 추가
         stopShuffleSound();
@@ -692,62 +760,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stage = appState.resultStage;
 
         stopTypingEffect();
-
-        // 모든 화면 섹션 숨기기
         elements.resultScreen.cardSection.style.display = 'none';
         elements.resultScreen.summarySection.style.display = 'none';
         elements.resultScreen.actionPlanSection.style.display = 'none';
 
-        // 상단 네비게이션 요소 가져오기 및 초기화
-        const navLeft = document.getElementById('nav-left');
-        const navRight = document.getElementById('nav-right');
-        const topPrevBtn = document.getElementById('top-prev-btn');
-        const topRestartBtn = document.getElementById('top-restart-btn');
-        const topActionBtn = document.getElementById('top-action-btn');
-        const topPdfBtn = document.getElementById('top-pdf-btn');
-
-        // 모든 상단 버튼 숨기고, 컨테이너 비활성화
-        [topPrevBtn, topRestartBtn, topActionBtn, topPdfBtn].forEach(btn => btn.style.display = 'none');
-        navLeft.classList.remove('active');
-        navRight.classList.remove('active');
-
         if (stage < CONFIG.CARDS_TO_PICK) {
-            // 개별 카드 해석 (상단 버튼 없음, 기존 인라인 버튼 사용)
             elements.resultScreen.cardSection.style.display = 'block';
             prepareCardStage(stage, cardInterpretations[stage].interpretation);
         } else if (stage === CONFIG.CARDS_TO_PICK) {
-            // 총정리
             elements.resultScreen.summarySection.style.display = 'block';
             renderSummaryStage(overallReading);
-
-            topPrevBtn.style.display = 'block';
-            topActionBtn.style.display = 'block';
-            navLeft.classList.add('active');
-            navRight.classList.add('active');
-
-            topPrevBtn.textContent = UI_TEXTS[appState.language]?.prevButton || '이전';
-            topActionBtn.textContent = UI_TEXTS[appState.language]?.actionPlanButton || 'AI 현실조언';
-            
-            topPrevBtn.onclick = () => { playSound('button'); appState.resultStage = CONFIG.CARDS_TO_PICK - 1; updateResultStageContent(); };
-            topActionBtn.onclick = () => { playSound('button'); appState.resultStage = CONFIG.CARDS_TO_PICK + 1; updateResultStageContent(); };
-
         } else {
-            // 액션 플랜
             elements.resultScreen.actionPlanSection.style.display = 'block';
             renderActionPlanStage(overallReading.mbtiActionPlan);
-
-            topRestartBtn.style.display = 'block';
-            topPdfBtn.style.display = 'block';
-            navLeft.classList.add('active');
-            navRight.classList.add('active');
-
-            topRestartBtn.textContent = UI_TEXTS[appState.language]?.restartButton || '처음으로';
-            topPdfBtn.textContent = UI_TEXTS[appState.language]?.pdfSaveButton || 'PDF로 저장';
-            
-            topRestartBtn.onclick = () => { playSound('button'); resetApp(); };
-            topPdfBtn.onclick = () => { playSound('button'); generatePDF(); };
         }
-        applyTranslations();
+        renderTopNavByStage();
     }
 
     // ⭐⭐⭐ 최종 완성된 결과 카드 애니메이션 로직 ⭐⭐⭐

@@ -11,21 +11,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <!-- 👇 새로운 상단 컨트롤 바 구조 -->
-    <div class="top-control-bar">
-        <div class="nav-left" id="nav-left">
-            <button id="top-prev-btn" class="nav-btn" style="display: none;"></button>
-            <button id="top-restart-btn" class="nav-btn" style="display: none;"></button>
+    <div id="top-navigation-area" class="top-nav">
+      <div class="top-nav-inner">
+        <div class="top-nav-left" id="top-nav-left"></div>
+        <div class="top-nav-center">
+          <button id="music-button" aria-pressed="false">🎵 Music</button>
         </div>
-        
-        <div class="nav-center">
-            <button id="music-button">🎵 Music</button>
-        </div>
-        
-        <div class="nav-right" id="nav-right">
-            <button id="top-action-btn" class="nav-btn" style="display: none;"></button>
-            <button id="top-pdf-btn" class="nav-btn" style="display: none;"></button>
-        </div>
+        <div class="top-nav-right" id="top-nav-right"></div>
+      </div>
     </div>
 
     <div class="app-container">
