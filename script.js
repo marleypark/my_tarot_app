@@ -1356,28 +1356,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- 한글 폰트 초기화 ---
-    async function initKoreanFont() {
-        try {
-            const fontUrl = '/fonts/NotoSansKR-Regular.ttf'; // public 폴더 기준 경로
-            const response = await fetch(fontUrl);
-            if (!response.ok) throw new Error('Font file not found');
-            
-            const font = await response.arrayBuffer();
-            const fontBase64 = btoa(new Uint8Array(font).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+    // async function initKoreanFont() {
+    //     try {
+    //         const fontUrl = '/fonts/NotoSansKR-Regular.ttf'; // public 폴더 기준 경로
+    //         const response = await fetch(fontUrl);
+    //         if (!response.ok) throw new Error('Font file not found');
+    //         
+    //         const font = await response.arrayBuffer();
+    //         const fontBase64 = btoa(new Uint8Array(font).reduce((data, byte) => data + String.fromCharCode(byte), ''));
 
-            const { jsPDF } = window.jspdf;
-            jsPDF.API.events.push(['addFonts', function() {
-                this.addFileToVFS('NotoSansKR-Regular.ttf', fontBase64);
-                this.addFont('NotoSansKR-Regular.ttf', 'NotoSansKR', 'normal');
-            }]);
-            console.log('Korean font for PDF initialized.');
-        } catch (error) {
-            console.warn('Could not initialize Korean font for PDF:', error);
-        }
-    }
+    //         const { jsPDF } = window.jspdf;
+    //         jsPDF.API.events.push(['addFonts', function() {
+    //             this.addFileToVFS('NotoSansKR-Regular.ttf', fontBase64);
+    //             this.addFont('NotoSansKR-Regular.ttf', 'NotoSansKR', 'normal');
+    //         }]);
+    //         console.log('Korean font for PDF initialized.');
+    //     } catch (error) {
+    //         console.warn('Could not initialize Korean font for PDF:', error);
+    //     }
+    // }
 
     // --- 앱 시작 ---
-    await initKoreanFont(); // 폰트 초기화
+    // await initKoreanFont(); // 폰트 초기화
     initEventListeners();
     
     

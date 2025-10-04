@@ -13,18 +13,8 @@
 <body>
     <div class="app-container">
         <!-- 전역 음악 컨트롤 -->
-        <div id="global-music-control" class="music-control" aria-label="Global music control">
-            <button id="music-btn" class="music-button" aria-haspopup="true" aria-expanded="false">
-                <span class="music-icon" aria-hidden="true">🎵</span>
-                <span class="music-label">Music</span>
-            </button>
-            <div id="music-slider-container" class="music-popover" role="dialog" aria-label="Music toggle">
-                <label class="switch">
-                    <input id="music-toggle" type="checkbox" aria-label="Toggle music" />
-                    <span class="slider" aria-hidden="true"></span>
-                    <span class="switch-text"><span class="on">ON</span><span class="off">OFF</span></span>
-                </label>
-            </div>
+        <div class="music-control-container">
+            <button id="music-button">🎵 Music</button>
         </div>
         
         <!-- 1. 메인 시작 화면 -->
@@ -212,7 +202,7 @@
     <audio id="handpan-sound" src="sounds/handpan.mp3" preload="metadata" loop></audio>
     <audio id="handpan2-sound" src="sounds/handpan2.mp3" preload="metadata" loop></audio>
     <audio id="cosmic-sound" src="sounds/cosmic.mp3" preload="metadata" loop></audio>
-    <audio id="backgroundMusic" src="sounds/background.mp3" preload="metadata" loop></audio>
+    <audio id="backgroundMusic" src="sounds/handpan.mp3" preload="metadata" loop></audio>
     
     <script src="translation.js"></script>
     <script src="script.js"></script>
