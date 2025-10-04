@@ -1,5 +1,27 @@
 const MUSIC_LS_KEY = 'ASK_ANYTHING_MUSIC_ON';
 
+// BGM 지휘관 코드
+const bgmTracks = {
+    main: document.getElementById('backgroundMusic'), // handpan.mp3
+    cosmic: document.getElementById('cosmic-sound'),
+    result: document.getElementById('handpan2-sound')
+};
+
+function switchBGM(trackName) { // trackName: 'main', 'cosmic', 'result', 또는 null
+    console.log(`[Music] Switching BGM to: ${trackName}`);
+    Object.values(bgmTracks).forEach(track => {
+        if (track && !track.paused) {
+            track.pause();
+        }
+    });
+
+    if (trackName && bgmTracks[trackName]) {
+        const trackToPlay = bgmTracks[trackName];
+        trackToPlay.currentTime = 0;
+        trackToPlay.play().catch(e => console.warn(`BGM '${trackName}' auto-play failed:`, e));
+    }
+}
+
 const LOADING_RIPPLES_HTML = `
   <div class="ripple-inward"></div><div class="ripple-inward"></div><div class="ripple-inward"></div>
   <div class="ripple-inward"></div><div class="ripple-inward"></div><div class="ripple-inward"></div>`;
@@ -299,6 +321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (elements.questionInput) elements.questionInput.value = '';
 
         navigateTo('main-screen');
+        switchBGM('main');
     }
 
     // --- 5. 기능별 함수들 ---
@@ -356,7 +379,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     function playSound(type) {
-        if (!appState.isMusicOn) return;
         const sound = soundCache[type] || elements.sounds[type];
         if (sound) {
             // 딜레이 최소화를 위해 즉시 재생
@@ -380,7 +402,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 타이핑 사운드 제어 함수들
     function startTypingSound() {
-        if (!appState.isMusicOn) return;
         const s = elements.sounds.typing;
         if (!s) return;
         try {
@@ -563,6 +584,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         appState.currentFetchController = controller;
 
         try {
+            switchBGM('cosmic');
             appState.isFetching = true;
             navigateTo('result-screen');
             elements.resultScreen.loadingSection.style.display = 'flex';
@@ -652,6 +674,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 결과 화면 렌더링
     function renderResultScreen() {
+        switchBGM('result');
         
         // stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
@@ -1459,25 +1482,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('audio').forEach(audioEl => {
       audioEl.muted = isMuted;
     });
-
-    // 배경음악은 음소거 해제 시 재생을 시도
-    const backgroundMusic = document.getElementById('backgroundMusic');
-    if (backgroundMusic && !isMuted) {
-      backgroundMusic.play().catch(() => {
-        // 이미 리스너가 등록되었다면 중복 방지
-        if (bgmResumeRegistered) return;
-        bgmResumeRegistered = true;
-        
-        console.log("Autoplay prevented. Waiting for the first user interaction to resume music.");
-
-        const playAfterInteraction = () => {
-          backgroundMusic.play().catch(() => {});
-        };
-        // 한번의 상호작용 후 재생을 시도하고, 플래그는 초기화할 필요 없음
-        document.addEventListener('click', playAfterInteraction, { once: true });
-        document.addEventListener('touchstart', playAfterInteraction, { once: true });
-      });
-    }
   }
 
   // 2. 버튼의 UI와 오디오 상태를 동기화하는 함수
@@ -1500,6 +1504,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const savedState = localStorage.getItem(STORAGE_KEY) === 'true';
     applyState(savedState);
+
+    // 페이지 로드 시 사운드가 ON 상태였다면 메인 BGM 재생
+    if (savedState) {
+      // 사용자의 첫 상호작용을 기다렸다가 메인 BGM 재생
+      const startMainMusic = () => switchBGM('main');
+      document.addEventListener('click', startMainMusic, { once: true });
+      document.addEventListener('touchstart', startMainMusic, { once: true });
+    }
 
     soundButton.addEventListener('click', () => {
       const currentState = soundButton.classList.contains(ACTIVE_CLASS);

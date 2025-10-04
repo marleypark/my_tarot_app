@@ -1861,7 +1861,7 @@ button:hover {
   align-items: flex-end;
   gap: 8px;
 }
-.music-button {
+#music-button {
   height: 38px;
   display: inline-flex;
   align-items: center;
