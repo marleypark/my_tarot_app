@@ -1911,3 +1911,9 @@ button:hover {
 .switch-text .off { display: inline; color: #888; }
 .switch input:checked ~ .switch-text .on { display: inline; }
 .switch input:checked ~ .switch-text .off { display: none; }
+
+/* --- Sound On Visual Feedback --- */
+#music-button.sound-on {
+  background-color: #ff4d4d;
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.7);
+}

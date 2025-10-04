@@ -202,13 +202,17 @@
         </div>
     </div>
     
-    <audio id="select-sound" src="sounds/card-select.wav"></audio>
-    <audio id="shuffle-sound" src="sounds/card-shuffle.mp3"></audio>
-    <audio id="button-sound" src="sounds/button-press.mp3"></audio>
-    <audio id="typing-sound" src="sounds/typing.mp3"></audio>
-    <audio id="handpan-sound" src="sounds/handpan.mp3"></audio>
-    <audio id="handpan2-sound" src="sounds/handpan2.mp3" preload="auto" loop></audio>
-    <audio id="cosmic-sound" src="sounds/cosmic.mp3" preload="auto" loop></audio>
+    <!-- 효과음(SFX): 짧고 즉각적인 반응이 중요하므로 'auto' -->
+    <audio id="select-sound" src="sounds/card-select.wav" preload="auto"></audio>
+    <audio id="button-sound" src="sounds/button-press.mp3" preload="auto"></audio>
+    <audio id="typing-sound" src="sounds/typing.mp3" preload="auto"></audio>
+
+    <!-- 배경음악/긴 루프 음원: 메타데이터만 우선 로드하여 초기 로딩 부담 감소 -->
+    <audio id="shuffle-sound" src="sounds/card-shuffle.mp3" preload="metadata"></audio>
+    <audio id="handpan-sound" src="sounds/handpan.mp3" preload="metadata" loop></audio>
+    <audio id="handpan2-sound" src="sounds/handpan2.mp3" preload="metadata" loop></audio>
+    <audio id="cosmic-sound" src="sounds/cosmic.mp3" preload="metadata" loop></audio>
+    <audio id="backgroundMusic" src="sounds/background.mp3" preload="metadata" loop></audio>
     
     <script src="translation.js"></script>
     <script src="script.js"></script>

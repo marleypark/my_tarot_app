@@ -270,7 +270,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     function resetApp() {
         console.log("Resetting application...");
-        // AudioManager.setTheme('main'); // ✅ 사용자 상호작용 후에만 실행되도록 제거
         clearTextGuide(); // ✅ 추가
         stopShuffleSound();
         stopTypingEffect();
@@ -443,82 +442,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // AudioManager - 음악 감독 시스템
-    const AudioManager = (() => {
-        const tracks = {
-            main:   document.getElementById('handpan-sound'),
-            result: document.getElementById('handpan2-sound'),
-            cosmic: document.getElementById('cosmic-sound'),
-        };
-        const targetVol = { main: 0.3, result: 0.32, cosmic: 0.9 };
-        let currentTheme = null;
-        let cosmicActive = false;
-
-        async function playSafe(audio) {
-            if (!audio || audio.error) return;
-            try {
-                if(audio.paused) await audio.play();
-            } catch (e) { console.warn(`Audio play failed for ${audio.id}`, e); }
-        }
-        function pauseSafe(audio) { if (audio) audio.pause(); }
-
-        async function crossfade(fromAudio, toAudio, toVol) {
-            if (!appState.isMusicOn) return;
-
-            // ✅ 방어 로직 추가
-            if (fromAudio === toAudio) {
-                if (toAudio) await playSafe(toAudio);
-                return;
-            }
-
-            await Promise.all([
-                fromAudio ? fadeAudio(fromAudio, 0, 380) : Promise.resolve(),
-                (async () => {
-                    if (toAudio) {
-                        await playSafe(toAudio);
-                        await fadeAudio(toAudio, toVol, 420);
-                    }
-                })()
-            ]);
-            if (fromAudio) pauseSafe(fromAudio);
-        }
-
-        return {
-            async setTheme(theme) { // 'main' | 'result' | null
-                if (!appState.isMusicOn || theme === currentTheme) return;
-                
-                const fromAudio = currentTheme ? tracks[currentTheme] : (cosmicActive ? tracks.cosmic : null);
-                const toAudio = theme ? tracks[theme] : null;
-                
-                await crossfade(fromAudio, toAudio, toAudio ? targetVol[theme] : 0);
-
-                currentTheme = theme;
-                if (fromAudio === tracks.cosmic) cosmicActive = false;
-            },
-            async startCosmic() {
-                if (!appState.isMusicOn || cosmicActive) return;
-                const fromAudio = currentTheme ? tracks[currentTheme] : null;
-                await crossfade(fromAudio, tracks.cosmic, targetVol.cosmic);
-                cosmicActive = true;
-                currentTheme = null;
-                appState.audio.cosmicStartedAt = Date.now();
-            },
-            async stopCosmic() {
-                if (!cosmicActive) return;
-                const elapsed = Date.now() - (appState.audio.cosmicStartedAt || 0);
-                const wait = Math.max(0, appState.audio.cosmicMinMs - elapsed);
-                
-                const endCosmic = async () => {
-                    await fadeAudio(tracks.cosmic, 0, 360);
-                    pauseSafe(tracks.cosmic);
-                    cosmicActive = false;
-                };
-
-                if (wait > 0) await new Promise(res => setTimeout(res, wait));
-                await endCosmic();
-            },
-        };
-    })();
 
 
 
@@ -645,8 +568,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.resultScreen.loadingSection.style.display = 'flex';
             elements.resultScreen.resultSections.style.display = 'none';
 
-            // ✅ 로딩 음악 시작 (fire-and-forget)
-            AudioManager.startCosmic();
 
             const cardNames = appState.selectedCards.map(index => getLocalizedCardNameByIndex(index, appState.language));
             console.log(`[API Request] cards: [${cardNames.join(', ')}], lang: ${appState.language}`);
@@ -687,7 +608,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             console.error('API Error:', err);
             
-            AudioManager.setTheme('main'); // ✅ 실패 시 메인 테마로 복귀
 
             const msg = String(err?.message || '');
             const isOverload = /503|service unavailable|unavailable|overload/i.test(msg);
@@ -732,10 +652,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 결과 화면 렌더링
     function renderResultScreen() {
-        // ✅ cosmic 음악 정리 후 결과 테마 시작
-        AudioManager.stopCosmic().then(() => {
-            AudioManager.setTheme('result');
-        });
         
         // stopLoadingTyping();
         elements.resultScreen.loadingSection.style.display = 'none';
@@ -1438,44 +1354,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 에러 발생 시의 "처음으로" 버튼은 fetchFullReading에서 동적으로 추가됩니다.
     }
 
-    // 배경음악 초기화
-    function initBackgroundMusic() {
-        const handpanSound = document.getElementById('handpan-sound');
-        const handpan2Sound = document.getElementById('handpan2-sound');
-        if (!handpanSound || !handpan2Sound) { 
-            console.log('Handpan sounds not found');
-            return; 
-        }
-
-        handpanSound.volume = 0.3;
-        handpan2Sound.volume = 0.32;
-        handpanSound.loop = true; // 첫 번째 트랙을 반복 재생
-        handpan2Sound.loop = true; // 두 번째 트랙도 반복 재생
-
-        // 사운드 프리로딩
-        handpanSound.load();
-        handpan2Sound.load();
-
-        // 전역 play/stop 함수도 AudioManager와 연결 (기존 코드 호환성)
-        window.playBgMusic = () => AudioManager.setTheme('main');
-        window.stopBgMusic = () => AudioManager.setTheme(null);
-        
-        // 첫 번째 상호작용 시 음악 시작
-        const startMusicOnFirstInteraction = () => { 
-            console.log('First interaction detected, starting music');
-            if (appState.isMusicOn) AudioManager.setTheme('main'); 
-        };
-        
-        document.addEventListener('click', startMusicOnFirstInteraction, { once: true });
-        document.addEventListener('touchstart', startMusicOnFirstInteraction, { once: true });
-        
-        // 앱 시작 시 자동으로 음악 시작 제거 (사용자 상호작용 필요)
-        // setTimeout(() => {
-        //     if (appState.isMusicOn) {
-        //         AudioManager.setTheme('main');
-        //     }
-        // }, 1000);
-    }
 
     // --- 한글 폰트 초기화 ---
     async function initKoreanFont() {
@@ -1502,67 +1380,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initKoreanFont(); // 폰트 초기화
     initEventListeners();
     
-    // --- Global Music Control Logic ---
-    function initGlobalMusicControl() {
-      const btn = document.getElementById('music-btn');
-      const popover = document.getElementById('music-slider-container');
-      const toggle = document.getElementById('music-toggle');
-      if (!btn || !popover || !toggle) return;
-
-      updateMusicUiState(appState.isMusicOn);
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        popover.classList.toggle('open');
-      });
-      document.addEventListener('click', (e) => {
-        if (!popover.contains(e.target) && !btn.contains(e.target)) {
-          popover.classList.remove('open');
-        }
-      });
-
-      toggle.addEventListener('change', async () => {
-        const on = toggle.checked;
-        appState.isMusicOn = on;
-        localStorage.setItem(MUSIC_LS_KEY, on ? '1' : '0');
-        await applyMusicState(on);
-        updateMusicUiState(on);
-      });
-    }
-
-    async function applyMusicState(on) {
-      if (on) {
-        const theme = appState.currentScreen === 'result-screen' ? 'result' : 'main';
-        await AudioManager.setTheme(theme);
-      } else {
-        await AudioManager.setTheme(null);
-        // 모든 효과음 즉시 중지
-        Object.values(elements.sounds).forEach(a => { if (a?.pause) { a.pause(); a.currentTime = 0; }});
-      }
-    }
-
-    function updateMusicUiState(on) {
-      const btn = document.getElementById('music-btn');
-      const toggle = document.getElementById('music-toggle');
-      if (toggle) toggle.checked = !!on;
-      if (btn) btn.classList.toggle('off', !on);
-    }
-
-    initGlobalMusicControl();
-    // --- End of Music Control Logic ---
     
-    initBackgroundMusic();
     preloadSounds(); // 사운드 프리로딩
-    
-    // cosmic 사운드 상태 추적 로직 추가
-    const cosmicAudioEl = document.getElementById('cosmic-sound');
-    if (cosmicAudioEl) {
-        cosmicAudioEl.addEventListener('canplaythrough', () => { appState.audio.cosmicReady = true; });
-        cosmicAudioEl.addEventListener('error', (e) => { 
-            appState.audio.cosmicError = true; 
-            console.error('Cosmic audio file error:', e);
-        });
-    }
     
     resetApp();
     
@@ -1620,87 +1439,78 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 /**
  * ==========================================================
- * BACKGROUND MUSIC CONTROLLER (Final Version)
- * 수석 탐정 Gemini Pro 최종 검수 완료
+ * SIMPLE TOGGLE GLOBAL MUTE CONTROLLER (Hardened & Finalized)
+ * - 탐정단 교차 검증 완료
+ * - 중복 리스너 방지 가드 및 접근성(aria-pressed) 동기화 적용
  * ==========================================================
  */
 (function () {
   'use strict';
 
-  // --- 설정 (Constants) ---
-  const STORAGE_KEY = 'isMusicOn';     // localStorage에 저장될 키
-  const BUTTON_ID = 'music-button';    // 제어할 버튼의 ID
-  const AUDIO_ID = 'backgroundMusic';  // 제어할 오디오의 ID
-  const ACTIVE_CLASS = 'sound-on';     // 'ON' 상태일 때 버튼에 추가될 CSS 클래스
+  const STORAGE_KEY = 'isSoundOn';
+  const BUTTON_ID = 'music-button';
+  const ACTIVE_CLASS = 'sound-on';
 
-  // --- 요소 참조 (DOM Elements) ---
-  let musicButton = null;
-  let backgroundMusic = null;
+  let soundButton = null;
+  let bgmResumeRegistered = false; // 자동재생 실패 리스너 중복 등록 방지 플래그
 
-  // --- 상태 적용 함수 ---
-  // 이 함수는 음악 재생/정지 및 버튼의 시각적 상태를 모두 책임진다.
-  function applyState(isMusicOn) {
-    if (!musicButton || !backgroundMusic) return;
+  // 1. 모든 오디오 요소의 음소거 상태를 설정하는 함수
+  function setGlobalMute(isMuted) {
+    document.querySelectorAll('audio').forEach(audioEl => {
+      audioEl.muted = isMuted;
+    });
 
-    if (isMusicOn) {
-      // 음악을 켠다
-      const playPromise = backgroundMusic.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // 브라우저 자동 재생 정책으로 인해 실패할 경우,
-          // 사용자의 첫 상호작용을 기다렸다가 다시 재생을 시도한다.
-          console.log("Autoplay was prevented. Waiting for user interaction.");
-          const playAfterInteraction = () => backgroundMusic.play().catch(e => console.error("Playback failed again:", e));
-          document.addEventListener('click', playAfterInteraction, { once: true });
-          document.addEventListener('touchstart', playAfterInteraction, { once: true });
-        });
-      }
-      musicButton.classList.add(ACTIVE_CLASS);
-      musicButton.innerHTML = '🎵 Music ON'; // 텍스트도 변경 (선택사항)
-    } else {
-      // 음악을 끈다 (일시정지)
-      backgroundMusic.pause();
-      musicButton.classList.remove(ACTIVE_CLASS);
-      musicButton.innerHTML = '🎵 Music OFF'; // 텍스트도 변경 (선택사항)
+    // 배경음악은 음소거 해제 시 재생을 시도
+    const backgroundMusic = document.getElementById('backgroundMusic');
+    if (backgroundMusic && !isMuted) {
+      backgroundMusic.play().catch(() => {
+        // 이미 리스너가 등록되었다면 중복 방지
+        if (bgmResumeRegistered) return;
+        bgmResumeRegistered = true;
+        
+        console.log("Autoplay prevented. Waiting for the first user interaction to resume music.");
+
+        const playAfterInteraction = () => {
+          backgroundMusic.play().catch(() => {});
+        };
+        // 한번의 상호작용 후 재생을 시도하고, 플래그는 초기화할 필요 없음
+        document.addEventListener('click', playAfterInteraction, { once: true });
+        document.addEventListener('touchstart', playAfterInteraction, { once: true });
+      });
     }
-    console.log(`[Music Control] State set to: ${isMusicOn ? 'ON' : 'OFF'}`);
   }
 
-  // --- 초기화 함수 ---
-  // 페이지가 로드될 때 한 번만 실행된다.
-  function init() {
-    musicButton = document.getElementById(BUTTON_ID);
-    backgroundMusic = document.getElementById(AUDIO_ID);
+  // 2. 버튼의 UI와 오디오 상태를 동기화하는 함수
+  function applyState(isSoundOn) {
+    if (soundButton) {
+      soundButton.classList.toggle(ACTIVE_CLASS, isSoundOn);
+      soundButton.setAttribute('aria-pressed', String(isSoundOn)); // 접근성 향상
+    }
+    setGlobalMute(!isSoundOn); // 사운드 On = 음소거 Off
+    console.log(`[Sound Control] Global sound state set to: ${isSoundOn ? 'ON' : 'OFF'}`);
+  }
 
-    if (!musicButton || !backgroundMusic) {
-      console.error(`Music control elements (#${BUTTON_ID} or #${AUDIO_ID}) not found!`);
+  // 3. 초기화 함수
+  function init() {
+    soundButton = document.getElementById(BUTTON_ID);
+    if (!soundButton) {
+      console.error(`Sound button (#${BUTTON_ID}) not found!`);
       return;
     }
 
-    // 1. localStorage에서 저장된 상태를 읽어온다.
-    // 저장된 값이 없으면 'true'(ON)를 기본값으로 사용한다.
-    const savedState = localStorage.getItem(STORAGE_KEY) !== 'false';
-
-    // 2. 읽어온 상태를 즉시 적용한다.
+    const savedState = localStorage.getItem(STORAGE_KEY) === 'true';
     applyState(savedState);
 
-    // 3. 버튼에 클릭 이벤트 리스너를 추가한다.
-    musicButton.addEventListener('click', () => {
-      // 현재 상태를 반전시켜 새로운 상태를 결정한다.
-      const currentState = musicButton.classList.contains(ACTIVE_CLASS);
+    soundButton.addEventListener('click', () => {
+      const currentState = soundButton.classList.contains(ACTIVE_CLASS);
       const newState = !currentState;
-
-      // 4. 새로운 상태를 localStorage에 저장한다.
       localStorage.setItem(STORAGE_KEY, newState.toString());
-
-      // 5. 새로운 상태를 즉시 적용한다.
       applyState(newState);
     });
 
-    console.log('[Music Control] System Initialized.');
+    console.log('[Sound Control] System Initialized.');
   }
 
-  // DOM이 완전히 로드된 후 초기화 함수를 안전하게 실행한다.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
