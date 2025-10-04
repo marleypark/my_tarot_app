@@ -1868,7 +1868,7 @@ button:hover {
   gap: 8px;
   padding: 0 14px;
   border-radius: 50px;
-  background: rgba(42, 42, 68, 0.8);
+  background: transparent;
   border: 1px solid #4a4a68;
   color: #e0e0e0;
   font-weight: 600;
